@@ -1,7 +1,27 @@
-import { QueryClient } from '@tanstack/react-query';
-import { apiRequest } from './api';
+import { QueryClient, MutationCache } from '@tanstack/react-query';
+import { apiRequest, isAbortError } from './api';
+
+const mutationCache = new MutationCache({
+  onError: (error: any) => {
+    if (isAbortError(error)) return;
+    const code = error?.code || 'UNKNOWN';
+    const domain = error?.domain || 'api';
+    const status = error?.status || 0;
+    const msg = code === 'BLOCKED' ? 'This action is blocked'
+      : code === 'AUTH_REQUIRED' ? 'Please sign in to continue'
+      : code === 'RATE_LIMIT' ? 'Too many requests — please wait'
+      : `Something went wrong (${code})`;
+
+    console.log('[PROOF:ERR:UI]', domain, code, error?.message?.slice(0, 120));
+
+    if (typeof window !== 'undefined' && (window as any).__toastFn) {
+      (window as any).__toastFn({ title: 'Error', description: msg, variant: 'destructive' });
+    }
+  },
+});
 
 export const queryClient = new QueryClient({
+  mutationCache,
   defaultOptions: {
     queries: {
       queryFn: async ({ queryKey }) => {
@@ -26,5 +46,4 @@ export const queryClient = new QueryClient({
   },
 });
 
-// Re-export apiRequest from api.ts for convenience
 export { apiRequest } from './api';

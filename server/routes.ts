@@ -108,7 +108,7 @@ import {
 } from "@shared/schema";
 
 import { supabase } from "./lib/supabase";
-import { isBlocked, blockedResponse } from "./lib/isBlocked";
+import { isBlocked, blockedResponse, getBlockedUserIds } from "./lib/isBlocked";
 import { perUserRateLimit } from "./middleware/perUserRateLimit";
 import { getThumbUrlsForParents, attachThumbUrls } from "./lib/mediaHelpers";
 
@@ -388,15 +388,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const listings = await storage.getDogListings(filters);
 
-      const listingIds = listings.map((l: any) => l.id).filter(Boolean);
+      const actorId = req.user?.id;
+      let filtered = listings;
+      if (actorId) {
+        const blockedIds = await getBlockedUserIds(actorId);
+        if (blockedIds.length > 0) {
+          const blockedSet = new Set(blockedIds);
+          const before = filtered.length;
+          filtered = listings.filter((l: any) => !blockedSet.has(l.seller_id) && !blockedSet.has(l.user_id));
+          const filteredCount = before - filtered.length;
+          if (filteredCount > 0) {
+            console.log('[PROOF:BLOCK:READ]', JSON.stringify({ actorUserId: actorId, filteredCount, domain: 'listings', ts: Date.now() }));
+          }
+        }
+      }
+
+      const listingIds = filtered.map((l: any) => l.id).filter(Boolean);
       const thumbMap = await getThumbUrlsForParents('listing', listingIds);
-      const augmented = attachThumbUrls(listings as any[], thumbMap);
+      const augmented = attachThumbUrls(filtered as any[], thumbMap);
 
       console.log('[PROOF:LISTINGS]', JSON.stringify({ count: augmented.length, filters: { breed: filters.breed, status: filters.status, location: filters.location, gender: filters.gender, sort: filters.sort } }));
       res.json(augmented);
     } catch (error) {
-      console.error("Error getting listings:", error);
-      res.status(500).json({ error: "Internal server error" });
+      console.error("[PROOF:LISTINGS:ERR]", { ts: new Date().toISOString(), error: String(error), stack: (error as any)?.stack });
+      res.status(500).json({ error: "LISTINGS_FAILED", code: "LISTINGS_FAILED" });
     }
   };
 
@@ -518,8 +533,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const convList = await storage.getUserConversationsWithDetails(userId);
-      console.log('[PROOF:MSG:LIST]', JSON.stringify({ actorUserId: userId, count: convList.length, ts: Date.now() }));
-      res.json(convList);
+      const blockedIds = await getBlockedUserIds(userId);
+      let filtered = convList;
+      if (blockedIds.length > 0) {
+        const blockedSet = new Set(blockedIds);
+        const before = filtered.length;
+        filtered = convList.filter((c: any) => {
+          const otherId = c.buyer_id === userId ? c.seller_id : c.buyer_id;
+          return !blockedSet.has(otherId);
+        });
+        const filteredCount = before - filtered.length;
+        if (filteredCount > 0) {
+          console.log('[PROOF:BLOCK:READ]', JSON.stringify({ actorUserId: userId, filteredCount, domain: 'conversations', ts: Date.now() }));
+        }
+      }
+      console.log('[PROOF:MSG:LIST]', JSON.stringify({ actorUserId: userId, count: filtered.length, ts: Date.now() }));
+      res.json(filtered);
     } catch (error: any) {
       console.error('[PROOF:MSG:ERR] conversations list', JSON.stringify({ error: error?.message, stack: error?.stack, ts: Date.now() }));
       res.json([]);
@@ -535,6 +564,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const detail = await storage.getConversationDetail(req.params.id, userId);
       if (!detail) {
         return res.status(404).json({ error: "Conversation not found" });
+      }
+      const otherId = (detail as any).buyer_id === userId ? (detail as any).seller_id : (detail as any).buyer_id;
+      if (otherId && await isBlocked(userId, otherId)) {
+        console.log('[PROOF:BLOCK:READ]', JSON.stringify({ actorUserId: userId, filteredCount: 1, domain: 'conversation-detail', ts: Date.now() }));
+        return blockedResponse(res);
       }
       res.json(detail);
     } catch (error: any) {
@@ -815,9 +849,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       const results = await storage.searchMessages(user.id, query);
       res.json(results);
-    } catch (error) {
-      console.error("Error searching messages:", error);
-      res.status(500).json({ error: "Internal server error" });
+    } catch (error: any) {
+      console.error('[PROOF:MSG:ERR]', JSON.stringify({ code: 'MSG_SEARCH_FAILED', error: error?.message, stack: error?.stack, ts: Date.now() }));
+      res.status(500).json({ error: "MSG_SEARCH_FAILED", code: "MSG_SEARCH_FAILED" });
     }
   });
 
@@ -838,9 +872,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const message = await storage.createMessage(validatedData);
       res.json(message);
-    } catch (error) {
-      console.error("Error creating message:", error);
-      res.status(500).json({ error: "Internal server error" });
+    } catch (error: any) {
+      console.error('[PROOF:MSG:ERR]', JSON.stringify({ code: 'MSG_CREATE_FAILED', error: error?.message, stack: error?.stack, ts: Date.now() }));
+      res.status(500).json({ error: "MSG_CREATE_FAILED", code: "MSG_CREATE_FAILED" });
     }
   });
 
@@ -1043,15 +1077,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         cursor: cursor as string,
       });
 
-      const postIds = result.map((p: any) => p.id).filter(Boolean);
+      const actorId = req.user?.id;
+      let filtered = result;
+      if (actorId) {
+        const blockedIds = await getBlockedUserIds(actorId);
+        if (blockedIds.length > 0) {
+          const blockedSet = new Set(blockedIds);
+          filtered = result.filter((p: any) => !blockedSet.has(p.user_id));
+          const filteredCount = result.length - filtered.length;
+          if (filteredCount > 0) {
+            console.log('[PROOF:BLOCK:READ]', JSON.stringify({ actorUserId: actorId, filteredCount, domain: 'posts', ts: Date.now() }));
+          }
+        }
+      }
+
+      const postIds = filtered.map((p: any) => p.id).filter(Boolean);
       const thumbMap = await getThumbUrlsForParents('post', postIds);
-      const augmented = attachThumbUrls(result as any[], thumbMap);
+      const augmented = attachThumbUrls(filtered as any[], thumbMap);
 
       console.log("[PROOF:POSTS:LIST]", { count: augmented.length, userId: userId || "all", ts: new Date().toISOString() });
       res.json(augmented);
     } catch (error) {
-      console.error("[PROOF:POSTS:ERR]", { ts: new Date().toISOString(), error: String(error) });
-      res.status(500).json({ error: "POSTS_FAILED" });
+      console.error("[PROOF:POSTS:ERR]", { ts: new Date().toISOString(), error: String(error), stack: (error as any)?.stack });
+      res.status(500).json({ error: "POSTS_FAILED", code: "POSTS_FAILED" });
     }
   });
 
@@ -1064,13 +1112,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const feedPosts = await storage.getHomeFeedPosts(userId);
-      const feedIds = (feedPosts || []).map((p: any) => p.id).filter(Boolean);
+      let filtered = feedPosts || [];
+      const blockedIds = await getBlockedUserIds(userId);
+      if (blockedIds.length > 0) {
+        const blockedSet = new Set(blockedIds);
+        const before = filtered.length;
+        filtered = filtered.filter((p: any) => !blockedSet.has(p.user_id));
+        const filteredCount = before - filtered.length;
+        if (filteredCount > 0) {
+          console.log('[PROOF:BLOCK:READ]', JSON.stringify({ actorUserId: userId, filteredCount, domain: 'home-feed', ts: Date.now() }));
+        }
+      }
+      const feedIds = filtered.map((p: any) => p.id).filter(Boolean);
       const feedThumbMap = await getThumbUrlsForParents('post', feedIds);
-      const augmentedFeed = attachThumbUrls((feedPosts || []) as any[], feedThumbMap);
+      const augmentedFeed = attachThumbUrls(filtered as any[], feedThumbMap);
       res.json(augmentedFeed);
     } catch (error) {
-      console.error('[API] Error fetching home feed:', error);
-      res.status(500).json({ error: 'Failed to fetch home feed' });
+      console.error('[PROOF:POSTS:ERR]', { domain: 'home-feed', ts: new Date().toISOString(), error: String(error), stack: (error as any)?.stack });
+      res.status(500).json({ error: 'Failed to fetch home feed', code: 'HOME_FEED_FAILED' });
     }
   });
 
@@ -1110,11 +1169,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const postId = req.params.id;
       const result = await storage.getPostCommentsWithProfiles(postId);
-      console.log("[PROOF:COMMENTS:LIST]", { postId, count: result.length, ts: new Date().toISOString() });
-      res.json(result);
+
+      const actorId = req.user?.id;
+      let filtered = result;
+      if (actorId) {
+        const blockedIds = await getBlockedUserIds(actorId);
+        if (blockedIds.length > 0) {
+          const blockedSet = new Set(blockedIds);
+          const before = filtered.length;
+          filtered = result.filter((c: any) => !blockedSet.has(c.user_id));
+          const filteredCount = before - filtered.length;
+          if (filteredCount > 0) {
+            console.log('[PROOF:BLOCK:READ]', JSON.stringify({ actorUserId: actorId, filteredCount, domain: 'comments', ts: Date.now() }));
+          }
+        }
+      }
+
+      console.log("[PROOF:COMMENTS:LIST]", { postId, count: filtered.length, ts: new Date().toISOString() });
+      res.json(filtered);
     } catch (error) {
-      console.error("[PROOF:COMMENTS:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });
-      res.status(500).json({ error: "COMMENTS_FAILED" });
+      console.error("[PROOF:COMMENTS:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error), code: 'COMMENTS_FAILED', stack: (error as any)?.stack });
+      res.status(500).json({ error: "COMMENTS_FAILED", code: "COMMENTS_FAILED" });
     }
   });
 

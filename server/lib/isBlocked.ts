@@ -18,6 +18,22 @@ export async function isBlocked(actorId: string, targetId: string): Promise<bool
   return !!block;
 }
 
+export async function getBlockedUserIds(userId: string): Promise<string[]> {
+  if (!userId) return [];
+
+  const rows = await db
+    .select({ blocker_id: blocks.blocker_id, blocked_id: blocks.blocked_id })
+    .from(blocks)
+    .where(or(eq(blocks.blocker_id, userId), eq(blocks.blocked_id, userId)));
+
+  const ids = new Set<string>();
+  for (const r of rows) {
+    if (r.blocker_id !== userId) ids.add(r.blocker_id);
+    if (r.blocked_id !== userId) ids.add(r.blocked_id);
+  }
+  return Array.from(ids);
+}
+
 export function blockedResponse(res: any) {
   return res.status(403).json({ ok: false, code: "BLOCKED", error: "interaction blocked" });
 }

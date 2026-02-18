@@ -5,6 +5,7 @@ import { eq, and, desc, sql } from "drizzle-orm";
 import { insertNotificationSchema } from "@shared/schema";
 import { emitToUser } from "../socket";
 import { alias } from "drizzle-orm/pg-core";
+import { getBlockedUserIds } from "../lib/isBlocked";
 
 const router = Router();
 
@@ -51,7 +52,21 @@ router.get("/", async (req, res) => {
       .orderBy(desc(notifications.createdAt))
       .limit(50);
 
-    const shaped = (data ?? []).map((row) => ({
+    let filteredData = data ?? [];
+    if (userId) {
+      const blockedIds = await getBlockedUserIds(userId);
+      if (blockedIds.length > 0) {
+        const blockedSet = new Set(blockedIds);
+        const before = filteredData.length;
+        filteredData = filteredData.filter((row) => !blockedSet.has(row.fromUserId || '') && !blockedSet.has(row.actorId || ''));
+        const filteredCount = before - filteredData.length;
+        if (filteredCount > 0) {
+          console.log('[PROOF:BLOCK:READ]', JSON.stringify({ actorUserId: userId, filteredCount, domain: 'notifications', ts: Date.now() }));
+        }
+      }
+    }
+
+    const shaped = filteredData.map((row) => ({
       id: row.id,
       type: row.type,
       title: row.title,
@@ -93,7 +108,7 @@ router.get("/", async (req, res) => {
 
     return res.status(200).json(shaped);
   } catch (err) {
-    console.error('Unexpected /notifications error:', err);
+    console.error('[PROOF:NOTIFS:ERR]', { error: String(err), stack: (err as any)?.stack, ts: Date.now() });
     return res.status(200).json([]);
   }
 });

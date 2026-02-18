@@ -1,6 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 
-const BACKEND_PREFIX = '/api'; // adjust if your proxy path differs
+const BACKEND_PREFIX = '/api';
 
 export const isAbortError = (err: any): boolean =>
   err?.name === 'AbortError' ||
@@ -8,6 +8,29 @@ export const isAbortError = (err: any): boolean =>
   err?.message?.toLowerCase?.().includes?.('aborted') ||
   err?.cause?.name === 'AbortError' ||
   err?.__isCanceled === true;
+
+function domainFromPath(path: string): string {
+  if (path.includes('/posts')) return 'posts';
+  if (path.includes('/comments')) return 'comments';
+  if (path.includes('/likes')) return 'likes';
+  if (path.includes('/messaging') || path.includes('/messages') || path.includes('/conversations')) return 'messages';
+  if (path.includes('/notifications')) return 'notifications';
+  if (path.includes('/listings')) return 'listings';
+  if (path.includes('/profiles')) return 'profiles';
+  if (path.includes('/follows')) return 'follows';
+  if (path.includes('/blocks')) return 'blocks';
+  if (path.includes('/media')) return 'media';
+  return 'api';
+}
+
+function extractErrorCode(text: string): string {
+  try {
+    const parsed = JSON.parse(text);
+    return parsed.code || parsed.error || 'UNKNOWN';
+  } catch {
+    return text.slice(0, 80) || 'UNKNOWN';
+  }
+}
 
 export async function apiRequest(
   path: string,
@@ -51,7 +74,14 @@ export async function apiRequest(
     clearTimeout(timeout);
     if (!res.ok) {
       const errText = await res.text();
-      throw new Error(`API request failed ${res.status}: ${errText}`);
+      const code = extractErrorCode(errText);
+      const domain = domainFromPath(path);
+      console.log('[PROOF:ERR:UI]', domain, code, `${method} ${path} → ${res.status}`);
+      const err: any = new Error(`API request failed ${res.status}: ${errText}`);
+      err.status = res.status;
+      err.code = code;
+      err.domain = domain;
+      throw err;
     }
     const responseText = await res.text();
     if (!responseText) return { success: true };
@@ -63,11 +93,12 @@ export async function apiRequest(
   } catch (e: any) {
     clearTimeout(timeout);
     if (!isAbortError(e)) {
-      const status = e?.message?.match(/failed (\d+)/)?.[1];
-      if (status === '401' || status === '403') {
-        console.debug('[apiRequest] auth error', path, status);
-      } else {
-        console.error('[apiRequest] error for', path, e?.message || e);
+      if (!e.domain) {
+        const domain = domainFromPath(path);
+        const status = e?.message?.match(/failed (\d+)/)?.[1] || 'NETWORK';
+        console.log('[PROOF:ERR:UI]', domain, status, `${method} ${path}`);
+        e.domain = domain;
+        e.code = e.code || status;
       }
     }
     throw e;

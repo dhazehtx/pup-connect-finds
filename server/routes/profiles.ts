@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { storage } from '../storage';
 import { authMiddleware } from '../middleware/auth';
 import { ensureProfile } from '../lib/ensureProfile';
+import { getBlockedUserIds } from '../lib/isBlocked';
 
 const router = Router();
 
@@ -108,10 +109,26 @@ router.get('/search', async (req: Request, res: Response) => {
     const verifiedOnly = req.query.verified === 'true';
     const limit = parseInt(req.query.limit as string) || 20;
     const results = await storage.searchProfiles(q, { userType, verifiedOnly, limit });
-    console.log('[PROOF:SEARCH]', JSON.stringify({ q, count: results.length, topUsernames: results.slice(0, 5).map(r => r.username) }));
-    res.json(results.map(shapeProfile));
+
+    const actorId = req.user?.id;
+    let filtered = results;
+    if (actorId) {
+      const blockedIds = await getBlockedUserIds(actorId);
+      if (blockedIds.length > 0) {
+        const blockedSet = new Set(blockedIds);
+        const before = filtered.length;
+        filtered = results.filter((p: any) => !blockedSet.has(p.id));
+        const filteredCount = before - filtered.length;
+        if (filteredCount > 0) {
+          console.log('[PROOF:BLOCK:READ]', JSON.stringify({ actorUserId: actorId, filteredCount, domain: 'profile-search', ts: Date.now() }));
+        }
+      }
+    }
+
+    console.log('[PROOF:SEARCH]', JSON.stringify({ q, count: filtered.length, topUsernames: filtered.slice(0, 5).map((r: any) => r.username) }));
+    res.json(filtered.map(shapeProfile));
   } catch (error: any) {
-    console.error('[PROOF:SEARCH] error', JSON.stringify({ q: req.query.q, error: error?.message, stack: error?.stack }));
+    console.error('[PROOF:SEARCH:ERR]', JSON.stringify({ q: req.query.q, error: error?.message, stack: error?.stack }));
     res.status(500).json({ error: 'Internal server error' });
   }
 });

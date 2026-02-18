@@ -15,6 +15,8 @@ import { FloatingBugReportButton } from '@/components/FloatingBugReportButton';
 import Analytics from './components/Analytics';
 import SessionExpiredModal from '@/components/auth/SessionExpiredModal';
 import OnboardingHydrator from './components/OnboardingHydrator';
+import { Toaster } from '@/components/ui/toaster';
+import { GlobalToastBridge } from '@/components/GlobalToastBridge';
 
 import { PageTransition } from './components/ui/transitions';
 import Home from './pages/Home';
@@ -478,6 +480,8 @@ function App() {
                 </PageTransition>
               </Layout>
               <Analytics />
+              <Toaster />
+              <GlobalToastBridge />
               <CookieConsentBanner />
               <SessionExpiredModal />
               <CartFab />
