@@ -1,0 +1,88 @@
+PAYMENTS MASTER — ESCROW + DEPOSITS (STRIPE CONNECT) — BUILD PLAN + IMPLEMENTATION
+
+Goal: Implement an escrow-style dog sale flow:
+- Platform holds deposit & balance
+- Listing becomes RESERVED after deposit succeeds
+- Payout to seller only after delivery proof + optional dispute window
+- Platform takes commission
+
+Hard rules:
+- Neon is source of truth for ALL payment state
+- Webhooks are the ONLY authority for “paid” states (no client trust)
+- Every payment event is idempotent and stored
+- No payout happens until release conditions met
+
+A) DB (Neon) — add tables + enums
+Create/extend tables:
+1) stripe_customers (user_id, stripe_customer_id)
+2) stripe_events (stripe_event_id UNIQUE, type, payload jsonb, processed_at, status)
+3) deals (id, listing_id, buyer_id, seller_id, total_price_cents, deposit_cents, balance_cents,
+          status enum: DRAFT, RESERVED, DEPOSIT_PAID, READY_FOR_BALANCE, PAID_IN_FULL,
+          DELIVERED_PENDING_CONFIRM, DELIVERED_CONFIRMED, DISPUTED, REFUNDED, CANCELED, EXPIRED,
+          reserved_until, created_at, updated_at)
+4) deal_payments (deal_id, kind enum: DEPOSIT|BALANCE, stripe_payment_intent_id, amount_cents, status)
+5) payouts (deal_id, stripe_transfer_id, seller_account_id, amount_cents, status)
+6) disputes (deal_id, opened_by, reason, status, resolution)
+7) entitlements/subscriptions/payments (only if not already present)
+
+B) Stripe Connect
+- Add seller onboarding endpoint: POST /api/stripe/connect/onboard
+- Store seller stripe_account_id on profile/provider table
+- Add endpoint to get onboarding status
+
+C) Deposit purchase
+Endpoint: POST /api/deals/:listingId/deposit
+- Validate listing is ACTIVE and not reserved/sold
+- Create deal row with RESERVED status + reserved_until
+- Create PaymentIntent (destination charges / separate charges+transfers pattern)
+- Return client_secret
+- On webhook payment_intent.succeeded:
+  - mark deal DEPOSIT_PAID
+  - set listing status = RESERVED
+  - write stripe_events + deal_payments
+  - emit [PROOF:DEAL:DEPOSIT_PAID]
+
+D) Balance payment
+Endpoint: POST /api/deals/:dealId/balance
+- Only allowed if status DEPOSIT_PAID
+- Create balance PaymentIntent
+- On webhook success: mark PAID_IN_FULL
+
+E) Delivery proof + release
+- Generate handoff code: POST /api/deals/:dealId/handoff-code
+- Seller submits: POST /api/deals/:dealId/mark-delivered { code }
+- Buyer confirms: POST /api/deals/:dealId/confirm-received
+- After confirmation, start dispute timer (configurable 24–72h)
+- After window passes: create payout to seller (Stripe Transfer), platform keeps commission
+- Emit [PROOF:PAYOUT:RELEASED]
+
+F) Refund & dispute rules
+- Dispute endpoint for buyer
+- Admin resolution endpoint in Admin Console:
+  - refund deposit, refund balance, partial refund, release payout, or cancel
+- Enforce: seller never receives funds before release
+
+G) Admin views
+- Add Admin Console “Billing/Deals” tab:
+  - list deals by status
+  - show deposit/balance status
+  - show payout status
+  - actions: cancel, refund, release, extend reservation, mark seller strike
+
+H) Webhook endpoint
+- POST /api/stripe/webhook verifies signature
+- Idempotency: stripe_event_id unique
+- Handle at least:
+  payment_intent.succeeded
+  payment_intent.payment_failed
+  charge.refunded
+  checkout.session.completed (if used)
+  invoice.paid / invoice.payment_failed (subscriptions)
+
+I) Proof + acceptance
+- Provide grep proof for neon-only payment state
+- Provide 1–2 proof logs per domain:
+  [PROOF:DEAL:*], [PROOF:PAYMENT:*], [PROOF:PAYOUT:*], [PROOF:WEBHOOK:*]
+- Do not claim success if a webhook path fails; provide patch.
+
+Implement this fully with migrations + routes + minimal UI wiring.
