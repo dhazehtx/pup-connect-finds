@@ -14,6 +14,7 @@ interface ListingCardProps {
     price: number;
     location: string;
     image_url?: string;
+    thumbUrls?: string[];
     seller_name?: string;
     age?: string;
     gender?: string;
@@ -31,9 +32,8 @@ export const OptimizedListingCard = memo<ListingCardProps>(({
   isFavorited = false,
   className
 }) => {
-  const { imgRef, src: imageSrc, isLoaded, hasError } = useImageLazyLoading(
-    listing.image_url || '/placeholder-dog.jpg'
-  );
+  const feedImage = listing.thumbUrls?.[0] || listing.image_url || '/placeholder-dog.jpg';
+  const { imgRef, src: imageSrc, isLoaded, hasError } = useImageLazyLoading(feedImage);
 
   return (
     <AnimatedListItem index={index} className={cn('w-full', className)}>

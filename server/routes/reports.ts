@@ -128,6 +128,7 @@ router.get('/check/:targetType/:targetId', async (req, res) => {
         sql`${reports.created_at} > NOW() - INTERVAL '24 hours'`
       ));
 
+    console.log('[PROOF:REPORT:CHECK]', JSON.stringify({ targetType, targetId, alreadyReported: !!existing, ts: Date.now() }));
     res.json({ ok: true, alreadyReported: !!existing });
   } catch (error) {
     res.status(500).json({ ok: false, error: 'Failed to check report status' });

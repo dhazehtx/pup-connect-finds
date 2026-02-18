@@ -31,6 +31,7 @@ interface PostCardProps {
     content: string;
     image_url?: string;
     images?: string[];
+    thumbUrls?: string[];
     video_url?: string;
     videos?: string[];
     post_type: string;
@@ -78,28 +79,20 @@ export const PostCard: React.FC<PostCardProps> = ({
 
   // Get media to display
   const getMediaContent = () => {
-    // Multiple images
-    if (post.images && post.images.length > 0) {
+    const feedImages = post.thumbUrls && post.thumbUrls.length > 0
+      ? post.thumbUrls
+      : post.images && post.images.length > 0
+        ? post.images
+        : post.image_url ? [post.image_url] : null;
+
+    if (feedImages && feedImages.length > 0) {
       return (
         <ImageCarousel 
-          images={post.images}
+          images={feedImages}
           alt={post.title || 'Post image'}
           aspectRatio="square"
-          showIndicators={true}
-          showNavigation={true}
-        />
-      );
-    }
-    
-    // Legacy single image
-    if (post.image_url) {
-      return (
-        <ImageCarousel 
-          images={[post.image_url]}
-          alt={post.title || 'Post image'}
-          aspectRatio="square"
-          showIndicators={false}
-          showNavigation={false}
+          showIndicators={feedImages.length > 1}
+          showNavigation={feedImages.length > 1}
         />
       );
     }

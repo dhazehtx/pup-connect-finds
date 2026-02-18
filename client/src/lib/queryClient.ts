@@ -12,6 +12,9 @@ const mutationCache = new MutationCache({
       : code === 'RATE_LIMIT' ? 'Too many requests — please wait'
       : `Something went wrong (${code})`;
 
+    if (status === 429 || code === 'RATE_LIMIT') {
+      console.log('[PROOF:RATE_LIMIT:UI]', JSON.stringify({ route: domain, ts: Date.now() }));
+    }
     console.log('[PROOF:ERR:UI]', domain, code, error?.message?.slice(0, 120));
 
     if (typeof window !== 'undefined' && (window as any).__toastFn) {

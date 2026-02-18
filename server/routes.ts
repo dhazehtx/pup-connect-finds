@@ -407,6 +407,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const thumbMap = await getThumbUrlsForParents('listing', listingIds);
       const augmented = attachThumbUrls(filtered as any[], thumbMap);
 
+      const usedThumb = augmented.some((l: any) => l.thumbUrls && l.thumbUrls.length > 0 && thumbMap.has(l.id));
+      console.log("[PROOF:MEDIA:FEED]", JSON.stringify({ domain: "listings", usedThumb, count: augmented.length, ts: Date.now() }));
       console.log('[PROOF:LISTINGS]', JSON.stringify({ count: augmented.length, filters: { breed: filters.breed, status: filters.status, location: filters.location, gender: filters.gender, sort: filters.sort } }));
       res.json(augmented);
     } catch (error) {
@@ -1095,6 +1097,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const thumbMap = await getThumbUrlsForParents('post', postIds);
       const augmented = attachThumbUrls(filtered as any[], thumbMap);
 
+      const usedThumb = augmented.some((p: any) => p.thumbUrls && p.thumbUrls.length > 0 && thumbMap.has(p.id));
+      console.log("[PROOF:MEDIA:FEED]", JSON.stringify({ domain: "posts", usedThumb, count: augmented.length, ts: Date.now() }));
       console.log("[PROOF:POSTS:LIST]", { count: augmented.length, userId: userId || "all", ts: new Date().toISOString() });
       res.json(augmented);
     } catch (error) {

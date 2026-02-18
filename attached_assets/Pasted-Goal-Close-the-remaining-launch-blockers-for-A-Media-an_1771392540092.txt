@@ -1,0 +1,168 @@
+Goal: Close the remaining launch blockers for (A) Media and (B) Trust/Safety, and output a proof-based report. Neon is data plane; Supabase is auth + storage only.
+
+A) MEDIA — make feeds fast + uploads reliable (must implement + prove)
+
+A1) Thumbnails end-to-end (posts + listings)
+
+Ensure media records support both publicUrl and thumbUrl (or thumbPath).
+
+Server: Update feed endpoints to return preferredUrl = thumbUrl ?? publicUrl for list/feed contexts:
+
+GET /api/posts (feed)
+
+GET /api/listings (explore/feed)
+
+Client: Feed cards MUST render preferredUrl (thumb) and only use full publicUrl on detail view/modal.
+
+Proof logs (server):
+
+[PROOF:MEDIA:FEED] { domain:"posts", usedThumb:boolean, ts }
+
+[PROOF:MEDIA:FEED] { domain:"listings", usedThumb:boolean, ts }
+
+A2) Upload progress + retry
+
+Client: Create a shared uploader hook that supports:
+
+progress % (for image + video)
+
+retry button on failure (at least 2 retries)
+
+cancel upload (optional)
+
+Use existing /api/media/sign + /api/media/commit flow (no direct DB writes from client).
+
+Proof logs (client):
+
+console.log('[PROOF:UPLOAD]', { parentType, parentId, filename, pct })
+
+console.log('[PROOF:UPLOAD:RETRY]', { attempt, filename })
+
+A3) Strict validation (server + client)
+
+Enforce limits BOTH sides:
+
+Allowed types: image/jpeg, image/png, image/webp, video/mp4, video/webm (adjust if app supports more)
+
+Max sizes: images 10MB, videos 100MB (or choose sensible defaults)
+
+Max counts: posts 1–10 media, listings 1–20 media (pick what your UI expects)
+
+Server must return 4xx with structured errors:
+
+{ ok:false, code:"MEDIA_INVALID_TYPE" | "MEDIA_TOO_LARGE" | "MEDIA_TOO_MANY", error:"..." }
+
+Client must toast the exact error and log one line:
+
+console.log('[PROOF:MEDIA:TOAST]', code)
+
+A4) Cleanup + orphan sweeper
+
+Confirm delete routes call storage cleanup:
+
+delete post → deletes its media (DB + storage objects)
+
+delete listing → deletes its media
+
+Add/verify dev/admin endpoint:
+
+POST /api/media/sweep-orphans
+
+Returns { ok:true, deletedCount:number }
+
+Guarded by NODE_ENV !== 'production'
+
+Proof log:
+
+[PROOF:MEDIA:SWEEP] { deletedCount, ts }
+
+B) TRUST/SAFETY — enforce block on READ + UX hardening (must implement + prove)
+
+B1) Block-on-read everywhere
+
+Implement a shared helper: filterBlocked(actorUserId, rows) OR apply SQL filters so blocked users are excluded from:
+
+Home feed posts
+
+Explore listings
+
+Search results (profiles/listings)
+
+Comments list
+
+Messages list / conversations list
+
+Notifications list (optional but recommended)
+
+Behavior:
+
+Blocked users’ content should not appear at all (not even “unavailable” placeholders).
+
+Proof logs:
+
+[PROOF:BLOCK:READ] { route, actorUserId, removed:number, ts }
+
+B2) Report UX lockout + dedupe clarity
+
+Client: After submitting a report:
+
+show “Reported” toast
+
+disable the report button for that target for the session
+
+if server returns “already reported” → toast “Already reported”
+
+Add a lightweight check endpoint if not already present:
+
+GET /api/reports/check?targetType=&targetId=
+
+returns { ok:true, alreadyReported:boolean }
+
+Proof logs:
+
+[PROOF:REPORT:CHECK] { targetType, targetId, alreadyReported, ts }
+
+B3) Rate limit UX verification + tuning
+
+Ensure rate-limited responses are consistent:
+
+429 { ok:false, code:"RATE_LIMIT", error:"..." }
+
+Client must toast and log one line for 429s:
+
+console.log('[PROOF:RATE_LIMIT:UI]', { route, ts })
+
+C) REQUIRED PROOF RUN (must do and paste results)
+
+Run these as an authenticated user via UI (not just curl):
+
+Upload avatar (show progress)
+
+Create a post with image (thumb used in feed)
+
+Create listing with 3 images (thumbs used in explore)
+
+Like + comment, refresh, confirm persistence
+
+Block a user, confirm their posts/listings/comments disappear from read views
+
+Delete post/listing, confirm media cleanup + run sweep-orphans (dev) shows 0 or expected number
+
+D) Closeout report (must output)
+
+PASS/FAIL table for steps above
+
+Files changed (server + client)
+
+Proof logs (at least 1–2 lines each):
+
+MEDIA:FEED, MEDIA:SIGN/COMMIT or upload logs, MEDIA:SWEEP
+
+BLOCK:READ
+
+REPORT:CHECK
+
+RATE_LIMIT:UI
+Rules:
+
+Do NOT claim success if any step fails. If fail: show exact failure + the next patch prompt.

@@ -15,6 +15,7 @@ interface ListingCardProps {
     price: number;
     location?: string;
     image_url?: string;
+    thumbUrls?: string[];
     created_at: string;
     profiles?: {
       full_name?: string;
@@ -37,7 +38,7 @@ const ListingCard = ({ listing, onFavorite, isFavorited }: ListingCardProps) => 
       <Card className="overflow-hidden hover:shadow-lg transition-all duration-200 border-0 shadow-md bg-white">
         <div className="aspect-square relative overflow-hidden">
           <img
-            src={listing.image_url || '/placeholder.svg'}
+            src={listing.thumbUrls?.[0] || listing.image_url || '/placeholder.svg'}
             alt={listing.dog_name}
             className="w-full h-full object-cover"
             onError={(e) => {

@@ -77,7 +77,7 @@ const ListingCard = ({
         {/* Optimized Image with lazy loading */}
         <div className="aspect-[4/3] overflow-hidden">
           <LazyImage
-            src={listing.image_url || '/placeholder.svg'}
+            src={listing.thumbUrls?.[0] || listing.image_url || '/placeholder.svg'}
             alt={listing.dog_name}
             className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
             onLoad={() => setImageLoaded(true)}

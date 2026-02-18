@@ -150,7 +150,7 @@ export default function ListingsGrid() {
             <Card key={listing.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate(`/listing/${listing.id}`)}>
               <div className="relative aspect-square">
                 <img
-                  src={listing.image_url || '/api/placeholder/300/300'}
+                  src={listing.thumbUrls?.[0] || listing.image_url || '/api/placeholder/300/300'}
                   alt={listing.dog_name}
                   className="w-full h-full object-cover"
                   onError={(e) => {

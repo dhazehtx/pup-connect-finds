@@ -71,9 +71,9 @@ export function attachThumbUrls<T extends { id: string; images?: string[] | null
 
 export const MEDIA_LIMITS = {
   avatar: { maxBytes: 5 * 1024 * 1024, maxCount: 1 },
-  post_image: { maxBytes: 15 * 1024 * 1024, maxCount: 10 },
-  post_video: { maxBytes: 80 * 1024 * 1024, maxCount: 1 },
-  listing: { maxBytes: 15 * 1024 * 1024, maxCount: 8 },
+  post_image: { maxBytes: 10 * 1024 * 1024, maxCount: 10 },
+  post_video: { maxBytes: 100 * 1024 * 1024, maxCount: 1 },
+  listing: { maxBytes: 10 * 1024 * 1024, maxCount: 20 },
 } as const;
 
 export const ALLOWED_IMAGE_TYPES = [
@@ -93,14 +93,14 @@ export function validateMediaUpload(
   existingCount: number = 0
 ): { valid: boolean; code?: string; message?: string } {
   if (!ALL_ALLOWED_TYPES.includes(mimeType)) {
-    return { valid: false, code: 'MEDIA_INVALID', message: `Unsupported file type: ${mimeType}` };
+    return { valid: false, code: 'MEDIA_INVALID_TYPE', message: `Unsupported file type: ${mimeType}` };
   }
 
   const isVideo = ALLOWED_VIDEO_TYPES.includes(mimeType);
 
   if (kind === 'avatar') {
     if (isVideo) {
-      return { valid: false, code: 'MEDIA_INVALID', message: 'Avatars must be images, not videos' };
+      return { valid: false, code: 'MEDIA_INVALID_TYPE', message: 'Avatars must be images, not videos' };
     }
     if (sizeBytes && sizeBytes > MEDIA_LIMITS.avatar.maxBytes) {
       return { valid: false, code: 'MEDIA_TOO_LARGE', message: 'Avatar must be under 5MB' };
@@ -108,11 +108,11 @@ export function validateMediaUpload(
   } else if (kind === 'post') {
     if (isVideo) {
       if (sizeBytes && sizeBytes > MEDIA_LIMITS.post_video.maxBytes) {
-        return { valid: false, code: 'MEDIA_TOO_LARGE', message: 'Post video must be under 80MB' };
+        return { valid: false, code: 'MEDIA_TOO_LARGE', message: 'Post video must be under 100MB' };
       }
     } else {
       if (sizeBytes && sizeBytes > MEDIA_LIMITS.post_image.maxBytes) {
-        return { valid: false, code: 'MEDIA_TOO_LARGE', message: 'Post image must be under 15MB' };
+        return { valid: false, code: 'MEDIA_TOO_LARGE', message: 'Post image must be under 10MB' };
       }
     }
     if (existingCount >= MEDIA_LIMITS.post_image.maxCount) {
@@ -120,13 +120,13 @@ export function validateMediaUpload(
     }
   } else if (kind === 'listing') {
     if (isVideo) {
-      return { valid: false, code: 'MEDIA_INVALID', message: 'Listings only accept images' };
+      return { valid: false, code: 'MEDIA_INVALID_TYPE', message: 'Listings only accept images' };
     }
     if (sizeBytes && sizeBytes > MEDIA_LIMITS.listing.maxBytes) {
-      return { valid: false, code: 'MEDIA_TOO_LARGE', message: 'Listing image must be under 15MB' };
+      return { valid: false, code: 'MEDIA_TOO_LARGE', message: 'Listing image must be under 10MB' };
     }
     if (existingCount >= MEDIA_LIMITS.listing.maxCount) {
-      return { valid: false, code: 'MEDIA_TOO_MANY', message: 'Maximum 8 images per listing' };
+      return { valid: false, code: 'MEDIA_TOO_MANY', message: 'Maximum 20 images per listing' };
     }
   }
 

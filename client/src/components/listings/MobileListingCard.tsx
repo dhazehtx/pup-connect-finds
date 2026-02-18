@@ -73,7 +73,7 @@ const MobileListingCard = ({
         {/* Image */}
         <div className="aspect-[4/3] overflow-hidden">
           <img
-            src={listing.image_url || '/placeholder.svg'}
+            src={listing.thumbUrls?.[0] || listing.image_url || '/placeholder.svg'}
             alt={listing.dog_name}
             className="w-full h-full object-cover"
             loading="lazy"
