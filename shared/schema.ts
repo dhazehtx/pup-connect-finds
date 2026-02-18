@@ -73,6 +73,9 @@ export const dogListings = pgTable("dog_listings", {
   rehoming: boolean("rehoming").default(false),
   status: text("status").default("active"),
   listing_status: text("listing_status").default("active"),
+  deleted_at: timestamp("deleted_at", { withTimezone: true }),
+  deleted_by: uuid("deleted_by"),
+  delete_reason: text("delete_reason"),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
 });
@@ -94,6 +97,9 @@ export const mediaAssets = pgTable("media_assets", {
   public_url: text("public_url"),
   is_thumb: boolean("is_thumb").default(false),
   parent_asset_id: uuid("parent_asset_id"),
+  deleted_at: timestamp("deleted_at", { withTimezone: true }),
+  deleted_by: uuid("deleted_by"),
+  purge_after: timestamp("purge_after", { withTimezone: true }),
   created_at: timestamp("created_at").defaultNow(),
 });
 
@@ -168,6 +174,9 @@ export const posts = pgTable("posts", {
   views_count: integer("views_count").default(0),
   duration: integer("duration"),
   status: text("status").default("active"),
+  deleted_at: timestamp("deleted_at", { withTimezone: true }),
+  deleted_by: uuid("deleted_by"),
+  delete_reason: text("delete_reason"),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
 });

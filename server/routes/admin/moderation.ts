@@ -563,4 +563,200 @@ router.post('/media/sweep-orphans', async (req, res) => {
   }
 });
 
+// ── Trash management ──────────────────────────────────────────────
+
+router.get('/trash', async (req, res) => {
+  try {
+    const type = (req.query.type as string) || 'all';
+    const limit = Math.min(parseInt(req.query.limit as string) || 50, 200);
+
+    let trashedPosts: any[] = [];
+    let trashedListings: any[] = [];
+    let trashedMedia: any[] = [];
+
+    if (type === 'all' || type === 'posts') {
+      trashedPosts = await db
+        .select({
+          id: posts.id,
+          title: posts.title,
+          content: posts.content,
+          user_id: posts.user_id,
+          deleted_at: posts.deleted_at,
+          deleted_by: posts.deleted_by,
+          delete_reason: posts.delete_reason,
+          created_at: posts.created_at,
+          username: profiles.username,
+        })
+        .from(posts)
+        .leftJoin(profiles, eq(posts.user_id, profiles.id))
+        .where(sql`${posts.deleted_at} IS NOT NULL`)
+        .orderBy(desc(posts.deleted_at))
+        .limit(limit);
+    }
+
+    if (type === 'all' || type === 'listings') {
+      trashedListings = await db
+        .select({
+          id: dogListings.id,
+          dog_name: dogListings.dog_name,
+          breed: dogListings.breed,
+          price: dogListings.price,
+          user_id: dogListings.user_id,
+          deleted_at: dogListings.deleted_at,
+          deleted_by: dogListings.deleted_by,
+          delete_reason: dogListings.delete_reason,
+          created_at: dogListings.created_at,
+          username: profiles.username,
+        })
+        .from(dogListings)
+        .leftJoin(profiles, eq(dogListings.user_id, profiles.id))
+        .where(sql`${dogListings.deleted_at} IS NOT NULL`)
+        .orderBy(desc(dogListings.deleted_at))
+        .limit(limit);
+    }
+
+    if (type === 'all' || type === 'media') {
+      trashedMedia = await db
+        .select()
+        .from(mediaAssets)
+        .where(sql`${mediaAssets.deleted_at} IS NOT NULL`)
+        .orderBy(desc(mediaAssets.deleted_at))
+        .limit(limit);
+    }
+
+    console.log('[PROOF:ADMIN:TRASH:LIST]', JSON.stringify({ type, postCount: trashedPosts.length, listingCount: trashedListings.length, mediaCount: trashedMedia.length, ts: Date.now() }));
+
+    res.json({
+      posts: trashedPosts,
+      listings: trashedListings,
+      media: trashedMedia,
+    });
+  } catch (error) {
+    console.error('[PROOF:ADMIN:TRASH:ERR]', error);
+    res.status(500).json({ ok: false, error: 'Failed to fetch trash' });
+  }
+});
+
+router.get('/trash/stats', async (req, res) => {
+  try {
+    const [postCount] = await db.select({ count: sql<number>`count(*)` }).from(posts).where(sql`${posts.deleted_at} IS NOT NULL`);
+    const [listingCount] = await db.select({ count: sql<number>`count(*)` }).from(dogListings).where(sql`${dogListings.deleted_at} IS NOT NULL`);
+    const [mediaCount] = await db.select({ count: sql<number>`count(*)` }).from(mediaAssets).where(sql`${mediaAssets.deleted_at} IS NOT NULL`);
+    const [expiredMedia] = await db.select({ count: sql<number>`count(*)` }).from(mediaAssets).where(and(
+      sql`${mediaAssets.deleted_at} IS NOT NULL`,
+      sql`${mediaAssets.purge_after} IS NOT NULL`,
+      sql`${mediaAssets.purge_after} < NOW()`
+    ));
+
+    res.json({
+      posts: Number(postCount?.count || 0),
+      listings: Number(listingCount?.count || 0),
+      media: Number(mediaCount?.count || 0),
+      expiredMedia: Number(expiredMedia?.count || 0),
+    });
+  } catch (error) {
+    console.error('[PROOF:ADMIN:TRASH:ERR]', error);
+    res.status(500).json({ ok: false, error: 'Failed to fetch trash stats' });
+  }
+});
+
+router.post('/trash/purge', async (req, res) => {
+  try {
+    const { type, ids } = req.body;
+    const adminId = req.user?.id;
+    let purgedPosts = 0, purgedListings = 0, purgedMedia = 0;
+
+    if (type === 'expired-media' || type === 'all-media') {
+      const condition = type === 'expired-media'
+        ? and(sql`${mediaAssets.deleted_at} IS NOT NULL`, sql`${mediaAssets.purge_after} IS NOT NULL`, sql`${mediaAssets.purge_after} < NOW()`)
+        : sql`${mediaAssets.deleted_at} IS NOT NULL`;
+
+      const toDelete = await db.select({ id: mediaAssets.id, path: mediaAssets.path, bucket: mediaAssets.bucket }).from(mediaAssets).where(condition);
+
+      for (const m of toDelete) {
+        try {
+          if (supabaseAdmin && m.path && m.bucket) {
+            await supabaseAdmin.storage.from(m.bucket).remove([m.path]);
+          }
+        } catch {}
+      }
+
+      if (toDelete.length > 0) {
+        const deleted = await db.delete(mediaAssets).where(inArray(mediaAssets.id, toDelete.map(m => m.id)));
+        purgedMedia = deleted.rowCount ?? 0;
+      }
+    }
+
+    if (type === 'posts' && ids?.length) {
+      const deleted = await db.delete(posts).where(and(inArray(posts.id, ids), sql`${posts.deleted_at} IS NOT NULL`));
+      purgedPosts = deleted.rowCount ?? 0;
+    }
+
+    if (type === 'listings' && ids?.length) {
+      const deleted = await db.delete(dogListings).where(and(inArray(dogListings.id, ids), sql`${dogListings.deleted_at} IS NOT NULL`));
+      purgedListings = deleted.rowCount ?? 0;
+    }
+
+    if (type === 'all') {
+      const dp = await db.delete(posts).where(sql`${posts.deleted_at} IS NOT NULL`);
+      purgedPosts = dp.rowCount ?? 0;
+      const dl = await db.delete(dogListings).where(sql`${dogListings.deleted_at} IS NOT NULL`);
+      purgedListings = dl.rowCount ?? 0;
+
+      const toDeleteMedia = await db.select({ id: mediaAssets.id, path: mediaAssets.path, bucket: mediaAssets.bucket }).from(mediaAssets).where(sql`${mediaAssets.deleted_at} IS NOT NULL`);
+      for (const m of toDeleteMedia) {
+        try {
+          if (supabaseAdmin && m.path && m.bucket) {
+            await supabaseAdmin.storage.from(m.bucket).remove([m.path]);
+          }
+        } catch {}
+      }
+      if (toDeleteMedia.length > 0) {
+        const dm = await db.delete(mediaAssets).where(inArray(mediaAssets.id, toDeleteMedia.map(m => m.id)));
+        purgedMedia = dm.rowCount ?? 0;
+      }
+    }
+
+    console.log('[PROOF:ADMIN:TRASH:PURGE]', JSON.stringify({ adminId, type, purgedPosts, purgedListings, purgedMedia, ts: Date.now() }));
+    res.json({ ok: true, purgedPosts, purgedListings, purgedMedia });
+  } catch (error) {
+    console.error('[PROOF:ADMIN:TRASH:ERR]', error);
+    res.status(500).json({ ok: false, error: 'Failed to purge trash' });
+  }
+});
+
+router.post('/trash/restore', async (req, res) => {
+  try {
+    const { type, ids } = req.body;
+    const adminId = req.user?.id;
+    let restoredCount = 0;
+
+    if (type === 'posts' && ids?.length) {
+      const result = await db.update(posts).set({ deleted_at: null, deleted_by: null, delete_reason: null }).where(and(inArray(posts.id, ids), sql`${posts.deleted_at} IS NOT NULL`));
+      restoredCount = result.rowCount ?? 0;
+      await db.update(mediaAssets).set({ deleted_at: null, deleted_by: null, purge_after: null }).where(and(
+        eq(mediaAssets.parent_type, 'post'),
+        inArray(mediaAssets.parent_id, ids),
+        sql`${mediaAssets.deleted_at} IS NOT NULL`
+      ));
+    }
+
+    if (type === 'listings' && ids?.length) {
+      const result = await db.update(dogListings).set({ deleted_at: null, deleted_by: null, delete_reason: null }).where(and(inArray(dogListings.id, ids), sql`${dogListings.deleted_at} IS NOT NULL`));
+      restoredCount = result.rowCount ?? 0;
+      await db.update(mediaAssets).set({ deleted_at: null, deleted_by: null, purge_after: null }).where(and(
+        eq(mediaAssets.parent_type, 'listing'),
+        inArray(mediaAssets.parent_id, ids),
+        sql`${mediaAssets.deleted_at} IS NOT NULL`
+      ));
+    }
+
+    console.log('[PROOF:ADMIN:TRASH:RESTORE]', JSON.stringify({ adminId, type, ids, restoredCount, ts: Date.now() }));
+    res.json({ ok: true, restoredCount });
+  } catch (error) {
+    console.error('[PROOF:ADMIN:TRASH:ERR]', error);
+    res.status(500).json({ ok: false, error: 'Failed to restore from trash' });
+  }
+});
+
 export default router;

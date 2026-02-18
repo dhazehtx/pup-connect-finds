@@ -10,7 +10,8 @@ import { useToast } from '@/hooks/use-toast';
 import {
   Shield, AlertTriangle, X, Eye, Check, Ban, Trash2,
   UserX, UserCheck, ChevronLeft, Clock, FileText,
-  Search, Unlink, Activity, HardDrive, Loader2
+  Search, Unlink, Activity, HardDrive, Loader2,
+  RotateCcw, Flame, Archive
 } from 'lucide-react';
 
 type Report = {
@@ -42,6 +43,7 @@ const tabs = [
   { key: 'blocks', label: 'Blocks', icon: Ban },
   { key: 'media', label: 'Media', icon: HardDrive },
   { key: 'ratelimits', label: 'Rate Limits', icon: Activity },
+  { key: 'trash', label: 'Trash', icon: Archive },
 ] as const;
 
 type TabKey = typeof tabs[number]['key'];
@@ -441,6 +443,173 @@ function RateLimitsTab() {
   );
 }
 
+function TrashTab() {
+  const { toast } = useToast();
+  const [trashFilter, setTrashFilter] = useState<'all' | 'posts' | 'listings' | 'media'>('all');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  const statsQuery = useQuery<{ posts: number; listings: number; media: number; expiredMedia: number }>({
+    queryKey: ['/api/admin/moderation/trash/stats'],
+    queryFn: () => fetch('/api/admin/moderation/trash/stats', { credentials: 'include' }).then(r => r.json()),
+  });
+
+  const trashQuery = useQuery<{ posts: any[]; listings: any[]; media: any[] }>({
+    queryKey: ['/api/admin/moderation/trash', trashFilter],
+    queryFn: () => fetch(`/api/admin/moderation/trash?type=${trashFilter}`, { credentials: 'include' }).then(r => r.json()),
+  });
+
+  const restoreMutation = useMutation({
+    mutationFn: ({ type, ids }: { type: string; ids: string[] }) =>
+      apiRequest('/api/admin/moderation/trash/restore', { method: 'POST', body: { type, ids } }),
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/moderation/trash'] });
+      toast({ title: `Restored ${vars.ids.length} item(s)` });
+      setSelectedIds(new Set());
+    },
+    onError: () => toast({ title: 'Restore failed', variant: 'destructive' }),
+  });
+
+  const purgeMutation = useMutation({
+    mutationFn: ({ type, ids }: { type: string; ids?: string[] }) =>
+      apiRequest('/api/admin/moderation/trash/purge', { method: 'POST', body: { type, ids } }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/moderation/trash'] });
+      toast({ title: 'Purge complete' });
+      setSelectedIds(new Set());
+    },
+    onError: () => toast({ title: 'Purge failed', variant: 'destructive' }),
+  });
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const stats = statsQuery.data;
+  const data = trashQuery.data;
+  const allItems = [
+    ...(data?.posts || []).map((p: any) => ({ ...p, _type: 'posts' as const })),
+    ...(data?.listings || []).map((l: any) => ({ ...l, _type: 'listings' as const })),
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          { label: 'Posts', value: stats?.posts ?? '-', color: 'text-blue-600' },
+          { label: 'Listings', value: stats?.listings ?? '-', color: 'text-purple-600' },
+          { label: 'Media', value: stats?.media ?? '-', color: 'text-orange-600' },
+          { label: 'Expired Media', value: stats?.expiredMedia ?? '-', color: 'text-red-600' },
+        ].map(s => (
+          <Card key={s.label}>
+            <CardContent className="pt-4 pb-3 text-center">
+              <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+              <p className="text-xs text-muted-foreground">{s.label}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        {(['all', 'posts', 'listings', 'media'] as const).map(f => (
+          <Button key={f} variant={trashFilter === f ? 'default' : 'outline'} size="sm" onClick={() => { setTrashFilter(f); setSelectedIds(new Set()); }}>
+            {f.charAt(0).toUpperCase() + f.slice(1)}
+          </Button>
+        ))}
+        <div className="ml-auto flex gap-2">
+          {selectedIds.size > 0 && (
+            <>
+              <Button size="sm" variant="outline" onClick={() => {
+                const grouped = new Map<string, string[]>();
+                allItems.filter(i => selectedIds.has(i.id)).forEach(i => {
+                  const arr = grouped.get(i._type) || [];
+                  arr.push(i.id);
+                  grouped.set(i._type, arr);
+                });
+                grouped.forEach((ids, type) => restoreMutation.mutate({ type, ids }));
+              }} disabled={restoreMutation.isPending}>
+                <RotateCcw className="h-3.5 w-3.5 mr-1" /> Restore ({selectedIds.size})
+              </Button>
+              <Button size="sm" variant="destructive" onClick={() => {
+                const grouped = new Map<string, string[]>();
+                allItems.filter(i => selectedIds.has(i.id)).forEach(i => {
+                  const arr = grouped.get(i._type) || [];
+                  arr.push(i.id);
+                  grouped.set(i._type, arr);
+                });
+                grouped.forEach((ids, type) => purgeMutation.mutate({ type, ids }));
+              }} disabled={purgeMutation.isPending}>
+                <Flame className="h-3.5 w-3.5 mr-1" /> Purge ({selectedIds.size})
+              </Button>
+            </>
+          )}
+          {(stats?.expiredMedia ?? 0) > 0 && (
+            <Button size="sm" variant="destructive" onClick={() => purgeMutation.mutate({ type: 'expired-media' })} disabled={purgeMutation.isPending}>
+              <Flame className="h-3.5 w-3.5 mr-1" /> Purge Expired Media
+            </Button>
+          )}
+          <Button size="sm" variant="destructive" onClick={() => { if (confirm('Permanently delete ALL trashed items?')) purgeMutation.mutate({ type: 'all' }); }} disabled={purgeMutation.isPending}>
+            <Trash2 className="h-3.5 w-3.5 mr-1" /> Empty Trash
+          </Button>
+        </div>
+      </div>
+
+      {trashQuery.isLoading ? (
+        <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>
+      ) : allItems.length === 0 && (data?.media || []).length === 0 ? (
+        <Card><CardContent className="py-12 text-center text-muted-foreground"><Archive className="h-12 w-12 mx-auto mb-3 opacity-40" /><p>Trash is empty</p></CardContent></Card>
+      ) : (
+        <div className="space-y-2">
+          {allItems.map(item => (
+            <Card key={item.id} className={`transition-colors ${selectedIds.has(item.id) ? 'ring-2 ring-blue-500' : ''}`}>
+              <CardContent className="py-3 flex items-center gap-3">
+                <input type="checkbox" checked={selectedIds.has(item.id)} onChange={() => toggleSelect(item.id)} className="h-4 w-4 accent-blue-600" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-xs">{item._type === 'posts' ? 'Post' : 'Listing'}</Badge>
+                    <span className="font-medium text-sm truncate">{item._type === 'posts' ? (item.title || item.content?.slice(0, 60) || 'Untitled') : (item.dog_name || item.breed)}</span>
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    by {item.username || 'unknown'} &middot; deleted {item.deleted_at ? new Date(item.deleted_at).toLocaleDateString() : '?'}
+                    {item.delete_reason && <> &middot; reason: {item.delete_reason}</>}
+                  </div>
+                </div>
+                <div className="flex gap-1">
+                  <Button size="sm" variant="ghost" onClick={() => restoreMutation.mutate({ type: item._type, ids: [item.id] })} disabled={restoreMutation.isPending}>
+                    <RotateCcw className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button size="sm" variant="ghost" className="text-red-500 hover:text-red-700" onClick={() => purgeMutation.mutate({ type: item._type, ids: [item.id] })} disabled={purgeMutation.isPending}>
+                    <Flame className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+
+          {(data?.media || []).length > 0 && (
+            <>
+              <h3 className="text-sm font-semibold mt-4 text-muted-foreground">Trashed Media ({data?.media?.length})</h3>
+              {(data?.media || []).map((m: any) => (
+                <Card key={m.id} className="opacity-75">
+                  <CardContent className="py-2 flex items-center gap-3 text-xs">
+                    <HardDrive className="h-4 w-4 text-muted-foreground" />
+                    <span className="truncate flex-1">{m.path || m.id}</span>
+                    <span className="text-muted-foreground">{m.mime_type}</span>
+                    {m.purge_after && <Badge variant="outline" className="text-[10px]">purge {new Date(m.purge_after).toLocaleDateString()}</Badge>}
+                  </CardContent>
+                </Card>
+              ))}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminConsolePage() {
   const [activeTab, setActiveTab] = useState<TabKey>('reports');
 
@@ -473,7 +642,7 @@ export default function AdminConsolePage() {
         <Shield className="h-8 w-8 text-blue-600" />
         <div>
           <h1 className="text-2xl font-bold">Admin Console</h1>
-          <p className="text-muted-foreground text-sm">Reports, Blocks, Media & Rate Limits</p>
+          <p className="text-muted-foreground text-sm">Reports, Blocks, Media, Rate Limits & Trash</p>
         </div>
       </div>
 
@@ -498,6 +667,7 @@ export default function AdminConsolePage() {
       {activeTab === 'blocks' && <BlocksTab />}
       {activeTab === 'media' && <MediaTab />}
       {activeTab === 'ratelimits' && <RateLimitsTab />}
+      {activeTab === 'trash' && <TrashTab />}
     </div>
   );
 }

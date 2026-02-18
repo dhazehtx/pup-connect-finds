@@ -1,0 +1,98 @@
+PROMPT — Add “Trash/Archive” (soft delete) for Posts + Listings + Media with restore + purge, and fix any remaining broken post thumbnails
+
+Goal:
+Implement a safe soft-delete workflow (“Move to Trash”) for posts and listings, with:
+- restore (undo)
+- delayed hard purge (DB + Supabase Storage)
+- proof logs
+- and ensure ALL UI locations (feed, explore, profile grid) display media via thumbUrls/public URLs consistently (no broken images).
+
+Constraints:
+- Neon (Drizzle) remains source of truth for data.
+- Supabase = auth + storage only.
+- Do NOT break existing routes; keep backwards compatibility.
+- Default delete action = soft delete. Hard delete only via admin endpoint or purge job.
+- Every mutation must be wrapped in a transaction and emit [PROOF:*] logs.
+
+A) Schema changes (Neon)
+1) Add columns:
+- posts: deleted_at timestamptz NULL, deleted_by uuid NULL, delete_reason text NULL
+- dog_listings (or listings table name): deleted_at, deleted_by, delete_reason
+- media_assets: deleted_at timestamptz NULL, deleted_by uuid NULL, purge_after timestamptz NULL
+2) Indexes:
+- posts(deleted_at), listings(deleted_at), media_assets(parent_type,parent_id,deleted_at), media_assets(purge_after)
+3) Add Drizzle schema mappings for all new columns.
+
+B) Server behavior changes
+1) Update read queries everywhere:
+- All “list” endpoints must exclude soft-deleted records by default:
+  posts where deleted_at is null
+  listings where deleted_at is null
+- Add optional includeDeleted=true for admin-only list endpoints.
+- Ensure block filters still apply.
+
+2) Soft delete endpoints (owner or admin):
+- DELETE /api/posts/:id
+  -> sets posts.deleted_at=now, deleted_by=req.user.id, reason optional
+  -> sets media_assets.deleted_at=now, deleted_by=req.user.id, purge_after=now()+interval '30 days' for that parent
+  -> DO NOT delete files immediately
+  -> emit [PROOF:TRASH:POST] {postId,userId,mediaCount,ts}
+
+- DELETE /api/listings/:id
+  -> same pattern, emit [PROOF:TRASH:LISTING]
+
+3) Restore endpoints (owner within window OR admin anytime):
+- POST /api/posts/:id/restore
+  -> clears deleted_at/deleted_by/reason for post
+  -> clears deleted_at/purge_after for associated media_assets (ONLY if files still exist)
+  -> emit [PROOF:RESTORE:POST] {postId,userId,restoredMediaCount,missingFilesCount,ts}
+
+- POST /api/listings/:id/restore
+  -> emit [PROOF:RESTORE:LISTING]
+
+4) Purge endpoints (admin-only)
+- POST /api/admin/trash/purge?olderThanDays=30
+  -> finds media_assets where purge_after < now and deleted_at is not null
+  -> verifies parent still deleted OR parent missing
+  -> deletes storage objects from Supabase Storage (best-effort, log failures)
+  -> deletes media_assets rows
+  -> hard-deletes posts/listings that are soft-deleted older than N days (optional but recommended)
+  -> emit [PROOF:PURGE:TRASH] {purgedMedia, purgedPosts, purgedListings, failures, ts}
+  -> return JSON summary
+
+- GET /api/admin/trash/stats
+  -> counts soft-deleted posts/listings/media + next purge_due
+  -> emit [PROOF:TRASH:STATS]
+
+C) Client changes
+1) Update any delete UI buttons:
+- “Delete” => “Move to Trash”
+- show toast “Moved to Trash” with Undo (calls restore endpoint)
+- if restore fails (missing file), show clear toast.
+
+2) Add minimal Admin Console tab OR section:
+- Tab: “Trash”
+- Shows stats from /api/admin/trash/stats
+- Button: “Run purge now” (calls purge)
+- Optional list view of soft-deleted posts/listings for restore.
+
+3) Fix broken post thumbnails everywhere:
+- Ensure post cards + profile post grid use thumbUrls (or computed thumbUrl) when present.
+- If no thumb available: show consistent placeholder (not broken <img>).
+- Same for listing cards.
+
+D) Guardrails + proof
+1) Add grep-safe proof logs:
+[PROOF:TRASH:POST], [PROOF:TRASH:LISTING], [PROOF:RESTORE:POST], [PROOF:RESTORE:LISTING], [PROOF:PURGE:TRASH], [PROOF:TRASH:STATS]
+
+2) Add acceptance checklist output (must report PASS/FAIL)
+- Soft delete post => disappears from feed/profile, media_assets marked deleted, files remain
+- Restore post => reappears, thumbnails load
+- Soft delete listing => disappears from explore, restore works
+- Purge olderThanDays=0 in dev => deletes media files + rows (confirm)
+- Profile grid shows thumbnails or placeholder (no broken images)
+
+Rules:
+- Do not claim success if any step fails.
+- If you hit a failure, output exact endpoint/file and provide the next patch.
+- List all files changed and any migrations created.

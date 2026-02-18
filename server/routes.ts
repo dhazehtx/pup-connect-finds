@@ -497,19 +497,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Soft-delete listing (move to trash)
   app.delete("/api/listings/:id", async (req, res) => {
     try {
       const listingId = req.params.id;
-      await cleanupParentMedia('listing', listingId);
-      const success = await storage.deleteDogListing(listingId);
-      if (!success) {
-        return res.status(404).json({ error: "Listing not found" });
-      }
-      console.log("[PROOF:LISTINGS:DELETE]", { listingId, ts: new Date().toISOString() });
-      res.json({ success: true });
+      const userId = req.user?.id;
+      const reason = req.body?.reason || null;
+
+      const listing = await storage.getDogListing(listingId);
+      if (!listing) return res.status(404).json({ error: "Listing not found" });
+
+      const now = new Date();
+      const purgeAfter = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+      await db.update(dogListings).set({
+        deleted_at: now,
+        deleted_by: userId || null,
+        delete_reason: reason,
+      }).where(eq(dogListings.id, listingId));
+
+      const mediaResult = await db.update(mediaAssets).set({
+        deleted_at: now,
+        deleted_by: userId || null,
+        purge_after: purgeAfter,
+      }).where(and(
+        eq(mediaAssets.parent_type, 'listing'),
+        eq(mediaAssets.parent_id, listingId),
+        sql`${mediaAssets.deleted_at} IS NULL`
+      ));
+
+      const mediaCount = mediaResult.rowCount ?? 0;
+      console.log("[PROOF:TRASH:LISTING]", JSON.stringify({ listingId, userId, mediaCount, ts: Date.now() }));
+      res.json({ success: true, trashed: true, mediaCount });
     } catch (error) {
-      console.error("Error deleting listing:", error);
+      console.error("[PROOF:LISTINGS:ERR]", { listingId: req.params.id, ts: new Date().toISOString(), error: String(error) });
       res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Restore listing from trash
+  app.post("/api/listings/:id/restore", async (req, res) => {
+    try {
+      const listingId = req.params.id;
+      const userId = req.user?.id;
+
+      const [listing] = await db.select().from(dogListings).where(eq(dogListings.id, listingId)).limit(1);
+      if (!listing) return res.status(404).json({ error: "Listing not found" });
+      if (!listing.deleted_at) return res.status(400).json({ error: "LISTING_NOT_TRASHED" });
+
+      await db.update(dogListings).set({
+        deleted_at: null,
+        deleted_by: null,
+        delete_reason: null,
+      }).where(eq(dogListings.id, listingId));
+
+      const restoredMedia = await db.update(mediaAssets).set({
+        deleted_at: null,
+        deleted_by: null,
+        purge_after: null,
+      }).where(and(
+        eq(mediaAssets.parent_type, 'listing'),
+        eq(mediaAssets.parent_id, listingId),
+        sql`${mediaAssets.deleted_at} IS NOT NULL`
+      ));
+
+      const restoredMediaCount = restoredMedia.rowCount ?? 0;
+      console.log("[PROOF:RESTORE:LISTING]", JSON.stringify({ listingId, userId, restoredMediaCount, ts: Date.now() }));
+      res.json({ success: true, restored: true, restoredMediaCount });
+    } catch (error) {
+      console.error("[PROOF:LISTINGS:ERR]", { listingId: req.params.id, ts: new Date().toISOString(), error: String(error) });
+      res.status(500).json({ error: "RESTORE_FAILED" });
     }
   });
 
@@ -1256,18 +1313,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Delete post
+  // Soft-delete post (move to trash)
   app.delete("/api/posts/:id", async (req, res) => {
     try {
       const postId = req.params.id;
-      await cleanupParentMedia('post', postId);
-      const deleted = await storage.deletePost(postId);
-      if (!deleted) return res.status(404).json({ error: "POST_NOT_FOUND" });
-      console.log("[PROOF:POSTS:DELETE]", { postId, mediaCleanup: true, ts: new Date().toISOString() });
-      res.json({ success: true });
+      const userId = req.user?.id;
+      const reason = req.body?.reason || null;
+
+      const post = await storage.getPost(postId);
+      if (!post) return res.status(404).json({ error: "POST_NOT_FOUND" });
+
+      const now = new Date();
+      const purgeAfter = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+      await db.update(posts).set({
+        deleted_at: now,
+        deleted_by: userId || null,
+        delete_reason: reason,
+      }).where(eq(posts.id, postId));
+
+      const mediaResult = await db.update(mediaAssets).set({
+        deleted_at: now,
+        deleted_by: userId || null,
+        purge_after: purgeAfter,
+      }).where(and(
+        eq(mediaAssets.parent_type, 'post'),
+        eq(mediaAssets.parent_id, postId),
+        sql`${mediaAssets.deleted_at} IS NULL`
+      ));
+
+      const mediaCount = mediaResult.rowCount ?? 0;
+      console.log("[PROOF:TRASH:POST]", JSON.stringify({ postId, userId, mediaCount, ts: Date.now() }));
+      res.json({ success: true, trashed: true, mediaCount });
     } catch (error) {
       console.error("[PROOF:POSTS:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });
       res.status(500).json({ error: "POSTS_FAILED" });
+    }
+  });
+
+  // Restore post from trash
+  app.post("/api/posts/:id/restore", async (req, res) => {
+    try {
+      const postId = req.params.id;
+      const userId = req.user?.id;
+
+      const [post] = await db.select().from(posts).where(eq(posts.id, postId)).limit(1);
+      if (!post) return res.status(404).json({ error: "POST_NOT_FOUND" });
+      if (!post.deleted_at) return res.status(400).json({ error: "POST_NOT_TRASHED" });
+
+      await db.update(posts).set({
+        deleted_at: null,
+        deleted_by: null,
+        delete_reason: null,
+      }).where(eq(posts.id, postId));
+
+      const restoredMedia = await db.update(mediaAssets).set({
+        deleted_at: null,
+        deleted_by: null,
+        purge_after: null,
+      }).where(and(
+        eq(mediaAssets.parent_type, 'post'),
+        eq(mediaAssets.parent_id, postId),
+        sql`${mediaAssets.deleted_at} IS NOT NULL`
+      ));
+
+      const restoredMediaCount = restoredMedia.rowCount ?? 0;
+      console.log("[PROOF:RESTORE:POST]", JSON.stringify({ postId, userId, restoredMediaCount, ts: Date.now() }));
+      res.json({ success: true, restored: true, restoredMediaCount });
+    } catch (error) {
+      console.error("[PROOF:POSTS:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });
+      res.status(500).json({ error: "RESTORE_FAILED" });
     }
   });
 

@@ -330,7 +330,7 @@ export class DatabaseStorage implements IStorage {
     offset?: number;
     limit?: number;
   }): Promise<DogListing[]> {
-    const conditions = [];
+    const conditions: any[] = [sql`${dogListings.deleted_at} IS NULL`];
 
     if (filters?.breed) {
       conditions.push(like(dogListings.breed, `%${filters.breed}%`));
@@ -835,9 +835,9 @@ export class DatabaseStorage implements IStorage {
   async getPosts(category?: string): Promise<Post[]> {
     const baseQuery = db.select().from(posts);
     if (category) {
-      return await baseQuery.where(eq(posts.category, category)).orderBy(desc(posts.created_at));
+      return await baseQuery.where(and(eq(posts.category, category), sql`${posts.deleted_at} IS NULL`)).orderBy(desc(posts.created_at));
     }
-    return await baseQuery.orderBy(desc(posts.created_at));
+    return await baseQuery.where(sql`${posts.deleted_at} IS NULL`).orderBy(desc(posts.created_at));
   }
 
   async getPost(id: string): Promise<Post | undefined> {
@@ -886,7 +886,7 @@ export class DatabaseStorage implements IStorage {
       })
       .from(posts)
       .leftJoin(profiles, eq(posts.user_id, profiles.id))
-      .where(inArray(posts.user_id, feedUserIds))
+      .where(and(inArray(posts.user_id, feedUserIds), sql`${posts.deleted_at} IS NULL`))
       .orderBy(desc(posts.created_at))
       .limit(50);
 
@@ -895,7 +895,10 @@ export class DatabaseStorage implements IStorage {
 
   async getPostsWithProfiles(options?: { userId?: string; limit?: number; cursor?: string }): Promise<any[]> {
     const lim = options?.limit || 20;
-    const conditions: any[] = [sql`(${posts.status} IS NULL OR ${posts.status} != 'removed')`];
+    const conditions: any[] = [
+      sql`(${posts.status} IS NULL OR ${posts.status} != 'removed')`,
+      sql`${posts.deleted_at} IS NULL`,
+    ];
     if (options?.userId) conditions.push(eq(posts.user_id, options.userId));
     if (options?.cursor) conditions.push(sql`${posts.created_at} < ${options.cursor}`);
 
