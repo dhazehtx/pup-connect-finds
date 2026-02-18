@@ -1,0 +1,95 @@
+PROMPT — FINAL LAUNCH GATE (AUTH UI + EDGE FUNCTIONS + DEV CLEANUP + OPTIONAL E2E)
+
+Goal: Move Launch Readiness from ~85% → 95–100% by closing the last verified gaps:
+
+Authenticated UI acceptance pass (real browser session)
+
+Edge Functions deployment verification (Supabase project)
+
+Remove/replace dev-only supabase loader (sampleDataLoader.ts)
+
+Optional: add a minimal Playwright smoke suite for the core flows
+
+A) AUTHENTICATED UI PASS (must run + report)
+
+Using a real authenticated browser session (NOT curl), run and report PASS/FAIL with screenshots or console proof:
+
+A1) Login (normal user)
+A2) Upload avatar (confirm image appears after refresh)
+A3) Create post with IMAGE (confirm shows on Home feed after refresh)
+A4) Create post with VIDEO (confirm playable + thumb used on feed)
+A5) Create listing with 3+ photos (confirm Explore renders thumbs + scroll smooth)
+A6) Delete that post and listing, then:
+
+confirm DB rows removed
+
+confirm storage files deleted
+
+run orphan scan endpoint → expect 0 or expected count
+Output proof logs for each:
+[PROOF:MEDIA:SIGN], [PROOF:MEDIA:COMMIT], [PROOF:MEDIA:THUMB], [PROOF:MEDIA:CLEANUP], [PROOF:MEDIA:SWEEP]
+
+If any step fails: do not claim success—return the exact failure and the patch.
+
+B) EDGE FUNCTIONS VERIFICATION (must run + report)
+
+We rely on Supabase Edge Functions for payments/AI/fraud/verification/etc.
+
+B1) Enumerate required functions referenced in code (supabase.functions.invoke(...))
+
+print the list (names + file references)
+B2) Verify each function exists on the CURRENT Supabase project
+B3) Call a safe “ping” or “health” path for each (or a dry-run request) and report:
+
+PASS/FAIL per function
+
+any missing env vars required
+
+any auth requirements
+If any are missing: provide the exact deploy steps and env vars list.
+
+C) DEV-ONLY sampleDataLoader.ts cleanup
+
+We need a clean launch with zero supabase.from() even in dev utilities (or at least impossible to ship).
+
+Choose ONE:
+C1) Delete SampleDataManager + sampleDataLoader entirely, OR
+C2) Replace sampleDataLoader to call the existing Neon dev seed endpoints instead of supabase.from(), OR
+C3) Hard-fence: ensure it cannot be imported in production builds (assert import.meta.env.DEV + throw if prod).
+
+After the change, re-run grep gate and paste output.
+
+D) OPTIONAL (recommended): Minimal E2E smoke test
+
+Add Playwright with a single npm run e2e:smoke that verifies:
+
+Login
+
+Upload avatar
+
+Create post with image
+
+Like and comment
+
+Create listing with photos
+Keep it minimal and stable.
+
+E) FINAL OUTPUT (required)
+
+Return:
+
+Updated Launch Readiness % (with rationale)
+
+✅ migrated vs ⏳ remaining checklist (only items not verified should remain)
+
+Proof logs samples (1–2 per domain: MEDIA, POSTS, LISTINGS, NOTIFS, BLOCK, RATE_LIMIT, ADMIN)
+
+Grep gate output
+
+Any remaining issues + next patch prompt(s)
+
+Rules:
+
+No success claims if any step fails.
+
+Provide exact failure cause + patch.
