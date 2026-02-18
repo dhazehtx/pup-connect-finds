@@ -3,14 +3,11 @@ import { db } from "../db";
 import { mediaAssets, profiles, posts, dogListings } from "@shared/schema";
 import { eq, and, isNull, notInArray, sql } from "drizzle-orm";
 import { supabase } from "../lib/supabase";
+import { validateMediaUpload, ALL_ALLOWED_TYPES } from "../lib/mediaHelpers";
 
 const router = Router();
 
 const ALLOWED_BUCKETS = ['avatars', 'posts', 'listings', 'provider-id-docs'];
-const ALLOWED_MIME_TYPES = [
-  'image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif',
-  'video/mp4', 'video/quicktime', 'video/webm'
-];
 
 router.post("/sign", async (req, res) => {
   if (!req.isAuthenticated()) {
@@ -18,7 +15,7 @@ router.post("/sign", async (req, res) => {
   }
 
   try {
-    const { bucket, fileName, mimeType, kind } = req.body;
+    const { bucket, fileName, mimeType, kind, sizeBytes, parentId } = req.body;
     const userId = req.user!.id;
 
     if (!bucket || !fileName || !mimeType || !kind) {
@@ -29,8 +26,18 @@ router.post("/sign", async (req, res) => {
       return res.status(400).json({ error: "Invalid bucket", code: "INVALID_BUCKET" });
     }
 
-    if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
-      return res.status(400).json({ error: "Unsupported file type", code: "INVALID_MIME" });
+    let existingCount = 0;
+    if (parentId && (kind === 'listing' || kind === 'post')) {
+      const existing = await db.select({ id: mediaAssets.id }).from(mediaAssets).where(
+        and(eq(mediaAssets.parent_type, kind), eq(mediaAssets.parent_id, parentId), eq(mediaAssets.variant, 'original'))
+      );
+      existingCount = existing.length;
+    }
+
+    const validation = validateMediaUpload(mimeType, sizeBytes, kind, existingCount);
+    if (!validation.valid) {
+      console.log('[PROOF:MEDIA:VALIDATION]', JSON.stringify({ actorUserId: userId, code: validation.code, kind, mimeType, sizeBytes, ts: Date.now() }));
+      return res.status(400).json({ error: validation.message, code: validation.code });
     }
 
     const ext = fileName.split('.').pop() || 'jpg';
@@ -122,10 +129,28 @@ router.post("/commit", async (req, res) => {
         })
         .returning();
 
-      console.log('[PROOF:MEDIA:THUMB]', JSON.stringify({ originalId: asset.id, thumbId: thumbAsset.id, ts: Date.now() }));
+      console.log('[PROOF:MEDIA:THUMB]', JSON.stringify({ parentType: parentType, parentId: parentId || null, originalPath: path, thumbPath: thumbPath, originalId: asset.id, thumbId: thumbAsset.id, ts: Date.now() }));
     }
 
     if (kind === 'avatar' && publicUrl) {
+      const oldAvatarAssets = await db.select().from(mediaAssets).where(
+        and(
+          eq(mediaAssets.owner_id, userId),
+          eq(mediaAssets.parent_type, 'avatar'),
+          sql`${mediaAssets.id} != ${asset.id}`,
+          sql`COALESCE(${mediaAssets.parent_asset_id}::text, '') != ${asset.id}`
+        )
+      );
+      if (oldAvatarAssets.length > 0) {
+        const oldPaths = oldAvatarAssets.map(a => a.path);
+        const oldBuckets = Array.from(new Set(oldAvatarAssets.map(a => a.bucket)));
+        for (const b of oldBuckets) {
+          await supabase.storage.from(b).remove(oldPaths.filter(p => oldAvatarAssets.find(a => a.path === p && a.bucket === b)));
+        }
+        const oldIds = oldAvatarAssets.map(a => a.id);
+        await db.delete(mediaAssets).where(sql`${mediaAssets.id} = ANY(${oldIds})`);
+        console.log('[PROOF:MEDIA:DELETE]', JSON.stringify({ parentType: 'avatar', parentId: userId, deletedCount: oldAvatarAssets.length, ts: Date.now() }));
+      }
       await db.update(profiles).set({ avatar_url: publicUrl }).where(eq(profiles.id, userId));
     }
 
@@ -292,17 +317,14 @@ router.post("/cleanup-parent", async (req, res) => {
 });
 
 router.post("/sweep-orphans", async (req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(403).json({ error: 'Dev endpoint disabled in production' });
+  }
   try {
-    const orphanAvatars = await db.select().from(mediaAssets).where(
-      and(
-        eq(mediaAssets.parent_type, 'avatar'),
-        eq(mediaAssets.variant, 'original')
-      )
-    );
-
     const orphanPosts = await db.select().from(mediaAssets).where(
       and(
         eq(mediaAssets.parent_type, 'post'),
+        eq(mediaAssets.variant, 'original'),
         sql`${mediaAssets.parent_id} IS NOT NULL`
       )
     );
@@ -310,19 +332,30 @@ router.post("/sweep-orphans", async (req, res) => {
     const orphanListings = await db.select().from(mediaAssets).where(
       and(
         eq(mediaAssets.parent_type, 'listing'),
+        eq(mediaAssets.variant, 'original'),
         sql`${mediaAssets.parent_id} IS NOT NULL`
       )
     );
 
     let deletedCount = 0;
 
+    const deleteOrphan = async (asset: typeof orphanPosts[0]) => {
+      const thumbs = await db.select().from(mediaAssets).where(eq(mediaAssets.parent_asset_id, asset.id));
+      const allPaths = [asset.path, ...thumbs.map(t => t.path)];
+      await supabase.storage.from(asset.bucket).remove(allPaths);
+      if (thumbs.length > 0) {
+        const thumbIds = thumbs.map(t => t.id);
+        await db.delete(mediaAssets).where(sql`${mediaAssets.id} = ANY(${thumbIds})`);
+      }
+      await db.delete(mediaAssets).where(eq(mediaAssets.id, asset.id));
+      return 1 + thumbs.length;
+    }
+
     for (const asset of orphanPosts) {
       if (asset.parent_id) {
         const [parentPost] = await db.select({ id: posts.id }).from(posts).where(eq(posts.id, asset.parent_id));
         if (!parentPost) {
-          await supabase.storage.from(asset.bucket).remove([asset.path]);
-          await db.delete(mediaAssets).where(eq(mediaAssets.id, asset.id));
-          deletedCount++;
+          deletedCount += await deleteOrphan(asset);
         }
       }
     }
@@ -331,16 +364,14 @@ router.post("/sweep-orphans", async (req, res) => {
       if (asset.parent_id) {
         const [parentListing] = await db.select({ id: dogListings.id }).from(dogListings).where(eq(dogListings.id, asset.parent_id));
         if (!parentListing) {
-          await supabase.storage.from(asset.bucket).remove([asset.path]);
-          await db.delete(mediaAssets).where(eq(mediaAssets.id, asset.id));
-          deletedCount++;
+          deletedCount += await deleteOrphan(asset);
         }
       }
     }
 
-    console.log('[PROOF:MEDIA:SWEEP]', JSON.stringify({ deleted: deletedCount, ts: Date.now() }));
+    console.log('[PROOF:MEDIA:SWEEP]', JSON.stringify({ deletedCount, ts: Date.now() }));
 
-    res.json({ ok: true, deleted: deletedCount, ts: Date.now() });
+    res.json({ ok: true, deletedCount, ts: Date.now() });
   } catch (error: any) {
     console.error('[PROOF:MEDIA:SWEEP:ERR]', JSON.stringify({ error: error?.message, ts: Date.now() }));
     res.status(500).json({ error: "Failed to sweep orphan media" });

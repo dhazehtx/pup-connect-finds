@@ -110,6 +110,7 @@ import {
 import { supabase } from "./lib/supabase";
 import { isBlocked, blockedResponse } from "./lib/isBlocked";
 import { perUserRateLimit } from "./middleware/perUserRateLimit";
+import { getThumbUrlsForParents, attachThumbUrls } from "./lib/mediaHelpers";
 
 async function cleanupParentMedia(parentType: string, parentId: string) {
   try {
@@ -145,7 +146,7 @@ async function cleanupParentMedia(parentType: string, parentId: string) {
       and(eq(mediaAssets.parent_type, parentType), eq(mediaAssets.parent_id, parentId))
     );
 
-    console.log('[PROOF:MEDIA:CASCADE_DELETE]', JSON.stringify({ parentType, parentId, deleted: assets.length + thumbs.length, ts: Date.now() }));
+    console.log('[PROOF:MEDIA:DELETE]', JSON.stringify({ parentType, parentId, deletedCount: assets.length + thumbs.length, ts: Date.now() }));
   } catch (err: any) {
     console.error('[PROOF:MEDIA:CASCADE_DELETE:ERR]', err?.message);
   }
@@ -386,8 +387,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       const listings = await storage.getDogListings(filters);
-      console.log('[PROOF:LISTINGS]', JSON.stringify({ count: listings.length, filters: { breed: filters.breed, status: filters.status, location: filters.location, gender: filters.gender, sort: filters.sort } }));
-      res.json(listings);
+
+      const listingIds = listings.map((l: any) => l.id).filter(Boolean);
+      const thumbMap = await getThumbUrlsForParents('listing', listingIds);
+      const augmented = attachThumbUrls(listings as any[], thumbMap);
+
+      console.log('[PROOF:LISTINGS]', JSON.stringify({ count: augmented.length, filters: { breed: filters.breed, status: filters.status, location: filters.location, gender: filters.gender, sort: filters.sort } }));
+      res.json(augmented);
     } catch (error) {
       console.error("Error getting listings:", error);
       res.status(500).json({ error: "Internal server error" });
@@ -1036,8 +1042,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         limit: limit ? parseInt(limit as string, 10) : 20,
         cursor: cursor as string,
       });
-      console.log("[PROOF:POSTS:LIST]", { count: result.length, userId: userId || "all", ts: new Date().toISOString() });
-      res.json(result);
+
+      const postIds = result.map((p: any) => p.id).filter(Boolean);
+      const thumbMap = await getThumbUrlsForParents('post', postIds);
+      const augmented = attachThumbUrls(result as any[], thumbMap);
+
+      console.log("[PROOF:POSTS:LIST]", { count: augmented.length, userId: userId || "all", ts: new Date().toISOString() });
+      res.json(augmented);
     } catch (error) {
       console.error("[PROOF:POSTS:ERR]", { ts: new Date().toISOString(), error: String(error) });
       res.status(500).json({ error: "POSTS_FAILED" });
@@ -1053,7 +1064,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const feedPosts = await storage.getHomeFeedPosts(userId);
-      res.json(feedPosts || []);
+      const feedIds = (feedPosts || []).map((p: any) => p.id).filter(Boolean);
+      const feedThumbMap = await getThumbUrlsForParents('post', feedIds);
+      const augmentedFeed = attachThumbUrls((feedPosts || []) as any[], feedThumbMap);
+      res.json(augmentedFeed);
     } catch (error) {
       console.error('[API] Error fetching home feed:', error);
       res.status(500).json({ error: 'Failed to fetch home feed' });
