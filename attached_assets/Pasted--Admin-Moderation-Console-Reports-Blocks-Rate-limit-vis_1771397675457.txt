@@ -1,0 +1,136 @@
+✅ Admin + Moderation Console (Reports, Blocks, Rate-limit visibility, Media orphans, Dev/Prod safety)
+
+This makes launch safer immediately, and it also becomes the control center you’ll use when Stripe goes live.
+
+PROMPT — Admin & Moderation Tools + Ops Dashboard (Neon-only, production-safe)
+
+Paste to Replit:
+
+Goal: Build an Admin/Moderation console so we can manage reports/blocks/content, verify rate-limits, and run safe ops tools (media orphan sweep) without touching Supabase data plane. Must be production-safe: only admins can access; dev-only actions must be blocked in production.
+
+A) Admin gating (hard requirement)
+
+Add profiles.is_admin boolean default false (Neon + Drizzle migration).
+
+Add middleware requireAdmin:
+
+requires auth
+
+checks Neon profiles.is_admin
+
+returns 403 { ok:false, code:"ADMIN_REQUIRED" } if not admin
+
+Add proof log:
+
+[PROOF:ADMIN] { userId, ok:true/false, route, ts }
+
+B) Admin API endpoints (Neon-only)
+1) Reports queue
+
+GET /api/admin/reports?status=open&limit=50
+
+returns reports with reporter profile + target info (user/post/listing if possible)
+
+POST /api/admin/reports/:id/resolve
+
+body: { action: "dismiss" | "warn" | "remove_post" | "remove_listing" | "ban_user" , note?:string }
+
+updates report status + moderation notes
+
+Proof logs:
+
+[PROOF:ADMIN:REPORTS:LIST] { count, status, ts }
+
+[PROOF:ADMIN:REPORTS:RESOLVE] { reportId, action, ts }
+
+2) Blocks lookup + enforcement audit
+
+GET /api/admin/blocks?userId=...
+
+returns who they blocked + who blocked them (paginated)
+
+POST /api/admin/blocks/unblock
+
+body: { blockerId, blockedId }
+
+Proof logs:
+
+[PROOF:ADMIN:BLOCKS] { action, blockerId, blockedId, ts }
+
+3) Rate-limit audit (visibility)
+
+Add a lightweight in-memory stats object in your rate-limit middleware:
+
+counts per route key + last triggered timestamp (no PII)
+
+GET /api/admin/rate-limits
+
+Proof log: [PROOF:ADMIN:RATE_LIMITS] { keys, ts }
+
+4) Media orphan tools (admin-only; dev-only actions still blocked in production unless admin)
+
+GET /api/admin/media/orphans?limit=200
+
+list media rows where parent missing OR media file missing (if you can check)
+
+POST /api/admin/media/sweep-orphans
+
+deletes orphan DB rows and corresponding Supabase storage objects
+
+returns { ok:true, deletedDb:number, deletedStorage:number }
+
+Proof logs:
+
+[PROOF:ADMIN:MEDIA:ORPHANS] { found, ts }
+
+[PROOF:ADMIN:MEDIA:SWEEP] { deletedDb, deletedStorage, ts }
+
+Rules:
+
+Never allow non-admin to hit these routes.
+
+In production: allow admin access, but keep any “seed” endpoints disabled.
+
+Any delete actions must be idempotent and safe.
+
+C) Admin UI page (minimal, no redesign)
+
+Add a new route /admin (protected):
+
+Tabs: Reports / Blocks / Media / Rate Limits
+
+Reports list: resolve buttons (dismiss/warn/remove/ban) w/ confirm modal
+
+Blocks viewer: search by userId, list relationships, unblock action
+
+Media orphans: list + “Run Sweep” button + result summary toast
+
+Rate limits: show recent triggers count
+
+UX rules:
+
+Every action shows a toast success/failure
+
+Failure shows {code} in toast
+
+Do not spam console — one console line max per failure
+
+D) Closeout proof (must output in reply)
+
+Migrations added (filenames)
+
+Server files changed
+
+Client files changed
+
+1–2 real proof log lines:
+
+[PROOF:ADMIN]
+
+[PROOF:ADMIN:REPORTS:LIST]
+
+[PROOF:ADMIN:MEDIA:SWEEP] (even if deleted=0)
+
+Confirm non-admin gets 403.
+
+Do NOT claim success if any step fails — report exact failure + patch.

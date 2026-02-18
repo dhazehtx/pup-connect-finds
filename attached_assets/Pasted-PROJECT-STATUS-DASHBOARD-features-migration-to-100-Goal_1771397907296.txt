@@ -1,0 +1,133 @@
+PROJECT STATUS DASHBOARD (features + migration + % to 100%)
+
+Goal: Give me a single, accurate “where we are” snapshot of the app: what’s migrated to Neon, what’s still pending, and percent completion to launch.
+
+A) Migration status (Neon vs Supabase)
+
+Confirm Neon is the single source of truth for data tables and list them.
+
+Confirm Supabase is used ONLY for:
+
+Auth (sessions/OAuth)
+
+Storage (images/videos)
+
+(Edge Functions only if explicitly required)
+
+Output a ✅ migrated vs ⏳ remaining checklist for these domains:
+
+Profiles
+
+Search
+
+Follows
+
+Listings (Explore)
+
+Posts (Feed)
+
+Comments + Replies
+
+Likes (post + comment)
+
+Messaging (conversations + messages)
+
+Notifications (badge + list + create hooks)
+
+Favorites/Bookmarks
+
+Blocks (write + read enforcement)
+
+Reports (dedupe + UX support endpoints)
+
+Rate limiting (server + client toast handling)
+
+Media (sign/commit, thumbs, cleanup, orphan sweep)
+
+Monitoring/logging ([PROOF:SLOW], [PROOF:ERR], health endpoint)
+
+Dev/prod kill-switches (NODE_ENV guards, seeding off in prod, dev endpoints guarded)
+
+GDPR/data export/delete (if present)
+
+Refunds (if present)
+
+Provider/docs (if present)
+
+Any other modules you detect
+
+B) Launch readiness scoring (must be specific)
+
+Provide:
+
+Migration Completion % (0–100)
+
+Feature Completion % (0–100)
+
+Launch Readiness % (0–100) — only count as “ready” if verified by tests
+
+Explain what’s blocking 100% (top 5 blockers).
+
+C) Proof + verification (no guessing)
+
+List DB migrations added/changed (filenames).
+
+List key server files changed and key client files changed.
+
+Provide proof logs (1–2 lines per domain) including:
+
+PROFILES / SEARCH / FOLLOWS
+
+LISTINGS
+
+POSTS / COMMENTS
+
+LIKES
+
+MSG
+
+NOTIFS
+
+MEDIA (including thumbs/cleanup/orphan)
+
+BLOCK (at least one READ-path proof if implemented)
+
+RATE_LIMIT (server + UI proof)
+
+SLOW + ERR monitoring proof
+
+Paste grep gate output confirming:
+
+supabase.from() ZERO in production code paths
+
+supabase.rpc() ZERO
+
+classify remaining supabase.* usage as auth/storage only
+
+D) Acceptance tests (must state PASS/FAIL)
+
+Run or re-run the final authenticated UI pass and report PASS/FAIL for:
+
+upload avatar
+
+create post w image/video
+
+create listing w photos
+
+thumbs appear + scrolling fast
+
+delete post/listing cleans storage + DB rows
+
+block enforcement on reads (feed/search/messages list)
+
+report UX (toast + disable) + server dedupe
+
+rate limit UI (429 shows toast)
+
+admin/mod tools (if built)
+
+Rules:
+
+Do not claim success if any test fails.
+
+If something is missing, say exactly what and give the next patch prompt.

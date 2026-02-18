@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import { db } from '../../db';
-import { reports, profiles, posts, comments, dogListings, mediaAssets } from '@shared/schema';
-import { eq, and, desc, sql, lt } from 'drizzle-orm';
+import { reports, profiles, posts, comments, dogListings, mediaAssets, blocks } from '@shared/schema';
+import { eq, and, or, desc, sql, lt, isNull, not, inArray } from 'drizzle-orm';
 import { requireAdmin } from '../../middleware/requireAdmin';
 import { authMiddleware } from '../../middleware/auth';
+import { getRateLimitStats } from '../../middleware/perUserRateLimit';
+import { supabaseAdmin } from '../../lib/supabaseAdmin';
 
 const router = Router();
 
@@ -143,6 +145,65 @@ router.patch('/reports/:id', async (req, res) => {
   }
 });
 
+router.post('/reports/:id/resolve', async (req, res) => {
+  try {
+    const { action, note } = req.body;
+    const adminId = (req as any).user?.id;
+    const reportId = req.params.id;
+
+    const validActions = ['dismiss', 'warn', 'remove_post', 'remove_listing', 'ban_user'];
+    if (!validActions.includes(action)) {
+      return res.status(400).json({ ok: false, error: `Invalid action. Must be one of: ${validActions.join(', ')}` });
+    }
+
+    const [report] = await db.select().from(reports).where(eq(reports.id, reportId));
+    if (!report) {
+      return res.status(404).json({ ok: false, error: 'Report not found' });
+    }
+
+    if (action === 'remove_post') {
+      if (report.target_type !== 'post') {
+        return res.status(400).json({ ok: false, error: 'remove_post only valid for post reports' });
+      }
+      await db.update(posts).set({ status: 'removed' }).where(eq(posts.id, report.target_id));
+      await db.delete(mediaAssets).where(and(eq(mediaAssets.parent_type, 'post'), eq(mediaAssets.parent_id, report.target_id))).catch(() => {});
+    } else if (action === 'remove_listing') {
+      if (report.target_type !== 'listing') {
+        return res.status(400).json({ ok: false, error: 'remove_listing only valid for listing reports' });
+      }
+      await db.update(dogListings).set({ status: 'removed' }).where(eq(dogListings.id, report.target_id));
+      await db.delete(mediaAssets).where(and(eq(mediaAssets.parent_type, 'listing'), eq(mediaAssets.parent_id, report.target_id))).catch(() => {});
+    } else if (action === 'ban_user') {
+      if (report.target_type !== 'user') {
+        return res.status(400).json({ ok: false, error: 'ban_user only valid for user reports' });
+      }
+      await db.update(profiles).set({
+        is_suspended: true,
+        suspended_reason: note || 'Banned via report resolution',
+        suspended_at: new Date(),
+      }).where(eq(profiles.id, report.target_id));
+      console.log('[PROOF:SUSPEND]', JSON.stringify({ userId: report.target_id, suspended: true, via: 'report_resolve', ts: Date.now() }));
+    } else if (action === 'warn') {
+      console.log('[PROOF:ADMIN:WARN]', JSON.stringify({ reportId, targetType: report.target_type, targetId: report.target_id, adminId, note, ts: Date.now() }));
+    }
+
+    const resolvedStatus = action === 'dismiss' ? 'dismissed' : 'resolved';
+    const [updated] = await db.update(reports).set({
+      status: resolvedStatus,
+      resolved_by: adminId,
+      resolved_at: new Date(),
+      resolution_note: note || `Action: ${action}`,
+    }).where(eq(reports.id, reportId)).returning();
+
+    console.log('[PROOF:ADMIN:REPORTS:RESOLVE]', JSON.stringify({ reportId, action, adminId, ts: Date.now() }));
+
+    res.json({ ok: true, report: updated });
+  } catch (error) {
+    console.error('[PROOF:ADMIN:REPORTS:ERR]', error);
+    res.status(500).json({ ok: false, error: 'Failed to resolve report' });
+  }
+});
+
 router.post('/actions/remove', async (req, res) => {
   try {
     const { target_type, target_id, reason } = req.body;
@@ -239,6 +300,266 @@ router.post('/actions/unsuspend-user', async (req, res) => {
   } catch (error) {
     console.error('[PROOF:ADMIN:ACTION:ERR]', error);
     res.status(500).json({ ok: false, error: 'Failed to unsuspend user' });
+  }
+});
+
+router.get('/blocks', async (req, res) => {
+  try {
+    const userId = req.query.userId as string | undefined;
+    const limit = Math.min(parseInt(req.query.limit as string) || 50, 200);
+    const offset = parseInt(req.query.offset as string) || 0;
+
+    let blockedByUser: any[] = [];
+    let blockedByOthers: any[] = [];
+
+    if (userId) {
+      const reporterAlias = profiles;
+      blockedByUser = await db
+        .select({
+          id: blocks.id,
+          blocker_id: blocks.blocker_id,
+          blocked_id: blocks.blocked_id,
+          created_at: blocks.created_at,
+          blocked_username: profiles.username,
+          blocked_name: profiles.full_name,
+        })
+        .from(blocks)
+        .leftJoin(profiles, eq(blocks.blocked_id, profiles.id))
+        .where(eq(blocks.blocker_id, userId))
+        .orderBy(desc(blocks.created_at))
+        .limit(limit)
+        .offset(offset);
+
+      blockedByOthers = await db
+        .select({
+          id: blocks.id,
+          blocker_id: blocks.blocker_id,
+          blocked_id: blocks.blocked_id,
+          created_at: blocks.created_at,
+          blocker_username: profiles.username,
+          blocker_name: profiles.full_name,
+        })
+        .from(blocks)
+        .leftJoin(profiles, eq(blocks.blocker_id, profiles.id))
+        .where(eq(blocks.blocked_id, userId))
+        .orderBy(desc(blocks.created_at))
+        .limit(limit)
+        .offset(offset);
+    } else {
+      blockedByUser = await db
+        .select({
+          id: blocks.id,
+          blocker_id: blocks.blocker_id,
+          blocked_id: blocks.blocked_id,
+          created_at: blocks.created_at,
+        })
+        .from(blocks)
+        .orderBy(desc(blocks.created_at))
+        .limit(limit)
+        .offset(offset);
+    }
+
+    console.log('[PROOF:ADMIN:BLOCKS]', JSON.stringify({
+      action: 'list',
+      userId: userId || 'all',
+      blockedByUserCount: blockedByUser.length,
+      blockedByOthersCount: blockedByOthers.length,
+      ts: Date.now(),
+    }));
+
+    res.json({ ok: true, blockedByUser, blockedByOthers });
+  } catch (error) {
+    console.error('[PROOF:ADMIN:BLOCKS:ERR]', error);
+    res.status(500).json({ ok: false, error: 'Failed to fetch blocks' });
+  }
+});
+
+router.post('/blocks/unblock', async (req, res) => {
+  try {
+    const { blockerId, blockedId } = req.body;
+    const adminId = (req as any).user?.id;
+
+    if (!blockerId || !blockedId) {
+      return res.status(400).json({ ok: false, error: 'blockerId and blockedId are required' });
+    }
+
+    const [deleted] = await db
+      .delete(blocks)
+      .where(and(eq(blocks.blocker_id, blockerId), eq(blocks.blocked_id, blockedId)))
+      .returning();
+
+    if (!deleted) {
+      return res.status(404).json({ ok: false, error: 'Block relationship not found' });
+    }
+
+    console.log('[PROOF:ADMIN:BLOCKS]', JSON.stringify({
+      action: 'unblock',
+      blockerId,
+      blockedId,
+      adminId,
+      ts: Date.now(),
+    }));
+
+    res.json({ ok: true, message: 'Block removed' });
+  } catch (error) {
+    console.error('[PROOF:ADMIN:BLOCKS:ERR]', error);
+    res.status(500).json({ ok: false, error: 'Failed to unblock' });
+  }
+});
+
+router.get('/rate-limits', async (_req, res) => {
+  try {
+    const stats = getRateLimitStats();
+    const keys = Object.keys(stats);
+
+    console.log('[PROOF:ADMIN:RATE_LIMITS]', JSON.stringify({ keys, ts: Date.now() }));
+
+    res.json({ ok: true, rateLimits: stats });
+  } catch (error) {
+    console.error('[PROOF:ADMIN:RATE_LIMITS:ERR]', error);
+    res.status(500).json({ ok: false, error: 'Failed to fetch rate limits' });
+  }
+});
+
+router.get('/media/orphans', async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit as string) || 200, 500);
+
+    const allMedia = await db
+      .select({
+        id: mediaAssets.id,
+        owner_id: mediaAssets.owner_id,
+        parent_type: mediaAssets.parent_type,
+        parent_id: mediaAssets.parent_id,
+        path: mediaAssets.path,
+        bucket: mediaAssets.bucket,
+        size_bytes: mediaAssets.size_bytes,
+        created_at: mediaAssets.created_at,
+      })
+      .from(mediaAssets)
+      .limit(limit);
+
+    const orphans: any[] = [];
+
+    for (const asset of allMedia) {
+      let parentExists = false;
+
+      if (!asset.parent_type || !asset.parent_id) {
+        orphans.push({ ...asset, reason: 'no_parent_ref' });
+        continue;
+      }
+
+      if (asset.parent_type === 'post') {
+        const [p] = await db.select({ id: posts.id }).from(posts).where(eq(posts.id, asset.parent_id));
+        parentExists = !!p;
+      } else if (asset.parent_type === 'listing') {
+        const [l] = await db.select({ id: dogListings.id }).from(dogListings).where(eq(dogListings.id, asset.parent_id));
+        parentExists = !!l;
+      } else if (asset.parent_type === 'comment') {
+        const [c] = await db.select({ id: comments.id }).from(comments).where(eq(comments.id, asset.parent_id));
+        parentExists = !!c;
+      } else if (asset.parent_type === 'profile') {
+        const [pr] = await db.select({ id: profiles.id }).from(profiles).where(eq(profiles.id, asset.parent_id));
+        parentExists = !!pr;
+      }
+
+      if (!parentExists) {
+        orphans.push({ ...asset, reason: 'parent_missing' });
+        continue;
+      }
+
+      if (supabaseAdmin) {
+        try {
+          const { data } = await supabaseAdmin.storage.from(asset.bucket).createSignedUrl(asset.path, 5);
+          if (!data?.signedUrl) {
+            orphans.push({ ...asset, reason: 'storage_missing' });
+          }
+        } catch {
+          orphans.push({ ...asset, reason: 'storage_check_failed' });
+        }
+      }
+    }
+
+    console.log('[PROOF:ADMIN:MEDIA:ORPHANS]', JSON.stringify({ found: orphans.length, scanned: allMedia.length, ts: Date.now() }));
+
+    res.json({ ok: true, orphans, scanned: allMedia.length });
+  } catch (error) {
+    console.error('[PROOF:ADMIN:MEDIA:ERR]', error);
+    res.status(500).json({ ok: false, error: 'Failed to scan for orphans' });
+  }
+});
+
+router.post('/media/sweep-orphans', async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit as string) || 200, 500);
+
+    const allMedia = await db
+      .select({
+        id: mediaAssets.id,
+        parent_type: mediaAssets.parent_type,
+        parent_id: mediaAssets.parent_id,
+        path: mediaAssets.path,
+        bucket: mediaAssets.bucket,
+      })
+      .from(mediaAssets)
+      .limit(limit);
+
+    const orphanIds: string[] = [];
+    const storagePaths: { bucket: string; path: string }[] = [];
+
+    for (const asset of allMedia) {
+      let parentExists = false;
+
+      if (!asset.parent_type || !asset.parent_id) {
+        orphanIds.push(asset.id);
+        storagePaths.push({ bucket: asset.bucket, path: asset.path });
+        continue;
+      }
+
+      if (asset.parent_type === 'post') {
+        const [p] = await db.select({ id: posts.id }).from(posts).where(eq(posts.id, asset.parent_id));
+        parentExists = !!p;
+      } else if (asset.parent_type === 'listing') {
+        const [l] = await db.select({ id: dogListings.id }).from(dogListings).where(eq(dogListings.id, asset.parent_id));
+        parentExists = !!l;
+      } else if (asset.parent_type === 'comment') {
+        const [c] = await db.select({ id: comments.id }).from(comments).where(eq(comments.id, asset.parent_id));
+        parentExists = !!c;
+      } else if (asset.parent_type === 'profile') {
+        const [pr] = await db.select({ id: profiles.id }).from(profiles).where(eq(profiles.id, asset.parent_id));
+        parentExists = !!pr;
+      }
+
+      if (!parentExists) {
+        orphanIds.push(asset.id);
+        storagePaths.push({ bucket: asset.bucket, path: asset.path });
+      }
+    }
+
+    let deletedDb = 0;
+    let deletedStorage = 0;
+
+    if (orphanIds.length > 0) {
+      const deleted = await db.delete(mediaAssets).where(inArray(mediaAssets.id, orphanIds)).returning();
+      deletedDb = deleted.length;
+
+      for (const sp of storagePaths) {
+        try {
+          if (supabaseAdmin) {
+            const { error } = await supabaseAdmin.storage.from(sp.bucket).remove([sp.path]);
+            if (!error) deletedStorage++;
+          }
+        } catch {
+        }
+      }
+    }
+
+    console.log('[PROOF:ADMIN:MEDIA:SWEEP]', JSON.stringify({ deletedDb, deletedStorage, ts: Date.now() }));
+
+    res.json({ ok: true, deletedDb, deletedStorage });
+  } catch (error) {
+    console.error('[PROOF:ADMIN:MEDIA:ERR]', error);
+    res.status(500).json({ ok: false, error: 'Failed to sweep orphans' });
   }
 });
 
