@@ -2,18 +2,32 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/use-cart';
 import { Minus, Plus, Trash2, ShoppingBag, Loader2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Cart = () => {
   const { cart, removeFromCart, updateQuantity, clearCart, getTotalPrice } = useCart();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const items = cart;
   const totalPrice = getTotalPrice();
 
   const handleCheckout = async () => {
     if (items.length === 0) return;
+
+    if (!user) {
+      toast({
+        title: 'Please sign in to checkout',
+        description: 'You need an account to complete your purchase.',
+        variant: 'destructive',
+      });
+      navigate('/greeting');
+      return;
+    }
+
     setIsCheckingOut(true);
 
     try {
@@ -30,7 +44,8 @@ const Cart = () => {
       });
 
       if (!response.ok) {
-        const data = await response.json();
+        const data = await response.json().catch(() => ({}));
+        console.error('Cart checkout API error:', data);
         throw new Error(data.error || 'Failed to create checkout session');
       }
 
@@ -41,7 +56,7 @@ const Cart = () => {
         throw new Error('No checkout URL returned');
       }
     } catch (error: any) {
-      console.error('Checkout error:', error);
+      console.error('Cart checkout error:', error);
       toast({
         title: 'Checkout failed',
         description: error.message || 'Something went wrong. Please try again.',

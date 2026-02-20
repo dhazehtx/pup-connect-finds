@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ShoppingCart, X, Plus, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +19,7 @@ interface CartFabProps {
 
 export function CartFab({ className = "" }: CartFabProps) {
   const { cart, updateQuantity, removeFromCart, getTotalPrice, getItemCount } = useCart();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
   const totalItems = getItemCount();
@@ -111,8 +113,8 @@ export function CartFab({ className = "" }: CartFabProps) {
                   className="w-full mt-4"
                   size="lg"
                   onClick={() => {
-                    // TODO: Implement checkout
-                    console.log("Proceeding to checkout...");
+                    setIsOpen(false);
+                    navigate('/cart');
                   }}
                 >
                   Proceed to Checkout

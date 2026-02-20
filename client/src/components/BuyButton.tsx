@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ShoppingCart, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
 
 interface BuyButtonProps {
   productId: string;
-  priceId: string;
+  priceId?: string;
   quantity?: number;
   className?: string;
   children?: React.ReactNode;
@@ -23,44 +23,48 @@ export default function BuyButton({
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleBuyNow = async () => {
     if (!user) {
       toast({
-        title: "Sign in required",
-        description: "Please sign in to make a purchase",
+        title: "Please sign in to checkout",
+        description: "You need an account to complete your purchase.",
         variant: "destructive"
       });
+      navigate('/greeting');
       return;
     }
 
     setIsLoading(true);
     
     try {
-      const response = await apiRequest('/api/checkout', {
+      const response = await fetch('/api/checkout/session', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
-          product_id: productId,
-          price_id: priceId,
-          quantity,
-          user_id: user.id
-        })
+          cartItems: [{ id: productId, quantity }],
+        }),
       });
 
-      if (response.url) {
-        // Redirect to Stripe checkout
-        window.location.href = response.url;
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        console.error('BuyButton API error:', data);
+        throw new Error(data.error || 'Failed to create checkout session');
+      }
+
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url;
       } else {
         throw new Error('No checkout URL received');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Checkout error:', error);
       toast({
         title: "Checkout Error",
-        description: "Unable to start checkout process. Please try again.",
+        description: error.message || "Unable to start checkout process. Please try again.",
         variant: "destructive"
       });
     } finally {

@@ -219,16 +219,44 @@ const StoreTab = () => {
     }, 1900);
   };
 
-  const handleBuyNow = (product: Product) => {
+  const handleBuyNow = async (product: Product) => {
     setBuyingItems(prev => new Set(prev).add(product.id));
-    addToCart({
-      id: product.id,
-      name: product.name,
-      unit_price: product.unit_price,
-      image_url: product.image_url || null,
-      is_subscription: product.is_subscription
-    });
-    setLocation('/cart');
+
+    try {
+      const response = await fetch('/api/checkout/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          cartItems: [{ id: product.id, quantity: 1 }],
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        console.error('Buy Now API error:', data);
+        throw new Error(data.error || 'Failed to create checkout session');
+      }
+
+      const { url } = await response.json();
+      if (url) {
+        window.location.href = url;
+      } else {
+        throw new Error('No checkout URL returned');
+      }
+    } catch (error: any) {
+      console.error('Buy Now error:', error);
+      toast({
+        title: 'Checkout Error',
+        description: error.message || 'Unable to start checkout. Please try again.',
+        variant: 'destructive',
+      });
+      setBuyingItems(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(product.id);
+        return newSet;
+      });
+    }
   };
 
   const hasActiveFilters = filters.categories.length > 0 || filters.minPrice > 0 || filters.maxPrice < 100;
