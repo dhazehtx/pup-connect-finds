@@ -1715,97 +1715,163 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Webhook to handle successful payments
+  const processedWebhookEvents = new Set<string>();
+
   const stripeWebhookHandler = async (req: any, res: any) => {
     const sig = req.headers['stripe-signature'];
     let event;
 
     try {
-      event = stripe.webhooks.constructEvent(req.body, sig as string, process.env.STRIPE_WEBHOOK_SECRET!);
+      const rawBody = req.rawBody || req.body;
+      event = stripe.webhooks.constructEvent(rawBody, sig as string, process.env.STRIPE_WEBHOOK_SECRET!);
     } catch (error) {
-      console.error('Webhook signature verification failed:', error);
+      console.error('[PROOF:WEBHOOK:SIG_FAIL]', error);
       return res.status(400).send('Webhook signature verification failed');
     }
 
+    if (processedWebhookEvents.has(event.id)) {
+      console.log(`[PROOF:WEBHOOK:DUPLICATE] event=${event.id} type=${event.type}`);
+      return res.json({ received: true, duplicate: true });
+    }
+    processedWebhookEvents.add(event.id);
+    if (processedWebhookEvents.size > 10000) {
+      const entries = Array.from(processedWebhookEvents);
+      entries.slice(0, 5000).forEach(e => processedWebhookEvents.delete(e));
+    }
+
+    console.log(`[PROOF:WEBHOOK:RECEIVED] event=${event.id} type=${event.type}`);
+
     try {
       switch (event.type) {
-        case 'payment_intent.succeeded':
-          const paymentIntent = event.data.object as Stripe.PaymentIntent;
-          
-          // Record the transaction
-          await storage.createTransaction({
-            user_id: paymentIntent.metadata.userId,
-            type: 'payment',
-            amount: (paymentIntent.amount / 100).toString(), // Convert from cents to string
-            currency: paymentIntent.currency,
-            status: 'completed',
-            payment_method: 'stripe',
-            product_type: paymentIntent.metadata.productType || 'unknown',
-            stripe_payment_intent_id: paymentIntent.id,
-          });
-          
-          console.log('Payment successful:', paymentIntent.id);
+        case 'checkout.session.completed': {
+          const session = event.data.object as Stripe.Checkout.Session;
+          const orderId = session.metadata?.order_id;
+          const userId = session.metadata?.user_id || session.client_reference_id;
+
+          console.log(`[PROOF:WEBHOOK:CHECKOUT_COMPLETED] session=${session.id} order=${orderId} user=${userId}`);
+
+          if (orderId) {
+            const existingOrder = await storage.getOrder(orderId);
+            if (existingOrder && existingOrder.status === 'pending') {
+              await storage.updateOrder(orderId, {
+                status: 'paid',
+                stripe_session_id: session.id,
+                stripe_payment_intent_id: typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id || null,
+              });
+
+              const orderItems = await storage.getOrderItems(orderId);
+              for (const item of orderItems) {
+                if (item.product_id) {
+                  await storage.decrementProductInventory(item.product_id, item.qty);
+                }
+              }
+
+              console.log(`[PROOF:CHECKOUT:ORDER_PAID] order=${orderId} amount=${existingOrder.amount_total}`);
+            } else {
+              console.log(`[PROOF:CHECKOUT:SKIP] order=${orderId} status=${existingOrder?.status || 'not_found'}`);
+            }
+          } else {
+            const productId = session.metadata?.product_id;
+            const qty = parseInt(session.metadata?.quantity || '1');
+            if (userId && productId) {
+              const product = await storage.getProduct(productId);
+              if (product) {
+                const order = await storage.createOrder({
+                  user_id: userId,
+                  amount_total: (session.amount_total! / 100).toString(),
+                  status: 'paid',
+                  stripe_session_id: session.id,
+                  stripe_payment_intent_id: typeof session.payment_intent === 'string' ? session.payment_intent : null,
+                });
+                await storage.createOrderItem({
+                  order_id: order.id,
+                  product_id: productId,
+                  qty,
+                  unit_price: product.unit_price,
+                });
+                await storage.decrementProductInventory(productId, qty);
+                console.log(`[PROOF:CHECKOUT:LEGACY_ORDER_PAID] order=${order.id}`);
+              }
+            }
+          }
           break;
+        }
+
+        case 'payment_intent.succeeded': {
+          const paymentIntent = event.data.object as Stripe.PaymentIntent;
+          if (paymentIntent.metadata?.userId) {
+            await storage.createTransaction({
+              user_id: paymentIntent.metadata.userId,
+              type: 'payment',
+              amount: (paymentIntent.amount / 100).toString(),
+              currency: paymentIntent.currency,
+              status: 'completed',
+              payment_method: 'stripe',
+              product_type: paymentIntent.metadata.productType || 'unknown',
+              stripe_payment_intent_id: paymentIntent.id,
+            });
+          }
+          console.log(`[PROOF:WEBHOOK:PAYMENT_SUCCEEDED] pi=${paymentIntent.id}`);
+          break;
+        }
+
+        case 'payment_intent.payment_failed': {
+          const pi = event.data.object as Stripe.PaymentIntent;
+          console.log(`[PROOF:WEBHOOK:PAYMENT_FAILED] pi=${pi.id}`);
+          break;
+        }
 
         case 'customer.subscription.created':
-        case 'customer.subscription.updated':
+        case 'customer.subscription.updated': {
           const subscription = event.data.object as Stripe.Subscription;
-          
-          // Update user's subscription status
-          await storage.createTransaction({
-            user_id: subscription.metadata.userId,
-            type: 'subscription',
-            amount: ((subscription.items.data[0].price.unit_amount || 0) / 100).toString(),
-            currency: subscription.currency,
-            status: subscription.status === 'active' ? 'completed' : 'pending',
-            payment_method: 'stripe',
-            product_type: 'premium_subscription',
-            stripe_subscription_id: subscription.id,
-          });
-          
-          // Log admin action for subscription creation/update
-          if (subscription.metadata.userId) {
+          if (subscription.metadata?.userId) {
+            await storage.createTransaction({
+              user_id: subscription.metadata.userId,
+              type: 'subscription',
+              amount: ((subscription.items.data[0].price.unit_amount || 0) / 100).toString(),
+              currency: subscription.currency,
+              status: subscription.status === 'active' ? 'completed' : 'pending',
+              payment_method: 'stripe',
+              product_type: 'premium_subscription',
+              stripe_subscription_id: subscription.id,
+            });
             const action = event.type === 'customer.subscription.created' ? 'create' : 'update';
             await logSubscriptionAction(subscription.metadata.userId, action, subscription.id);
           }
-          
           console.log('Subscription updated:', subscription.id);
           break;
+        }
 
-        case 'customer.subscription.deleted':
+        case 'customer.subscription.deleted': {
           const canceledSubscription = event.data.object as Stripe.Subscription;
-          
-          // Record subscription cancellation
-          await storage.createTransaction({
-            user_id: canceledSubscription.metadata.userId,
-            type: 'subscription_cancel',
-            amount: "0",
-            currency: canceledSubscription.currency,
-            status: 'completed',
-            payment_method: 'stripe',
-            product_type: 'premium_subscription',
-            stripe_subscription_id: canceledSubscription.id,
-          });
-          
-          // Log admin action for subscription cancellation
-          if (canceledSubscription.metadata.userId) {
+          if (canceledSubscription.metadata?.userId) {
+            await storage.createTransaction({
+              user_id: canceledSubscription.metadata.userId,
+              type: 'subscription_cancel',
+              amount: "0",
+              currency: canceledSubscription.currency,
+              status: 'completed',
+              payment_method: 'stripe',
+              product_type: 'premium_subscription',
+              stripe_subscription_id: canceledSubscription.id,
+            });
             await logSubscriptionAction(canceledSubscription.metadata.userId, 'delete', canceledSubscription.id);
           }
-          
           console.log('Subscription canceled:', canceledSubscription.id);
           break;
+        }
 
         default:
-          console.log(`Unhandled event type: ${event.type}`);
+          console.log(`[PROOF:WEBHOOK:UNHANDLED] type=${event.type}`);
       }
 
       res.json({ received: true });
     } catch (error) {
-      console.error('Error handling webhook:', error);
+      console.error('[PROOF:WEBHOOK:ERROR]', error);
       res.status(500).json({ error: 'Webhook handler failed' });
     }
   };
 
-  // Register webhook handlers on both paths
   app.post("/api/webhooks/stripe", stripeWebhookHandler);
   app.post("/api/payments/webhook", stripeWebhookHandler);
 

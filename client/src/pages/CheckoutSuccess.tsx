@@ -2,24 +2,62 @@ import { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { CheckCircle, ShoppingBag, ArrowRight } from 'lucide-react';
+import { CheckCircle, ShoppingBag, ArrowRight, Loader2 } from 'lucide-react';
+import { useCart } from '@/hooks/use-cart';
+
+interface OrderStatus {
+  order_id: string;
+  status: string;
+  amount_total: string;
+  currency: string;
+  created_at: string;
+}
 
 const CheckoutSuccess = () => {
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get('session_id');
-  const [orderDetails, setOrderDetails] = useState<any>(null);
+  const [orderDetails, setOrderDetails] = useState<OrderStatus | null>(null);
   const [loading, setLoading] = useState(true);
+  const { clearCart } = useCart();
 
   useEffect(() => {
-    // In a real app, you'd fetch order details using the session_id
-    // For now, we'll just show a success message
-    setLoading(false);
+    if (!sessionId) {
+      setLoading(false);
+      return;
+    }
+
+    let cleared = false;
+
+    const fetchStatus = async () => {
+      try {
+        const res = await fetch(`/api/checkout/status?session_id=${sessionId}`);
+        if (res.ok) {
+          const data = await res.json();
+          setOrderDetails(data);
+          if (data.status === 'paid' && !cleared) {
+            cleared = true;
+            clearCart();
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch order status:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStatus();
+
+    if (!cleared) {
+      clearCart();
+      cleared = true;
+    }
   }, [sessionId]);
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full"></div>
+        <Loader2 className="w-8 h-8 text-primary-600 animate-spin" />
       </div>
     );
   }
@@ -39,7 +77,21 @@ const CheckoutSuccess = () => {
               </p>
             </div>
 
-            {sessionId && (
+            {orderDetails && (
+              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                <p className="text-sm text-gray-600 mb-1">
+                  Order ID: <span className="font-mono font-semibold">{orderDetails.order_id.slice(-8)}</span>
+                </p>
+                <p className="text-sm text-gray-600 mb-1">
+                  Status: <span className="font-semibold capitalize text-green-600">{orderDetails.status}</span>
+                </p>
+                <p className="text-sm text-gray-600">
+                  Total: <span className="font-semibold">${parseFloat(orderDetails.amount_total).toFixed(2)}</span>
+                </p>
+              </div>
+            )}
+
+            {!orderDetails && sessionId && (
               <div className="bg-gray-50 rounded-lg p-4 mb-6">
                 <p className="text-sm text-gray-600">
                   Order ID: <span className="font-mono">{sessionId.slice(-8)}</span>
@@ -49,9 +101,8 @@ const CheckoutSuccess = () => {
 
             <div className="space-y-4">
               <div className="text-sm text-gray-600">
-                <p>• You'll receive an email confirmation shortly</p>
-                <p>• Your order will be processed within 1-2 business days</p>
-                <p>• Track your order in your account dashboard</p>
+                <p>Your order will be processed within 1-2 business days</p>
+                <p>Track your order in your account dashboard</p>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3 justify-center pt-6">

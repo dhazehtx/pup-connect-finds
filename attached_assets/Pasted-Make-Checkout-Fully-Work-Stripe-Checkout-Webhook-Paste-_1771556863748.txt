@@ -1,0 +1,83 @@
+Make Checkout Fully Work (Stripe Checkout + Webhook)
+
+Paste this into Replit Agent:
+
+You are working in my Replit project “pup-connect-finds” (My Pup Network). The Cart page currently shows a button labeled “Checkout (Coming Soon)”. I need end-to-end Stripe checkout working in TEST mode without changing the existing UI design (same layout/styles). Only change what is necessary to make checkout functional.
+
+GOAL
+- When user clicks Checkout:
+  1) Backend creates a Stripe Checkout Session using the current cart items
+  2) Frontend redirects the user to Stripe Checkout
+  3) On success, user returns to a success page and the order is marked as paid after webhook confirmation
+  4) On cancel, user returns to cart
+
+CONSTRAINTS
+- Do NOT redesign the UI. Keep components and styling. Just make the checkout button active, add loading/disabled state, and wire handlers.
+- Use existing env secrets already in Replit:
+  - STRIPE_SECRET_KEY
+  - STRIPE_WEBHOOK_SECRET
+  - BASE_URL (or compute from request host if BASE_URL missing)
+- Our webhook endpoint is already configured in Stripe Workbench:
+  https://pup-connect-finds.replit.app/api/webhooks/stripe
+- Use idempotency for webhook processing.
+- Add clear console/server logs prefixed:
+  [PROOF:CHECKOUT:*] and [PROOF:WEBHOOK:*]
+
+IMPLEMENTATION TASKS
+1) FIND where the cart checkout button is rendered and why it says “Coming Soon”.
+   - Enable it.
+   - On click call a new backend route (or existing if present):
+     POST /api/checkout/session
+     Body: { cartItems: [...], userId?: string, email?: string }
+   - Add loading state and disable while loading.
+   - On success: redirect browser to returned Stripe Checkout URL.
+
+2) BACKEND: Create POST /api/checkout/session
+   - Validate cartItems (name/title, price, quantity, productId).
+   - Create Stripe Checkout Session (mode="payment") with line_items.
+   - Set success_url = `${BASE_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`
+   - Set cancel_url = `${BASE_URL}/cart`
+   - Include metadata for order/cart/user (order_id, user_id, cart hash).
+   - Return { url: session.url }
+
+3) DATA: Create/confirm an “orders” table in the DB (Supabase or existing DB layer).
+   - If an orders table already exists, reuse it.
+   - Store: id, user_id, status (pending/paid/failed), amount_total, currency, stripe_checkout_session_id, stripe_payment_intent_id, created_at
+   - When /api/checkout/session is called, create an order row in “pending” state and attach order_id in Stripe metadata.
+
+4) WEBHOOK: Ensure /api/webhooks/stripe processes:
+   - checkout.session.completed
+   - payment_intent.succeeded (optional but recommended)
+   - payment_intent.payment_failed (optional)
+   Steps:
+   - Verify signature using STRIPE_WEBHOOK_SECRET
+   - Parse event
+   - If checkout.session.completed:
+       - Get order_id from metadata
+       - Mark order paid
+       - Save session_id + payment_intent_id
+       - Log [PROOF:WEBHOOK:CHECKOUT_COMPLETED]
+   - Use idempotency (don’t double-process same event id)
+   - Return 200 quickly
+
+5) FRONTEND SUCCESS PAGE
+   - Ensure route/page exists: /checkout/success
+   - Read session_id param
+   - Show “Payment successful” confirmation (simple, minimal UI)
+   - Optionally call backend GET /api/checkout/status?session_id=... to display final status.
+   - Clear cart after confirmed paid.
+
+6) TESTING
+   - Add a simple dev-only test helper endpoint OR instructions in README:
+     - how to test checkout using Stripe test card (4242 4242 4242 4242)
+   - Confirm:
+     - Clicking checkout redirects to Stripe
+     - Completing checkout triggers webhook and marks order paid
+     - Cancel returns to cart
+   - Provide a short checklist of what you verified.
+
+DELIVERABLE
+- Checkout button works end-to-end in test mode.
+- Webhook confirmation updates DB order status.
+- Minimal UI changes only.
+- Provide file list of changes and where to configure BASE_URL if needed.

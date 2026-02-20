@@ -1122,15 +1122,14 @@ export const orders = pgTable("orders", {
   id: uuid("id").primaryKey().defaultRandom(),
   user_id: uuid("user_id").references(() => profiles.id),
   stripe_session_id: text("stripe_session_id"),
+  stripe_payment_intent_id: text("stripe_payment_intent_id"),
   amount_total: decimal("amount_total", { precision: 10, scale: 2 }).notNull(),
-  status: text("status").default("pending"), // pending, paid, shipped, cancelled
+  currency: text("currency").default("usd"),
+  status: text("status").default("pending"),
   is_subscription: boolean("is_subscription").default(false),
-  // Shipping & tracking fields
-  shipping_address: text("shipping_address"),
-  tracking_number: text("tracking_number"),
-  carrier: text("carrier"), // UPS, FedEx, USPS, etc.
-  is_shipped: boolean("is_shipped").default(false),
-  shipped_at: timestamp("shipped_at"),
+  payment_intent_id: text("payment_intent_id"),
+  checkout_session_id: text("checkout_session_id"),
+  service_date: timestamp("service_date"),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
 });

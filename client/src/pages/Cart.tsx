@@ -1,13 +1,55 @@
-import React from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/use-cart';
-import { Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
+import { Minus, Plus, Trash2, ShoppingBag, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 const Cart = () => {
   const { cart, removeFromCart, updateQuantity, clearCart, getTotalPrice } = useCart();
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const { toast } = useToast();
   const items = cart;
   const totalPrice = getTotalPrice();
+
+  const handleCheckout = async () => {
+    if (items.length === 0) return;
+    setIsCheckingOut(true);
+
+    try {
+      const cartItems = items.map(item => ({
+        id: item.id,
+        quantity: item.quantity,
+      }));
+
+      const response = await fetch('/api/checkout/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ cartItems }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to create checkout session');
+      }
+
+      const { url } = await response.json();
+      if (url) {
+        window.location.href = url;
+      } else {
+        throw new Error('No checkout URL returned');
+      }
+    } catch (error: any) {
+      console.error('Checkout error:', error);
+      toast({
+        title: 'Checkout failed',
+        description: error.message || 'Something went wrong. Please try again.',
+        variant: 'destructive',
+      });
+      setIsCheckingOut(false);
+    }
+  };
 
   if (items.length === 0) {
     return (
@@ -94,7 +136,6 @@ const Cart = () => {
           </div>
         </div>
 
-        {/* Order Summary */}
         <div className="bg-white rounded-3xl shadow-sm p-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Order Summary</h2>
           
@@ -115,10 +156,18 @@ const Cart = () => {
           </div>
 
           <Button
-            disabled
-            className="w-full py-3 bg-gray-300 text-gray-500 cursor-not-allowed"
+            onClick={handleCheckout}
+            disabled={isCheckingOut}
+            className="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white"
           >
-            Checkout (Coming Soon)
+            {isCheckingOut ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Redirecting to Checkout...
+              </>
+            ) : (
+              'Proceed to Checkout'
+            )}
           </Button>
           
           <Link to="/marketplace" className="block mt-4">

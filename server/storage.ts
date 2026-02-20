@@ -232,7 +232,7 @@ export interface IStorage {
   updateProductReview(id: string, review: Partial<InsertProductReview>): Promise<ProductReview | undefined>;
   updateProductRating(productId: string): Promise<void>;
   
-  // Enhanced order methods
+  getOrderBySessionId(sessionId: string): Promise<Order | undefined>;
   getUserOrdersWithItems(userId: string): Promise<Array<Order & { items: Array<OrderItem & { product: Product | null }> }>>;
   getOrderWithItems(orderId: string): Promise<(Order & { items: Array<OrderItem & { product: Product | null }> }) | undefined>;
   updateOrder(id: string, order: Partial<InsertOrder>): Promise<Order | undefined>;
@@ -1268,6 +1268,11 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(orders)
       .where(eq(orders.user_id, userId))
       .orderBy(desc(orders.created_at));
+  }
+
+  async getOrderBySessionId(sessionId: string): Promise<Order | undefined> {
+    const result = await db.select().from(orders).where(eq(orders.stripe_session_id, sessionId)).limit(1);
+    return result[0];
   }
 
   async createOrderItem(orderItem: InsertOrderItem): Promise<OrderItem> {
