@@ -1,0 +1,10 @@
+# Optional Render Blueprint: "New" → Blueprint → paste this repo, or attach manually.
+# Set all secrets in the Render dashboard (same names as `.env.example`). Do not commit real values.
+
+services:
+  - type: web
+    name: pup-connect-finds
+    runtime: node
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health

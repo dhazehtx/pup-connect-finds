@@ -1,0 +1,11 @@
+# Railway: connect repo `dhazehtx/pup-connect-finds`, add Postgres + env vars in the dashboard.
+# This file overrides service build/start when Railway deploys from GitHub.
+# Secrets (DATABASE_URL, Stripe, Supabase, SESSION_SECRET, BASE_URL, …) are NOT stored here.
+
+[build]
+buildCommand = "npm ci && npm run build"
+
+[deploy]
+startCommand = "npm start"
+healthcheckPath = "/api/health"
+healthcheckTimeout = 120
