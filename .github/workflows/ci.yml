@@ -19,6 +19,9 @@ jobs:
     name: npm run ci
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      # Avoid `prepare` → `husky` failing on CI runners (no hook install needed).
+      HUSKY: "0"
 
     steps:
       - name: Checkout

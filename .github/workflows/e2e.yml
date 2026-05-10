@@ -41,6 +41,8 @@ jobs:
     name: Playwright — staging
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    env:
+      HUSKY: "0"
     # Avoid running with missing secrets on fork PRs (secrets are empty / unavailable).
     # Skip entirely until ENABLE_STAGING_E2E is set (see header comment).
     if: |
