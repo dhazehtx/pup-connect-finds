@@ -15,6 +15,10 @@
 #
 # Fork PRs: secrets are not available to workflows from forks; this job is skipped unless
 # the workflow runs in the same repository (push to main / internal PRs).
+#
+# Opt-in: set repository variable ENABLE_STAGING_E2E=true (Settings → Secrets and variables
+# → Actions → Variables) after PLAYWRIGHT_BASE_URL, E2E_EMAIL, and E2E_PASSWORD are configured.
+# Without this variable, the job is skipped so push-to-main stays green while staging is unset.
 
 name: E2E (Playwright)
 
@@ -38,9 +42,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     # Avoid running with missing secrets on fork PRs (secrets are empty / unavailable).
+    # Skip entirely until ENABLE_STAGING_E2E is set (see header comment).
     if: |
-      github.event_name != 'pull_request' ||
-      github.event.pull_request.head.repo.full_name == github.repository
+      vars.ENABLE_STAGING_E2E == 'true' &&
+      (github.event_name != 'pull_request' ||
+        github.event.pull_request.head.repo.full_name == github.repository)
 
     steps:
       - name: Checkout
