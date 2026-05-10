@@ -1,25 +1,13 @@
 
 import React from 'react';
 import ListingCard from './ListingCard';
-
-interface Listing {
-  id: string;
-  dog_name: string;
-  breed: string;
-  price: number;
-  age: number;
-  location: string;
-  image_url?: string;
-  description?: string;
-  user_id: string;
-  created_at: string;
-}
+import { MarketplaceListing } from '@/types/marketplace';
 
 interface ListViewProps {
-  listings: Listing[];
-  onContactSeller: (listing: Listing) => void;
-  onAddToFavorites: (listing: Listing) => void;
-  onAddToComparison: (listing: Listing) => void;
+  listings: MarketplaceListing[];
+  onContactSeller: (listing: MarketplaceListing) => void;
+  onAddToFavorites: (listing: MarketplaceListing) => void;
+  onAddToComparison: (listing: MarketplaceListing) => void;
 }
 
 const ListView = ({ 

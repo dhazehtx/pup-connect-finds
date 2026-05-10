@@ -227,14 +227,20 @@ const OrderHistory: React.FC = () => {
                             {order.carrier && ` (${order.carrier})`}
                           </div>
                           {order.carrier && getTrackingUrl(order.carrier, order.tracking_number) && (
+                            (() => {
+                              const trackingUrl = getTrackingUrl(order.carrier, order.tracking_number);
+                              if (!trackingUrl) return null;
+                              return (
                             <Button 
                               variant="outline" 
                               size="sm"
-                              onClick={() => window.open(getTrackingUrl(order.carrier, order.tracking_number), '_blank')}
+                              onClick={() => window.open(trackingUrl, '_blank')}
                             >
                               <ExternalLink className="w-4 h-4 mr-1" />
                               Track Package
                             </Button>
+                              );
+                            })()
                           )}
                         </div>
                       )}

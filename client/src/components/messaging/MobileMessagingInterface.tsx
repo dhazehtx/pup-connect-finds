@@ -118,7 +118,7 @@ const MobileMessagingInterface = () => {
             <div className="flex-1 overflow-hidden">
               <ConversationsList
                 conversations={conversations}
-                selectedConversationId={null}
+                selectedConversationId={undefined}
                 onConversationSelect={handleSelectConversation}
                 getOtherUser={getOtherUser}
               />

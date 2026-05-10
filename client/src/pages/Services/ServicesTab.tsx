@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,42 +6,31 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, MapPin, Clock, Star, Shield, Filter, DollarSign } from 'lucide-react';
+import { MapPin, Clock, Star, Shield, Filter, DollarSign } from 'lucide-react';
+import { ExploreUniversalSearchBar } from '@/components/explore/ExploreUniversalSearchBar';
 import { ServiceProviderCard } from '@/components/ServiceProviderCard';
+import { ServiceBadge } from '@/components/badges/ServiceBadge';
 import { BookServiceModal } from '@/components/BookServiceModal';
-import Pill from '@/components/Pill';
 import type { PetServiceProvider } from '@shared/schema';
 import { useProviders } from '@/hooks/useProviders';
 import { useSignedIn } from '@/hooks/useSignedIn';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
+import {
+  SERVICE_CATEGORY_FILTER_OPTIONS,
+  getServiceCategoryEmoji,
+  getServiceCategoryLabel,
+} from '@shared/serviceCategories';
 
-const serviceTypeIcons: Record<string, string> = {
-  grooming: '✂️',
-  walking: '🚶',
-  sitting: '🏠',
-  training: '🎓',
-  boarding: '🏨',
-  veterinary: '🏥',
-  mobile_grooming: '🚐',
-};
-
-const serviceTypeLabels: Record<string, string> = {
-  grooming: 'Dog Grooming',
-  walking: 'Dog Walking',
-  sitting: 'Pet Sitting',
-  training: 'Dog Training',
-  boarding: 'Pet Boarding',
-  veterinary: 'Veterinary Care',
-  mobile_grooming: 'Mobile Grooming',
-};
-
-// Icon avatar colors for different service types
+// Icon avatar colors for different service types (extends shared categories)
 const serviceIconColors: Record<string, string> = {
   grooming: 'bg-blue-500',
   walking: 'bg-green-500',
   sitting: 'bg-purple-500',
   training: 'bg-orange-500',
   boarding: 'bg-indigo-500',
+  poop_scooping: 'bg-amber-600',
+  stud_services: 'bg-rose-600',
+  transportation: 'bg-sky-600',
   veterinary: 'bg-red-500',
   mobile_grooming: 'bg-teal-500',
 };
@@ -107,27 +95,24 @@ function DemoProviderCard({ provider }: { provider: any }) {
             <ServiceIcon type={provider.service_type} />
             {provider.is_verified && (
               <div className="absolute -bottom-1 -right-1">
-                <div className="bg-green-500 rounded-full p-1">
-                  <Shield className="w-3 h-3 text-white" />
-                </div>
+                <ServiceBadge
+                  serviceType={provider.service_type}
+                  verified={Boolean(provider.is_verified)}
+                  className="text-[10px] px-2 py-0.5"
+                />
               </div>
             )}
           </div>
           
-          {provider.is_verified && (
-            <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-300">
-              <Shield className="w-3 h-3 mr-1" />
-              Verified
-            </Badge>
-          )}
+          {provider.is_verified && <ServiceBadge serviceType={provider.service_type} verified />}
           
           <div>
             <h3 className="font-semibold text-lg">
               {provider.name || 'Service Provider'}
             </h3>
             <div className="flex items-center justify-center gap-1 text-sm text-slate-600">
-              <span>{serviceTypeIcons[provider.service_type] || '🐕'}</span>
-              <span>{serviceTypeLabels[provider.service_type] || provider.service_type}</span>
+              <span>{getServiceCategoryEmoji(provider.service_type)}</span>
+              <span>{getServiceCategoryLabel(provider.service_type)}</span>
             </div>
           </div>
         </div>
@@ -176,6 +161,13 @@ const PILL_INACTIVE =
 const PILL_ACTIVE =
   "!bg-[#2363FF] !text-white !border-[#2363FF] hover:!bg-[#1E55D6]";
 
+function parseListingPrice(service: { price?: unknown }): number | null {
+  const p = service?.price;
+  if (p == null || p === '') return null;
+  const n = typeof p === 'number' ? p : parseFloat(String(p));
+  return Number.isFinite(n) ? n : null;
+}
+
 interface ServicesFilters {
   type?: string;
   location?: string;
@@ -201,14 +193,11 @@ export function ServicesTab() {
   // Fetch real data only - no demo fallback for signed-in users
   const { providers: services = [], isLoading, isError: error, isDemo } = useProviders();
 
-  const serviceTypes = [
-    { value: 'grooming', label: 'Dog Grooming', icon: '✂️' },
-    { value: 'walking', label: 'Dog Walking', icon: '🚶' },
-    { value: 'sitting', label: 'Pet Sitting', icon: '🏠' },
-    { value: 'training', label: 'Dog Training', icon: '🎓' },
-    { value: 'boarding', label: 'Pet Boarding', icon: '🏨' },
-    { value: 'veterinary', label: 'Veterinary Care', icon: '🏥' },
-  ];
+  const serviceTypes = SERVICE_CATEGORY_FILTER_OPTIONS.map((c) => ({
+    value: c.id,
+    label: c.label,
+    icon: c.pillEmoji,
+  }));
 
   // Filter real services only (never demo data for signed-in users)
   const realServices = isSignedIn ? services.filter(service => !service.isDemo) : services;
@@ -220,8 +209,26 @@ export function ServicesTab() {
       service.location?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesType = !filters.type || service.service_type === filters.type;
-    
-    return matchesSearch && matchesType;
+
+    const loc = filters.location?.trim().toLowerCase();
+    const matchesLocation =
+      !loc ||
+      (typeof service.location === 'string' &&
+        service.location.toLowerCase().includes(loc));
+
+    const priceVal = parseListingPrice(service);
+    const minP = filters.min_price ? parseFloat(filters.min_price) : NaN;
+    const maxP = filters.max_price ? parseFloat(filters.max_price) : NaN;
+    const matchesMin =
+      !Number.isFinite(minP) ||
+      priceVal == null ||
+      priceVal >= minP;
+    const matchesMax =
+      !Number.isFinite(maxP) ||
+      priceVal == null ||
+      priceVal <= maxP;
+
+    return matchesSearch && matchesType && matchesLocation && matchesMin && matchesMax;
   });
 
   const featuredServices = filteredServices.slice(0, 6);
@@ -268,22 +275,20 @@ export function ServicesTab() {
             className="text-xl md:text-2xl mb-8 max-w-2xl mx-auto leading-relaxed"
             style={{ color: '#FFFFFF' }}
           >
-            Find trusted professionals for grooming, training, sitting, and more
+            Find trusted professionals for grooming, transport, stud services, scooping, and more
           </p>
           
-          {/* Search Bar in Hero */}
-          <div className="max-w-lg mx-auto mb-6">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <Input
-                type="text"
-                placeholder="Search services, providers, or locations..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-12 pr-4 py-4 text-black bg-white/95 backdrop-blur border-0 shadow-lg rounded-xl text-lg"
-                data-testid="input-search-services"
-              />
-            </div>
+          {/* Search Bar in Hero — same pill + blue action as Explore */}
+          <div className="mx-auto mb-6 max-w-lg">
+            <ExploreUniversalSearchBar
+              value={searchTerm}
+              onChange={setSearchTerm}
+              placeholder="Search services, providers, or locations..."
+              inputSize="lg"
+              id="services-hero-search"
+              className="[&_input]:!bg-white [&_input]:!text-slate-900"
+              data-testid="input-search-services"
+            />
           </div>
           
           <Button 
@@ -383,44 +388,23 @@ export function ServicesTab() {
           {showFilters ? 'Hide Filters' : 'Show Advanced Filters'}
         </Button>
 
-        {/* Service Categories Pill Row */}
-        <div className="flex flex-wrap gap-3 justify-center">
+        {/* Service Categories Pill Row — same ids as pet_service_providers.service_type */}
+        <div className="flex flex-wrap gap-3 justify-center max-w-5xl mx-auto">
         <Button
           className={`${PILL_BASE} ${!filters.type ? PILL_ACTIVE : PILL_INACTIVE}`}
           onClick={() => setFilters(prev => ({ ...prev, type: undefined }))}
         >
           All Services
         </Button>
-        <Button
-          className={`${PILL_BASE} ${filters.type === "grooming" ? PILL_ACTIVE : PILL_INACTIVE}`}
-          onClick={() => setFilters(prev => ({ ...prev, type: "grooming" }))}
-        >
-          🧼 Grooming
-        </Button>
-        <Button
-          className={`${PILL_BASE} ${filters.type === "sitting" ? PILL_ACTIVE : PILL_INACTIVE}`}
-          onClick={() => setFilters(prev => ({ ...prev, type: "sitting" }))}
-        >
-          🏠 Dog Sitting
-        </Button>
-        <Button
-          className={`${PILL_BASE} ${filters.type === "training" ? PILL_ACTIVE : PILL_INACTIVE}`}
-          onClick={() => setFilters(prev => ({ ...prev, type: "training" }))}
-        >
-          🎯 Training
-        </Button>
-        <Button
-          className={`${PILL_BASE} ${filters.type === "walking" ? PILL_ACTIVE : PILL_INACTIVE}`}
-          onClick={() => setFilters(prev => ({ ...prev, type: "walking" }))}
-        >
-          🚶 Dog Walking
-        </Button>
-        <Button
-          className={`${PILL_BASE} ${filters.type === "boarding" ? PILL_ACTIVE : PILL_INACTIVE}`}
-          onClick={() => setFilters(prev => ({ ...prev, type: "boarding" }))}
-        >
-          🏨 Boarding
-        </Button>
+        {SERVICE_CATEGORY_FILTER_OPTIONS.map((cat) => (
+          <Button
+            key={cat.id}
+            className={`${PILL_BASE} ${filters.type === cat.id ? PILL_ACTIVE : PILL_INACTIVE}`}
+            onClick={() => setFilters(prev => ({ ...prev, type: cat.id }))}
+          >
+            {cat.pillEmoji} {cat.label}
+          </Button>
+        ))}
         </div>
       </div>
 

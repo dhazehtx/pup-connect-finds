@@ -2,7 +2,7 @@ import React from 'react';
 import { MessageCircle, Clock } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { useLocation } from 'wouter';
+import { useNavigate } from 'react-router-dom';
 
 interface ReplyNotificationItemProps {
   notification: {
@@ -25,7 +25,7 @@ interface ReplyNotificationItemProps {
 }
 
 const ReplyNotificationItem = ({ notification, onMarkAsRead, onClick }: ReplyNotificationItemProps) => {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
 
   const handleClick = () => {
     if (!notification.is_read) {
@@ -37,7 +37,7 @@ const ReplyNotificationItem = ({ notification, onMarkAsRead, onClick }: ReplyNot
       const url = notification.comment_id 
         ? `/posts/${notification.post_id}?comment=${notification.comment_id}`
         : `/posts/${notification.post_id}`;
-      setLocation(url);
+      navigate(url);
     }
 
     if (onClick) {

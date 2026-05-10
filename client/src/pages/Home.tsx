@@ -1,41 +1,36 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Heart, Search, Shield, Star, UserPlus, LogIn, Eye } from 'lucide-react';
-
-const useIsMobile = () => {
-  const [isMobile, setIsMobile] = useState(false);
-  
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 640);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-  
-  return isMobile;
-};
+import {
+  CheckCircle,
+  Lock,
+  LogIn,
+  PawPrint,
+  Search,
+  Shield,
+  ShoppingBag,
+  Star,
+  UserPlus,
+} from 'lucide-react';
+import { APP_SHELL_CONTAINER_CLASS } from '@/lib/appShell';
+import { PawsWordmarkLockup } from '@/components/brand/PawsWordmark';
+import { ChromaticAmbience } from '@/components/greeting/ChromaticAmbience';
 
 const Home = () => {
   const { user, loading, continueAsGuest, isGuest } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const isMobile = useIsMobile();
-
-  // Stable user identity for dependency tracking
-  const stableUserId = useMemo(() => user?.id || null, [user?.id]);
 
   useEffect(() => {
-    document.title = 'My Pup - Find Your Perfect Puppy Companion';
+    document.title = 'PAWS — Pet Adoption & Web Services';
     window.scrollTo(0, 0);
   }, []);
 
-  // Navigation guard
   useEffect(() => {
     const shouldRedirect = !loading && !user && !isGuest;
     const currentPath = location.pathname;
     const targetPath = '/greeting';
-    
+
     if (shouldRedirect && currentPath !== targetPath) {
       navigate(targetPath, { replace: true });
     }
@@ -46,188 +41,129 @@ const Home = () => {
     navigate('/explore');
   };
 
-  // Show loading spinner while checking auth
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ 
-            width: '48px', 
-            height: '48px', 
-            border: '4px solid #0074D4', 
-            borderTopColor: 'transparent', 
-            borderRadius: '50%', 
-            margin: '0 auto 16px',
-            animation: 'spin 1s linear infinite'
-          }}></div>
-          <p style={{ color: '#6b7280' }}>Loading...</p>
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-white via-slate-50 to-blue-50/20">
+        <div className="text-center">
+          <div
+            className="mx-auto mb-3 h-10 w-10 animate-spin rounded-full border-[3px] border-[#2563EB] border-t-transparent sm:mb-4 sm:h-12 sm:w-12"
+            aria-hidden
+          />
+          <p className="text-sm text-slate-500">Loading…</p>
         </div>
       </div>
     );
   }
 
-  // Button styles - defined once for consistency
-  const ctaButtonStyle: React.CSSProperties = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#0074D4',
-    color: '#FFFFFF',
-    fontWeight: 600,
-    fontSize: '16px',
-    fontFamily: 'inherit',
-    borderRadius: '10px',
-    padding: '14px 24px',
-    border: 'none',
-    cursor: 'pointer',
-    minHeight: '48px',
-    boxShadow: '0 2px 4px rgba(0, 116, 212, 0.3)',
-    textDecoration: 'none'
-  };
-
-  const iconStyle: React.CSSProperties = {
-    width: '20px',
-    height: '20px',
-    marginRight: '8px',
-    color: '#FFFFFF'
-  };
-
   return (
-    <div className="greeting-page min-h-screen bg-white pb-20">
-      {/* Hero Section */}
-      <section className="greeting-hero bg-white px-4 pt-10 pb-8 sm:py-16 text-center">
-        <div className="max-w-4xl mx-auto">
-          {/* Title - Polished hero with balanced proportions */}
-          <h1
-            style={{
-              marginBottom: '1.5rem',
-              lineHeight: '1.15',
-              textAlign: 'center',
-            }}
-            className="text-gray-900"
-          >
-            <span
-              style={{
-                display: 'block',
-                fontSize: 'clamp(28px, 5.5vw, 44px)',
-                fontWeight: 700,
-                letterSpacing: '-0.01em',
-                marginBottom: '-0.4rem',
-              }}
-            >
-              Find Your Perfect
-            </span>
+    <div className="greeting-page min-h-screen bg-gradient-to-b from-white via-slate-50 to-blue-50/20 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] font-sans antialiased sm:pb-24">
+      <section className="greeting-hero relative overflow-hidden pb-3 pt-7 text-center text-slate-800 sm:pb-4 sm:pt-9">
+        <ChromaticAmbience />
 
-            <span
-              style={{
-                display: 'block',
-                fontSize: 'clamp(32px, 7vw, 56px)',
-                fontWeight: 800,
-                letterSpacing: '-0.015em',
-                color: '#2363FF',
-              }}
-            >
-              Puppy Companion
-            </span>
-          </h1>
-
-          
-          {/* Subtitle - larger and more readable */}
-          <p style={{
-            fontSize: '20px',
-            lineHeight: 1.5,
-            color: '#4b5563',
-            maxWidth: '90%',
-            margin: '0 auto 32px',
-            padding: '0 8px'
-          }} className="md:!text-xl">
-            Connect with shelters and verified breeders to discover adorable, 
-            healthy puppies waiting for their forever homes.
-          </p>
-          
-          {/* CTA Buttons - Always rendered, no conditions */}
-          <div style={{ 
-            display: 'flex', 
-            flexDirection: 'row', 
-            flexWrap: 'wrap',
-            gap: '16px', 
-            justifyContent: 'center', 
-            marginBottom: '32px'
-          }}>
-            <button 
-              type="button"
-              onClick={() => navigate('/auth')}
-              style={ctaButtonStyle}
-            >
-              <UserPlus style={iconStyle} />
-              <span style={{ color: '#FFFFFF' }}>Sign Up</span>
-            </button>
-            
-            <button 
-              type="button"
-              onClick={() => navigate('/auth')}
-              style={ctaButtonStyle}
-            >
-              <LogIn style={iconStyle} />
-              <span style={{ color: '#FFFFFF' }}>Sign In</span>
-            </button>
-            
-            <button 
-              type="button"
-              onClick={handleGuestAccess}
-              style={{
-                ...ctaButtonStyle,
-                backgroundColor: '#ffffff',
-                color: '#0074D4',
-                border: '2px solid #0074D4',
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.08)',
-              }}
-            >
-              <Eye style={{ ...iconStyle, color: '#0074D4' }} />
-              <span style={{ color: '#0074D4' }}>Browse as Guest</span>
-            </button>
-            
-            <button 
-              type="button"
-              onClick={() => navigate('/explore')}
-              style={ctaButtonStyle}
-            >
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="20" 
-                height="20" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="#FFFFFF" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-                style={{ marginRight: '8px', flexShrink: 0 }}
+        <div className={`relative z-10 ${APP_SHELL_CONTAINER_CLASS} px-4`}>
+          <div className="mx-auto w-full max-w-lg rounded-[1.75rem] border border-blue-100/50 bg-white/90 px-4 pb-5 pt-7 shadow-sm shadow-[0_0_50px_-12px_rgba(37,99,235,0.1)] backdrop-blur-sm sm:px-6 sm:pb-6 sm:pt-8">
+            <div className="flex flex-col items-center text-center">
+              <h1
+                className="group greeting-brand-mark font-brand-wordmark inline-flex items-baseline justify-center gap-1 text-[clamp(1.1rem,3.4vw,1.55rem)] font-medium leading-none tracking-widest text-slate-700"
+                aria-label="PAWS"
               >
-                <circle cx="11" cy="11" r="8"></circle>
-                <path d="m21 21-4.3-4.3"></path>
-              </svg>
-              <span style={{ color: '#FFFFFF' }}>Explore Puppies</span>
-            </button>
-          </div>
+                <PawsWordmarkLockup />
+              </h1>
 
-          {/* Trust badges */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '24px', fontSize: '14px', color: '#6b7280', marginTop: '32px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Shield style={{ width: '16px', height: '16px', color: '#16a34a' }} />
-              <span>Verified Breeders</span>
+              <div
+                className="greeting-brand-mark greeting-brand-mark--subtitle mt-4 h-px w-14 bg-gradient-to-r from-transparent via-slate-300/90 to-transparent sm:w-16"
+                aria-hidden
+              />
+
+              <p className="greeting-brand-mark greeting-brand-mark--subtitle mt-3 max-w-md text-[14px] font-extralight leading-snug tracking-wide text-slate-500 sm:mt-3.5 sm:text-[15px]">
+                Pet Adoption & Web Services.
+              </p>
+
+              <p className="mt-4 max-w-lg text-[14px] font-medium leading-[1.65] text-slate-700 sm:mt-5">
+                Connect with shelters and verified breeders to discover adorable, healthy puppies — and find your{' '}
+                <span className="font-semibold text-blue-600">
+                  perfect companion
+                </span>
+                .
+              </p>
+
+              <p className="mt-5 text-[11px] font-normal leading-relaxed text-slate-400 sm:mt-5 sm:text-xs">
+                Trusted by shelters & breeders. Loved by families.
+              </p>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Heart style={{ width: '16px', height: '16px', color: '#ef4444' }} />
-              <span>Health Guaranteed</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Star style={{ width: '16px', height: '16px', color: '#0074D4' }} />
-              <span>5-Star Support</span>
+
+            <div className="mt-6 flex w-full flex-col items-center gap-3 sm:mt-7 sm:gap-4">
+              <button
+                type="button"
+                className="greeting-btn-primary greeting-btn-explore-gradient inline-flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-xl px-7 py-3.5 text-[16px] font-semibold transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
+                onClick={handleGuestAccess}
+              >
+                <Search className="h-5 w-5 shrink-0 text-[#111827]" aria-hidden />
+                <span>Explore as Guest</span>
+              </button>
+
+              <p className="flex items-center justify-center gap-2 text-[11px] font-medium leading-tight text-slate-500 sm:text-[12px]">
+                <Lock className="h-3.5 w-3.5 shrink-0 text-slate-400" strokeWidth={2} aria-hidden />
+                <span>Safe & Secure Adoption.</span>
+              </p>
+
+              <div className="grid w-full grid-cols-2 gap-2.5 sm:gap-3">
+                <button
+                  type="button"
+                  className="greeting-btn-secondary greeting-btn-secondary--polished inline-flex h-12 min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-white px-4 text-[15px] font-semibold shadow-sm transition-colors sm:px-5"
+                  onClick={() => navigate('/auth')}
+                >
+                  <UserPlus className="h-5 w-5 shrink-0" aria-hidden />
+                  <span>Sign Up</span>
+                </button>
+                <button
+                  type="button"
+                  className="greeting-btn-secondary greeting-btn-secondary--polished inline-flex h-12 min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-white px-4 text-[15px] font-semibold shadow-sm transition-colors sm:px-5"
+                  onClick={() => navigate('/auth')}
+                >
+                  <LogIn className="h-5 w-5 shrink-0" aria-hidden />
+                  <span>Sign In</span>
+                </button>
+              </div>
+
+              <button
+                type="button"
+                className="greeting-btn-secondary greeting-btn-secondary--polished inline-flex h-11 min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-slate-200/90 bg-white/90 px-4 text-[14px] font-semibold text-slate-700 shadow-sm transition-colors hover:bg-white sm:px-5"
+                onClick={() => navigate('/marketplace?tab=store')}
+              >
+                <ShoppingBag className="h-4 w-4 shrink-0 text-slate-600" aria-hidden />
+                <span>PAWS Store &amp; Pup Box</span>
+              </button>
             </div>
           </div>
         </div>
       </section>
+
+      <div className={`${APP_SHELL_CONTAINER_CLASS} pb-3 pt-0 sm:pb-4`}>
+        <section
+          className="greeting-trust-bar rounded-t-2xl px-3 py-3 sm:px-6 sm:py-4"
+          aria-label="Trust highlights"
+        >
+          <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-x-8 gap-y-3 text-[13px] font-medium text-slate-600 sm:gap-x-10 sm:text-[14px]">
+            <span className="inline-flex items-center gap-2.5">
+              <CheckCircle className="h-5 w-5 shrink-0 text-blue-600" aria-hidden />
+              Verified Breeders
+            </span>
+            <span className="inline-flex items-center gap-2.5">
+              <Shield className="h-5 w-5 shrink-0 text-blue-600" aria-hidden />
+              Health Guaranteed
+            </span>
+            <span className="inline-flex items-center gap-2.5">
+              <Star className="h-5 w-5 shrink-0 text-blue-600" aria-hidden />
+              5-Star Platform
+            </span>
+            <span className="inline-flex items-center gap-2.5">
+              <PawPrint className="h-5 w-5 shrink-0 text-blue-600" aria-hidden />
+              Trusted by Families
+            </span>
+          </div>
+        </section>
+      </div>
     </div>
   );
 };

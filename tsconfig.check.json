@@ -1,0 +1,46 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "shared/**/*",
+    "server/db.ts",
+    "server/socket.ts",
+    "server/lib/**/*.ts",
+    "server/middleware/**/*.ts",
+    "server/routes/lost-pet-alerts.ts",
+    "server/routes/media.ts",
+
+    "client/src/contexts/**/*",
+    "client/src/lib/**/*",
+    "client/src/types/ambient-modules.d.ts",
+    "client/src/hooks/useAuth.ts",
+    "client/src/hooks/useAuthState.ts",
+    "client/src/hooks/useMediaUpload.ts",
+    "client/src/hooks/use-toast.ts",
+    "client/src/pages/LostAndFoundPage.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "build",
+    "dist",
+    "**/*.test.ts",
+
+    "client/src/components/admin/**",
+    "client/src/components/analytics/**",
+    "client/src/components/ai/**",
+    "client/src/components/bugs/**",
+    "client/src/components/commissions/**",
+    "client/src/components/community/**",
+    "client/src/components/explore/**",
+    "client/src/components/auth/AuthHeader.tsx",
+    "client/src/pages/Monetization.tsx",
+    "server/routes.ts",
+    "server/routes/admin/**",
+    "server/routes/adminDashboard.ts",
+
+    "server/middleware/compression.ts",
+    "server/middleware/loggingMiddleware.ts",
+    "server/middleware/sessionTimeout.ts",
+    "server/middleware/requireVerifiedProvider.ts"
+  ]
+}
+

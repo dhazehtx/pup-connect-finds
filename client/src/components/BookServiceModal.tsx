@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,9 +10,16 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Calendar, Clock, DollarSign, MapPin, Shield, CheckCircle, AlertTriangle } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import type { PetServiceProvider } from '@shared/schema';
+import type {
+  AvailableSlot,
+  CreateServiceBookingRequest,
+  CreateServiceBookingResponse,
+  ListAvailableSlotsResponse,
+} from '@shared/bookingContract';
 
 interface BookServiceModalProps {
   provider: PetServiceProvider & {
@@ -26,18 +34,17 @@ interface BookServiceModalProps {
   onClose: () => void;
 }
 
-interface BookingRequest {
-  service_date: string;
-  duration_hours: number;
-  special_instructions?: string;
-}
-
 export function BookServiceModal({ provider, open, onClose }: BookServiceModalProps) {
-  const [formData, setFormData] = useState<BookingRequest>({
-    service_date: '',
-    duration_hours: 1,
-    special_instructions: '',
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState<CreateServiceBookingRequest>({
+    serviceTypeId: provider.service_type,
+    startAt: '',
+    durationMinutes: 60,
+    notes: '',
   });
+  const [selectedDate, setSelectedDate] = useState('');
+  const [availableSlots, setAvailableSlots] = useState<AvailableSlot[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   
@@ -45,17 +52,25 @@ export function BookServiceModal({ provider, open, onClose }: BookServiceModalPr
   const queryClient = useQueryClient();
 
   const createBooking = useMutation({
-    mutationFn: async (data: BookingRequest) => {
+    mutationFn: async (data: CreateServiceBookingRequest) => {
       return apiRequest(`/api/services/book/${provider.id}`, {
         method: 'POST',
-        body: JSON.stringify(data),
-      });
+        body: data,
+      }) as Promise<CreateServiceBookingResponse>;
     },
     onSuccess: () => {
       setShowConfirmation(true);
       queryClient.invalidateQueries({ queryKey: ['/api/services/bookings'] });
     },
     onError: (error: any) => {
+      if (error?.code === 'slot_unavailable') {
+        toast({
+          title: "Slot unavailable",
+          description: "That time was just booked. Please choose another slot.",
+          variant: "destructive",
+        });
+        return;
+      }
       toast({
         title: "Booking Failed",
         description: error.message || "Failed to create booking. Please try again.",
@@ -64,26 +79,59 @@ export function BookServiceModal({ provider, open, onClose }: BookServiceModalPr
     },
   });
 
-  const getMinDateTime = () => {
+  const getMinDate = () => {
     const now = new Date();
-    now.setHours(now.getHours() + 2); // Minimum 2 hours from now
-    return now.toISOString().slice(0, 16);
+    return now.toISOString().slice(0, 10);
   };
 
   const calculateTotal = () => {
     const hourlyRate = parseFloat(provider.price || '0');
-    return (hourlyRate * formData.duration_hours).toFixed(2);
+    return ((hourlyRate * formData.durationMinutes) / 60).toFixed(2);
   };
+
+  const durationLabel = useMemo(() => {
+    const mins = formData.durationMinutes;
+    if (mins % 60 === 0) return `${mins / 60} hour${mins > 60 ? 's' : ''}`;
+    return `${mins} minutes`;
+  }, [formData.durationMinutes]);
+
+  useEffect(() => {
+    const loadSlots = async () => {
+      if (!selectedDate) {
+        setAvailableSlots([]);
+        setFormData((prev) => ({ ...prev, startAt: '' }));
+        return;
+      }
+      setLoadingSlots(true);
+      try {
+        const response = (await apiRequest(
+          `/api/services/provider/${provider.id}/available-slots?date=${selectedDate}&durationMinutes=${formData.durationMinutes}`,
+        )) as ListAvailableSlotsResponse;
+        setAvailableSlots(response?.data?.slots || []);
+        setFormData((prev) => ({ ...prev, startAt: '' }));
+      } catch (error: any) {
+        setAvailableSlots([]);
+        toast({
+          title: 'Unable to load slots',
+          description: error?.message || 'Please try a different date.',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoadingSlots(false);
+      }
+    };
+    void loadSlots();
+  }, [selectedDate, formData.durationMinutes, provider.id, toast]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate minimum booking time (2 hours from now)
-    const selectedDate = new Date(formData.service_date);
+    // Validate minimum booking time
+    const selectedStart = new Date(formData.startAt);
     const minDate = new Date();
     minDate.setHours(minDate.getHours() + 2);
     
-    if (selectedDate < minDate) {
+    if (selectedStart < minDate) {
       toast({
         title: "Invalid Date",
         description: "Please select a date at least 2 hours from now.",
@@ -103,7 +151,6 @@ export function BookServiceModal({ provider, open, onClose }: BookServiceModalPr
 
     createBooking.mutate({
       ...formData,
-      service_date: new Date(formData.service_date).toISOString(),
     });
   };
 
@@ -113,6 +160,7 @@ export function BookServiceModal({ provider, open, onClose }: BookServiceModalPr
     sitting: 'Pet Sitting',
     training: 'Dog Training',
     boarding: 'Pet Boarding',
+    whelping: 'Whelping Care',
     veterinary: 'Veterinary Care',
   };
 
@@ -122,6 +170,7 @@ export function BookServiceModal({ provider, open, onClose }: BookServiceModalPr
     sitting: '🏠', 
     training: '🎓',
     boarding: '🏨',
+    whelping: '🍼',
     veterinary: '🏥',
   };
 
@@ -129,10 +178,13 @@ export function BookServiceModal({ provider, open, onClose }: BookServiceModalPr
     setShowConfirmation(false);
     setAgreeToTerms(false);
     setFormData({
-      service_date: '',
-      duration_hours: 1,
-      special_instructions: '',
+      serviceTypeId: provider.service_type,
+      startAt: '',
+      durationMinutes: 60,
+      notes: '',
     });
+    setSelectedDate('');
+    setAvailableSlots([]);
     onClose();
   };
 
@@ -175,13 +227,13 @@ export function BookServiceModal({ provider, open, onClose }: BookServiceModalPr
               <Button 
                 variant="outline" 
                 onClick={handleCloseModal}
-                className="flex-1"
+                className="min-h-11 flex-1"
               >
                 Close
               </Button>
               <Button 
-                onClick={() => window.open('/dashboard/bookings', '_blank')}
-                className="flex-1"
+                onClick={() => navigate('/dashboard/bookings')}
+                className="min-h-11 flex-1"
               >
                 View My Bookings
               </Button>
@@ -239,52 +291,78 @@ export function BookServiceModal({ provider, open, onClose }: BookServiceModalPr
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Service Date & Time */}
-              <div className="space-y-2">
-                <Label htmlFor="service_date">Service Date & Time *</Label>
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="service_date">Service Date *</Label>
                   <Input
                     id="service_date"
-                    type="datetime-local"
-                    min={getMinDateTime()}
-                    value={formData.service_date}
-                    onChange={(e) => setFormData(prev => ({ ...prev, service_date: e.target.value }))}
-                    className="pl-10"
+                    type="date"
+                    min={getMinDate()}
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
                     required
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label>Duration *</Label>
+                  <Select
+                    value={String(formData.durationMinutes)}
+                    onValueChange={(value) => setFormData((prev) => ({ ...prev, durationMinutes: parseInt(value, 10) }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="30">30 minutes</SelectItem>
+                      <SelectItem value="60">1 hour</SelectItem>
+                      <SelectItem value="90">1.5 hours</SelectItem>
+                      <SelectItem value="120">2 hours</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
-              {/* Duration */}
               <div className="space-y-2">
-                <Label htmlFor="duration">Duration (hours) *</Label>
-                <div className="flex items-center space-x-3">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="duration"
-                    type="number"
-                    min="0.5"
-                    max="24"
-                    step="0.5"
-                    value={formData.duration_hours}
-                    onChange={(e) => setFormData(prev => ({ ...prev, duration_hours: parseFloat(e.target.value) || 1 }))}
-                    className="flex-1"
-                    required
-                  />
-                  <div className="text-sm text-muted-foreground">
-                    Total: ${calculateTotal()}
-                  </div>
+                <Label>Available Time Slots *</Label>
+                {loadingSlots ? (
+                  <p className="text-sm text-muted-foreground">Loading available times...</p>
+                ) : (
+                  <Select
+                    value={formData.startAt}
+                    onValueChange={(value) => setFormData((prev) => ({ ...prev, startAt: value }))}
+                    disabled={!selectedDate || availableSlots.filter((slot) => slot.available).length === 0}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={selectedDate ? 'Select a time slot' : 'Select date first'} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableSlots.filter((slot) => slot.available).map((slot) => (
+                        <SelectItem key={slot.startAt} value={slot.startAt}>
+                          {new Date(slot.startAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                {!loadingSlots && selectedDate && availableSlots.filter((slot) => slot.available).length === 0 && (
+                  <p className="text-sm text-amber-700">
+                    No available slots for this date. Try another day or shorter duration.
+                  </p>
+                )}
+                <div className="text-sm text-muted-foreground">
+                  <Clock className="mr-1 inline h-4 w-4" />
+                  Duration: {durationLabel} | Total: ${calculateTotal()}
                 </div>
               </div>
 
-              {/* Special Instructions */}
+              {/* Notes */}
               <div className="space-y-2">
                 <Label htmlFor="instructions">Special Instructions (Optional)</Label>
                 <Textarea
                   id="instructions"
                   placeholder="Any specific requirements or notes for the service provider..."
-                  value={formData.special_instructions}
-                  onChange={(e) => setFormData(prev => ({ ...prev, special_instructions: e.target.value }))}
+                  value={formData.notes}
+                  onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
                   rows={3}
                 />
               </div>
@@ -292,7 +370,7 @@ export function BookServiceModal({ provider, open, onClose }: BookServiceModalPr
               {/* Availability Notice */}
               {provider.availability && (
                 <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                  <p className="text-sm font-medium text-blue-900">Provider Availability:</p>
+                  <p className="text-sm font-medium text-blue-900">Provider Availability Notes:</p>
                   <p className="text-sm text-blue-700">{provider.availability}</p>
                 </div>
               )}
@@ -333,15 +411,15 @@ export function BookServiceModal({ provider, open, onClose }: BookServiceModalPr
                   type="button"
                   variant="outline"
                   onClick={handleCloseModal}
-                  className="flex-1"
+                  className="min-h-11 flex-1"
                 >
                   Cancel
                 </Button>
                 
                 <Button
                   type="submit"
-                  disabled={createBooking.isPending || !agreeToTerms}
-                  className="flex-1"
+                  disabled={createBooking.isPending || !agreeToTerms || !formData.startAt}
+                  className="min-h-11 flex-1"
                 >
                   {createBooking.isPending ? 'Sending Request...' : 'Send Booking Request'}
                 </Button>

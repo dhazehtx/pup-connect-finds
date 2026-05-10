@@ -16,6 +16,31 @@ interface AdminLog {
   level?: string;
 }
 
+type DbAdminLog = {
+  id: string;
+  timestamp: string | null;
+  created_at?: string | null;
+  admin_id: string | null;
+  action: string | null;
+  metadata?: any;
+  event_type?: string | null;
+  event_detail?: string | null;
+  category?: string | null;
+  level?: string | null;
+};
+
+const normalizeAdminLog = (log: DbAdminLog): AdminLog => ({
+  id: log.id,
+  timestamp: log.timestamp ?? log.created_at ?? new Date().toISOString(),
+  admin_id: log.admin_id ?? 'system',
+  action: log.action ?? 'unknown_action',
+  metadata: log.metadata,
+  event_type: log.event_type ?? undefined,
+  event_detail: log.event_detail ?? undefined,
+  category: log.category ?? undefined,
+  level: log.level ?? undefined,
+});
+
 interface RealtimeConfig {
   autoScroll: boolean;
   showToastNotifications: boolean;
@@ -273,13 +298,13 @@ export const useRealtimeAdminLogs = (initialLogs: AdminLog[] = []) => {
     try {
       // Fetch latest logs to catch up
       const { data, error } = await supabase
-        .from('admin_logs')
+        .from('admin_logs' as any)
         .select('*')
-        .order('timestamp', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(50);
 
       if (!error && data) {
-        setLogs(data);
+        setLogs(((data as unknown) as DbAdminLog[]).map((item) => normalizeAdminLog(item)));
         scrollToBottom();
       }
     } catch (error) {

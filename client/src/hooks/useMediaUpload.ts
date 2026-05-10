@@ -115,19 +115,24 @@ export function useMediaUpload() {
 
           console.log('[PROOF:UPLOAD]', JSON.stringify({ parentType: options.kind, parentId: options.parentId || null, filename: file.name, pct: 10 }));
           setProgress(10);
-          const signRes = await apiRequest('/api/media/sign', {
+          const signData = (await apiRequest('/api/media/sign', {
             method: 'POST',
-            body: JSON.stringify({
+            body: {
               bucket: options.bucket,
               fileName: file.name,
               mimeType: file.type,
               kind: options.kind,
               sizeBytes: file.size,
               parentId: options.parentId,
-            }),
-          });
-
-          const signData = await signRes.json();
+            },
+          })) as {
+            ok?: boolean;
+            uploadUrl?: string;
+            path?: string;
+            bucket?: string;
+            error?: string;
+            code?: string;
+          };
           if (!signData.ok) {
             if (signData.code === 'MEDIA_INVALID_TYPE' || signData.code === 'MEDIA_INVALID' || signData.code === 'MEDIA_TOO_LARGE' || signData.code === 'MEDIA_TOO_MANY') {
               console.log('[PROOF:MEDIA:TOAST]', signData.code);
@@ -135,6 +140,12 @@ export function useMediaUpload() {
               return null;
             }
             throw new Error(signData.error || 'Failed to get upload URL');
+          }
+          const uploadUrl = signData.uploadUrl;
+          const signedPath = signData.path;
+          const signedBucket = signData.bucket;
+          if (!uploadUrl || !signedPath || !signedBucket) {
+            throw new Error('Invalid upload response from server');
           }
 
           setProgress(25);
@@ -155,7 +166,7 @@ export function useMediaUpload() {
             };
             xhr.onerror = () => reject(new Error('Upload network error'));
             xhr.onabort = () => reject(new Error('Upload cancelled'));
-            xhr.open('PUT', signData.uploadUrl);
+            xhr.open('PUT', uploadUrl);
             xhr.setRequestHeader('Content-Type', file.type);
             xhr.send(file);
           });
@@ -164,19 +175,17 @@ export function useMediaUpload() {
           abortRef.current = null;
           setProgress(65);
 
-          const commitRes = await apiRequest('/api/media/commit', {
+          const commitData = (await apiRequest('/api/media/commit', {
             method: 'POST',
-            body: JSON.stringify({
-              bucket: signData.bucket,
-              path: signData.path,
+            body: {
+              bucket: signedBucket,
+              path: signedPath,
               mimeType: file.type,
               sizeBytes: file.size,
               kind: options.kind,
               parentId: options.parentId,
-            }),
-          });
-
-          const commitData = await commitRes.json();
+            },
+          })) as UploadResult;
           setProgress(100);
 
           console.log('[PROOF:UPLOAD]', JSON.stringify({ parentType: options.kind, parentId: options.parentId || null, filename: file.name, pct: 100 }));
@@ -206,8 +215,7 @@ export function useMediaUpload() {
 
   const deleteAsset = useCallback(async (assetId: string): Promise<boolean> => {
     try {
-      const res = await apiRequest(`/api/media/${assetId}`, { method: 'DELETE' });
-      const data = await res.json();
+      const data = (await apiRequest(`/api/media/${assetId}`, { method: 'DELETE' })) as { ok?: boolean };
       return data.ok === true;
     } catch {
       return false;
@@ -216,11 +224,10 @@ export function useMediaUpload() {
 
   const cleanupParent = useCallback(async (parentType: string, parentId: string): Promise<boolean> => {
     try {
-      const res = await apiRequest('/api/media/cleanup-parent', {
+      const data = (await apiRequest('/api/media/cleanup-parent', {
         method: 'POST',
-        body: JSON.stringify({ parentType, parentId }),
-      });
-      const data = await res.json();
+        body: { parentType, parentId },
+      })) as { ok?: boolean };
       return data.ok === true;
     } catch {
       return false;

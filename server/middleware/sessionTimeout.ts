@@ -34,7 +34,6 @@ export async function sessionTimeout(req: Request, res: Response, next: NextFunc
 
     // Update last active timestamp
     await storage.updateProfile(userId, {
-      updated_at: new Date(),
       last_login_ip: req.ip || req.connection.remoteAddress || 'unknown'
     });
 
@@ -57,9 +56,7 @@ export async function lightSessionCheck(req: Request, res: Response, next: NextF
     }
 
     // Update last active without strict timeout check
-    await storage.updateProfile(userId, {
-      updated_at: new Date()
-    });
+    await storage.updateProfile(userId, {});
 
     next();
   } catch (error) {

@@ -111,7 +111,7 @@ const OptimizedVirtualizedMessageList = ({
   const loadSenderProfiles = useCallback(async () => {
     if (isLoadingProfiles) return;
 
-    const senderIds = [...new Set(messages.map(m => m.sender_id))];
+    const senderIds = Array.from(new Set(messages.map(m => m.sender_id)));
     const missingProfiles = senderIds.filter(id => !senderProfiles[id]);
     
     if (missingProfiles.length === 0) return;

@@ -14,7 +14,8 @@ export const STRIPE_WEBHOOK_SECRET = IS_PROD
   ? process.env.STRIPE_WEBHOOK_SECRET_LIVE!
   : process.env.STRIPE_WEBHOOK_SECRET_TEST!;
 
-export const CONNECT_APP_FEE_BPS = 1000; // 10% platform fee (adjust)
+/** Must match server CONNECT_APP_FEE_BPS (default 0% at launch). */
+export const CONNECT_APP_FEE_BPS = Number(import.meta.env.VITE_CONNECT_APP_FEE_BPS ?? "0") || 0;
 
 // Hold window before releasing provider payouts (in days)
 export const PAYOUT_HOLD_DAYS = 1; // 24h after completion (adjust)

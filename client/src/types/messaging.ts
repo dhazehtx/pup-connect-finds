@@ -69,11 +69,22 @@ export interface Conversation {
   created_at: string;
   updated_at: string;
   last_message_at?: string | null; // Made optional to match actual usage
+  buyer_profile?: {
+    full_name: string | null;
+    username: string | null;
+    avatar_url: string | null;
+  } | null;
+  seller_profile?: {
+    full_name: string | null;
+    username: string | null;
+    avatar_url: string | null;
+  } | null;
   listing?: {
     dog_name: string;
     breed?: string; // Made optional to match actual usage
+    price?: number;
     image_url?: string | null;
-  };
+  } | null;
   other_user?: {
     id: string;
     full_name: string | null;

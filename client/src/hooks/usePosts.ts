@@ -19,13 +19,22 @@ interface Post {
   } | null;
 }
 
-export const usePosts = (userId?: string, listingId?: string) => {
+export type UsePostsOptions = { listingId?: string; enabled?: boolean };
+
+export const usePosts = (userId?: string, options: UsePostsOptions = {}) => {
+  const { listingId, enabled = true } = options;
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [postCount, setPostCount] = useState(0);
   const { toast } = useToast();
 
   const fetchPosts = async () => {
+    if (!enabled) {
+      setPosts([]);
+      setPostCount(0);
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       let url = '/api/posts';
@@ -81,7 +90,7 @@ export const usePosts = (userId?: string, listingId?: string) => {
 
   useEffect(() => {
     fetchPosts();
-  }, [userId, listingId]);
+  }, [userId, listingId, enabled]);
 
   return {
     posts,

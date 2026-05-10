@@ -29,7 +29,7 @@ export const RealtimeProvider = ({ children }: { children: React.ReactNode }) =>
     });
 
     const cleanupOnline = onEvent('presence:online', (data: { userId: string }) => {
-      setOnlineUsers(prev => [...new Set([...prev, data.userId])]);
+      setOnlineUsers(prev => Array.from(new Set([...prev, data.userId])));
     });
 
     const cleanupOffline = onEvent('presence:offline', (data: { userId: string }) => {

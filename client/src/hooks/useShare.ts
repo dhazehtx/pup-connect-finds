@@ -6,7 +6,7 @@ export const useShare = () => {
 
   const shareContent = async (title: string, text: string, url: string) => {
     // Check if Web Share API is available (primarily mobile)
-    if (navigator.share && navigator.canShare) {
+    if (navigator.share && navigator.canShare({ title, text, url })) {
       try {
         await navigator.share({
           title,
@@ -14,8 +14,8 @@ export const useShare = () => {
           url
         });
         return true;
-      } catch (error) {
-        if (error.name !== 'AbortError') {
+      } catch (error: unknown) {
+        if (!(error instanceof Error) || error.name !== 'AbortError') {
           console.error('Error sharing:', error);
         }
         return false;

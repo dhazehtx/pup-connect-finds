@@ -1,17 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   MessageSquare, 
   Plus, 
-  Search, 
-  Filter,
   Paperclip,
   AlertCircle,
   CheckCircle,
   Clock,
   XCircle,
   User,
-  Calendar
+  Calendar,
+  Shield,
+  ChevronRight,
+  RefreshCw,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,6 +29,7 @@ import { apiRequest } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import { formatDistanceToNow } from 'date-fns';
+import { APP_SHELL_CONTAINER_CLASS } from '@/lib/appShell';
 
 const SUPPORT_CATEGORIES = [
   { value: 'bug_report', label: 'Bug Report', icon: AlertCircle },
@@ -55,6 +58,7 @@ const STATUS_OPTIONS = [
 
 const SupportPage: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -62,19 +66,22 @@ const SupportPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
 
-  // Fetch user's support tickets
-  const { data: ticketsData, isLoading } = useQuery({
+  useEffect(() => {
+    document.title = 'Support tickets — PAWS';
+  }, []);
+
+  const { data: ticketsData, isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: ['support-tickets', statusFilter, categoryFilter],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (statusFilter !== 'all') params.append('status', statusFilter);
       if (categoryFilter !== 'all') params.append('category', categoryFilter);
-      
-      const response = await apiRequest(`/api/support/tickets?${params.toString()}`);
-      return response.json();
+      return apiRequest(`/api/support/tickets?${params.toString()}`);
     },
     enabled: !!user,
   });
+
+  const tickets = Array.isArray(ticketsData?.tickets) ? ticketsData.tickets : [];
 
   // Create ticket mutation
   const createTicketMutation = useMutation({
@@ -123,64 +130,84 @@ const SupportPage: React.FC = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <Card className="p-8 text-center max-w-md">
-          <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-            Sign in Required
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300 mb-4">
-            Please sign in to access support and submit tickets.
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-slate-50 to-white px-4 pb-24">
+        <Card className="w-full max-w-md border-slate-200 p-8 text-center shadow-sm">
+          <MessageSquare className="mx-auto mb-4 h-12 w-12 text-blue-500" />
+          <h2 className="mb-2 text-xl font-semibold text-slate-900">Sign in to use support tickets</h2>
+          <p className="mb-6 text-sm text-slate-600">
+            Track requests and replies in one place. For general questions, anyone can visit the Help Center.
           </p>
-          <Button onClick={() => window.location.href = '/auth'}>
-            Sign In
-          </Button>
+          <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
+            <Button className="bg-royal-blue hover:bg-royal-blue/90" onClick={() => navigate('/auth')}>
+              Sign in
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to="/help-center">Help Center</Link>
+            </Button>
+          </div>
         </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white pb-24">
+      <div className="border-b border-slate-200/80 bg-gradient-to-r from-blue-600 via-blue-600 to-indigo-700 text-white">
+        <div className={`${APP_SHELL_CONTAINER_CLASS} py-8 sm:py-10`}>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-                <MessageSquare className="w-8 h-8 text-blue-600" />
-                Help & Support
-              </h1>
-              <p className="text-gray-600 dark:text-gray-300 mt-1">
-                Get help with your account, report issues, or request features
+              <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-medium text-blue-100">
+                <Shield className="h-3.5 w-3.5" />
+                PAWS support
+              </div>
+              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Support tickets</h1>
+              <p className="mt-2 max-w-xl text-sm text-blue-100 sm:text-base">
+                Create a ticket for account issues, orders, or safety. We prioritize urgent and safety-related
+                requests.
               </p>
             </div>
-            
-            <Button 
-              onClick={() => setShowCreateModal(true)} 
-              className="bg-blue-600 hover:bg-blue-700"
+            <Button
+              onClick={() => setShowCreateModal(true)}
+              className="shrink-0 bg-white text-blue-700 hover:bg-blue-50"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              New Ticket
+              <Plus className="mr-2 h-4 w-4" />
+              New ticket
             </Button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Filters */}
-        <Card className="mb-6">
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1">
-                <Label>Filter by Status</Label>
+      <div className={`${APP_SHELL_CONTAINER_CLASS} py-8`}>
+        <div className="mb-6 flex flex-wrap gap-3 text-sm">
+          <Link
+            to="/help-center"
+            className="inline-flex items-center gap-1 font-medium text-blue-600 underline-offset-2 hover:underline"
+          >
+            Help Center
+            <ChevronRight className="h-4 w-4" />
+          </Link>
+          <span className="text-slate-300">·</span>
+          <Link
+            to="/contact"
+            className="inline-flex items-center gap-1 font-medium text-blue-600 underline-offset-2 hover:underline"
+          >
+            Contact form
+            <ChevronRight className="h-4 w-4" />
+          </Link>
+        </div>
+
+        <Card className="mb-6 border-slate-200 shadow-sm">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col gap-4 md:flex-row">
+              <div className="flex-1 space-y-2">
+                <Label className="text-slate-700">Status</Label>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-slate-200 bg-white">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    {STATUS_OPTIONS.map(status => (
+                    <SelectItem value="all">All statuses</SelectItem>
+                    {STATUS_OPTIONS.map((status) => (
                       <SelectItem key={status.value} value={status.value}>
                         {status.label}
                       </SelectItem>
@@ -189,15 +216,15 @@ const SupportPage: React.FC = () => {
                 </Select>
               </div>
 
-              <div className="flex-1">
-                <Label>Filter by Category</Label>
+              <div className="flex-1 space-y-2">
+                <Label className="text-slate-700">Category</Label>
                 <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-slate-200 bg-white">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    {SUPPORT_CATEGORIES.map(category => (
+                    <SelectItem value="all">All categories</SelectItem>
+                    {SUPPORT_CATEGORIES.map((category) => (
                       <SelectItem key={category.value} value={category.value}>
                         {category.label}
                       </SelectItem>
@@ -209,22 +236,40 @@ const SupportPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Tickets List */}
         {isLoading ? (
-          <div className="flex items-center justify-center py-12">
+          <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white py-16 shadow-sm">
             <LoadingSpinner size="lg" />
-            <span className="ml-3 text-gray-600 dark:text-gray-300">Loading tickets...</span>
+            <p className="text-sm text-slate-600">Loading your tickets…</p>
           </div>
-        ) : ticketsData?.tickets && ticketsData.tickets.length > 0 ? (
+        ) : isError ? (
+          <Card className="border-red-200 bg-red-50/80 shadow-sm">
+            <CardContent className="space-y-4 p-8 text-center">
+              <AlertCircle className="mx-auto h-10 w-10 text-red-600" />
+              <h3 className="text-lg font-semibold text-red-900">Couldn&apos;t load tickets</h3>
+              <p className="text-sm text-red-800/90">
+                {(error as Error)?.message || 'Check your connection and try again.'}
+              </p>
+              <div className="flex flex-wrap justify-center gap-2">
+                <Button variant="outline" className="border-red-200 bg-white" onClick={() => void refetch()}>
+                  <RefreshCw className={`mr-2 h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
+                  Retry
+                </Button>
+                <Button variant="ghost" asChild>
+                  <Link to="/contact">Contact page</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ) : tickets.length > 0 ? (
           <div className="space-y-4">
-            {ticketsData.tickets.map((ticket: any) => {
+            {tickets.map((ticket: any) => {
               const StatusIcon = getStatusIcon(ticket.status);
               const CategoryIcon = getCategoryIcon(ticket.category);
               
               return (
                 <Card 
                   key={ticket.id} 
-                  className="hover:shadow-md transition-shadow cursor-pointer"
+                  className="cursor-pointer border-slate-200 shadow-sm transition-shadow hover:shadow-md"
                   onClick={() => setSelectedTicket(ticket)}
                 >
                   <CardContent className="p-6">
@@ -276,17 +321,30 @@ const SupportPage: React.FC = () => {
             })}
           </div>
         ) : (
-          <Card className="p-12 text-center">
-            <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-              No support tickets yet
-            </h3>
-            <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Need help? Create your first support ticket to get assistance.
-            </p>
-            <Button onClick={() => setShowCreateModal(true)}>
-              Create Support Ticket
-            </Button>
+          <Card className="border-slate-200 bg-white shadow-sm">
+            <CardContent className="space-y-4 p-10 text-center sm:p-12">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50">
+                <MessageSquare className="h-7 w-7 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-slate-900">No tickets yet</h3>
+              <p className="mx-auto max-w-md text-sm text-slate-600">
+                When something needs follow-up from our team, open a ticket. For quick answers, start with the Help
+                Center — it covers orders, safety, and account basics.
+              </p>
+              <div className="flex flex-col justify-center gap-2 sm:flex-row">
+                <Button className="bg-royal-blue hover:bg-royal-blue/90" onClick={() => setShowCreateModal(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create ticket
+                </Button>
+                <Button variant="outline" asChild>
+                  <Link to="/help-center">Browse Help Center</Link>
+                </Button>
+              </div>
+              <p className="text-xs text-slate-500">
+                Urgent safety concern? Choose <strong>Safety Concern</strong> when creating a ticket so it routes
+                with higher priority.
+              </p>
+            </CardContent>
           </Card>
         )}
       </div>
@@ -463,6 +521,14 @@ const TicketDetailModal: React.FC<{
 }> = ({ ticket, isOpen, onClose }) => {
   const StatusIcon = STATUS_OPTIONS.find(s => s.value === ticket.status)?.icon || Clock;
   const CategoryIcon = SUPPORT_CATEGORIES.find(c => c.value === ticket.category)?.icon || MessageSquare;
+  const getStatusColor = (status: string) => {
+    const statusConfig = STATUS_OPTIONS.find(s => s.value === status);
+    return statusConfig ? statusConfig.color : 'bg-gray-100 text-gray-800';
+  };
+  const getPriorityColor = (priority: string) => {
+    const priorityConfig = PRIORITY_OPTIONS.find(p => p.value === priority);
+    return priorityConfig ? priorityConfig.color : 'bg-gray-100 text-gray-800';
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

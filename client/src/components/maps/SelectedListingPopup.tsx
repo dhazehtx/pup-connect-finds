@@ -3,19 +3,10 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Navigation } from 'lucide-react';
-
-interface Listing {
-  id: string;
-  dog_name: string;
-  breed: string;
-  price: number;
-  location: string;
-  image_url?: string;
-  coordinates?: { lat: number; lng: number };
-}
+import { MarketplaceListing } from '@/types/marketplace';
 
 interface SelectedListingPopupProps {
-  listing: Listing;
+  listing: MarketplaceListing;
 }
 
 const SelectedListingPopup = ({ listing }: SelectedListingPopupProps) => {

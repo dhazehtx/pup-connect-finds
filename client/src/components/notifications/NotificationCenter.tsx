@@ -10,7 +10,7 @@ import { useEnhancedNotifications } from '@/hooks/useEnhancedNotifications';
 import { useNotifications } from '@/hooks/useNotifications';
 import { formatDistanceToNow } from 'date-fns';
 import ReplyNotificationItem from './ReplyNotificationItem';
-import { useLocation } from 'wouter';
+import { useNavigate } from 'react-router-dom';
 import { getNotificationUrl, getNotificationIcon, formatNotificationContent } from '@/utils/notificationUtils';
 
 interface NotificationCenterProps {
@@ -21,7 +21,7 @@ interface NotificationCenterProps {
 const NotificationCenter = ({ isOpen, onClose }: NotificationCenterProps) => {
   const { notifications, unreadCount, markAsRead, markAllAsRead, loading } = useNotifications();
   const [activeTab, setActiveTab] = useState('all');
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
 
   if (!isOpen) return null;
 
@@ -59,7 +59,7 @@ const NotificationCenter = ({ isOpen, onClose }: NotificationCenterProps) => {
 
     // Navigate using the utility function
     const url = getNotificationUrl(notification);
-    setLocation(url);
+    navigate(url);
     onClose();
   };
 

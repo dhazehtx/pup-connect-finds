@@ -18,7 +18,7 @@ interface DisputeTransaction {
   dog_listings?: {
     dog_name: string;
     breed: string;
-  };
+  } | null;
 }
 
 interface DisputeResolutionDialogProps {

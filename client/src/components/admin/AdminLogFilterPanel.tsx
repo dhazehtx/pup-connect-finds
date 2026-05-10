@@ -96,7 +96,7 @@ const AdminLogFilterPanel = () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('admin_logs')
+        .from('admin_logs' as any)
         .select('*')
         .order('timestamp', { ascending: false })
         .limit(1000);
@@ -111,7 +111,7 @@ const AdminLogFilterPanel = () => {
         return;
       }
 
-      setLogs(data || []);
+      setLogs((data as unknown as AdminLog[]) || []);
       
       // Log filter panel access
       logAdminAction('Accessed admin log filter panel', {

@@ -73,7 +73,7 @@ const AdminBugsPage: React.FC = () => {
       const response = await apiRequest(`/api/bugs/admin/reports?${params.toString()}`);
       return response.json();
     },
-    enabled: !!user?.is_admin,
+    enabled: !!(user as any)?.is_admin,
   });
 
   // Update bug mutation
@@ -145,7 +145,7 @@ const AdminBugsPage: React.FC = () => {
     return priorityConfig ? priorityConfig.color : 'bg-gray-100 text-gray-800';
   };
 
-  if (!user?.is_admin) {
+  if (!(user as any)?.is_admin) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <Card className="p-8 text-center max-w-md">
@@ -294,7 +294,7 @@ const AdminBugsPage: React.FC = () => {
                   getStatusColor={getStatusColor}
                   getPriorityColor={getPriorityColor}
                   onView={() => setSelectedBug(bug)}
-                  onStatusChange={(status) => handleStatusChange(bug.id, status)}
+                  onStatusChange={(status: string) => handleStatusChange(bug.id, status)}
                   onAssign={() => handleAssignBug(bug.id)}
                 />
               );
@@ -319,7 +319,7 @@ const AdminBugsPage: React.FC = () => {
           bug={selectedBug}
           isOpen={!!selectedBug}
           onClose={() => setSelectedBug(null)}
-          onUpdate={(updates) => {
+          onUpdate={(updates: Record<string, unknown>) => {
             updateBugMutation.mutate({ bugId: selectedBug.id, updates });
             setSelectedBug(null);
           }}

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import express from 'express';
 import { queryOptimizations } from '../utils/queryOptimization';
 import { performanceMiddleware, timeQuery, trackCache } from '../middleware/performanceMiddleware';

@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Heart, MapPin, Grid, List } from 'lucide-react';
+import { Dog, Heart, MapPin } from 'lucide-react';
 import AdvancedFilters from '@/components/explore/AdvancedFilters';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
@@ -31,7 +31,7 @@ const GuestListingCard = ({ listing }: { listing: any }) => {
 
   return (
     <Card 
-      className="w-full overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer bg-white border border-gray-200"
+      className="w-full cursor-pointer overflow-hidden border border-gray-200 bg-white transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
       onClick={handleGatedClick}
     >
       {/* Image container - square aspect ratio to show full puppy */}
@@ -56,8 +56,8 @@ const GuestListingCard = ({ listing }: { listing: any }) => {
           }}
         />
         
-        {/* Price badge - white background, black text for visibility */}
-        <div style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 10 }}>
+        {/* Price badge — top left */}
+        <div className="absolute left-3 top-3 z-10" style={{ zIndex: 10 }}>
           <span 
             style={{ 
               backgroundColor: '#ffffff', 
@@ -74,16 +74,17 @@ const GuestListingCard = ({ listing }: { listing: any }) => {
           </span>
         </div>
         
-        {/* Heart button - inline styles to prevent yellow on mobile */}
+        {/* Favorite heart — top right */}
         <Button
           variant="ghost"
           size="sm"
-          className="absolute bottom-3 right-3 z-10 h-8 w-8 p-0 backdrop-blur-sm rounded-full"
+          className="absolute right-3 top-3 z-10 h-9 w-9 rounded-full p-0 shadow-sm backdrop-blur-sm"
           style={{ 
-            backgroundColor: 'rgba(255,255,255,0.9)', 
+            backgroundColor: 'rgba(255,255,255,0.92)', 
             WebkitTapHighlightColor: 'transparent' 
           }}
           onClick={(e) => { e.stopPropagation(); handleGatedClick(); }}
+          aria-label="Save to favorites"
         >
           <Heart className="h-4 w-4" style={{ color: '#6b7280' }} />
         </Button>
@@ -114,6 +115,7 @@ const GuestListingCard = ({ listing }: { listing: any }) => {
 };
 
 const ExploreGuest = () => {
+  const clearExploreFiltersRef = useRef<(() => void) | null>(null);
   // Responsive view mode: list on mobile, grid on desktop
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(window.innerWidth < 768 ? 'list' : 'grid');
@@ -213,7 +215,7 @@ const ExploreGuest = () => {
 
       {/* Filters Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-        <AdvancedFilters onFiltersChange={handleFiltersChange} />
+        <AdvancedFilters onFiltersChange={handleFiltersChange} clearFiltersRef={clearExploreFiltersRef} />
       </div>
 
       {/* Puppy Listings */}
@@ -237,9 +239,21 @@ const ExploreGuest = () => {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12">
-                <p className="text-gray-500">No listings found matching your criteria.</p>
-                <p className="text-sm text-gray-400 mt-2">Try adjusting your filters or search terms.</p>
+              <div className="flex flex-col items-center justify-center px-4 py-16 text-center">
+                <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-blue-50 text-blue-500">
+                  <Dog className="h-12 w-12" strokeWidth={1.5} aria-hidden />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Searching for your perfect match...</h3>
+                <p className="mt-2 max-w-sm text-sm text-gray-500">
+                  Try adjusting filters or reset to browse all listings.
+                </p>
+                <Button
+                  type="button"
+                  className="mt-6 bg-blue-600 hover:bg-blue-700"
+                  onClick={() => clearExploreFiltersRef.current?.()}
+                >
+                  Reset all filters
+                </Button>
               </div>
             )}
           </div>

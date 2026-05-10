@@ -70,7 +70,7 @@ const ListingCard = ({
 
   return (
     <Card 
-      className="w-full overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer"
+      className="w-full cursor-pointer overflow-hidden border-slate-200 shadow-sm transition-shadow duration-300 hover:shadow-lg"
       onClick={handleViewDetails}
     >
       <div className="relative">

@@ -44,7 +44,7 @@ function AccountDataRequests() {
           </ol>
           
           <div className="mt-6">
-            <Link to="/settings">
+            <Link to="/account-settings">
               <Button className="gap-2">
                 Go to Account Settings
                 <ArrowRight className="h-4 w-4" />

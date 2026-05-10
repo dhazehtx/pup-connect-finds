@@ -27,12 +27,12 @@ import {
   Heart,
   MessageCircle
 } from 'lucide-react';
-import { useLocation } from 'wouter';
+import { useNavigate } from 'react-router-dom';
 
 const SavedPostsPage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'most_liked'>('newest');
   const [filterBy, setFilterBy] = useState<'all' | 'images' | 'videos' | 'text'>('all');
@@ -61,7 +61,7 @@ const SavedPostsPage = () => {
           </CardHeader>
           <CardContent>
             <Button 
-              onClick={() => setLocation('/login')} 
+              onClick={() => navigate('/auth')} 
               className="w-full"
             >
               Go to Login
@@ -160,7 +160,7 @@ const SavedPostsPage = () => {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => setLocation('/profile')}
+                onClick={() => navigate('/profile')}
               >
                 <ArrowLeft className="w-4 h-4 mr-1" />
                 Back to Profile
@@ -296,7 +296,7 @@ const SavedPostsPage = () => {
                 </Button>
               )}
               {(!savedPosts?.total || savedPosts.total === 0) && (
-                <Button onClick={() => setLocation('/explore')}>
+                <Button onClick={() => navigate('/explore')}>
                   Explore Posts
                 </Button>
               )}

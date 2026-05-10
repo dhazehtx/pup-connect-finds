@@ -1,9 +1,9 @@
 
 import React from 'react';
-import BackgroundCheckDashboard from '@/components/safety/BackgroundCheckDashboard';
+import BackgroundCheckStatus from '@/components/verification/BackgroundCheckStatus';
 
 const BackgroundChecks = () => {
-  return <BackgroundCheckDashboard />;
+  return <BackgroundCheckStatus />;
 };
 
 export default BackgroundChecks;

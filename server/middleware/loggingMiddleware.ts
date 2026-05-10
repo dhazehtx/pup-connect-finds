@@ -63,7 +63,7 @@ export const apiLoggingMiddleware = (req: RequestWithTiming, res: Response, next
       ipAddress: req.ip,
       userAgent: req.get('User-Agent'),
       userId: (req as any).user?.id,
-      sessionId: req.sessionID
+      sessionId: (req as any).sessionID
     });
 
     return originalSend.call(this, body);
@@ -85,7 +85,7 @@ export const userActionLogger = (action: string, details?: Record<string, any>) 
       username: user?.username
     }, {
       userId: user?.id,
-      sessionId: req.sessionID,
+      sessionId: (req as any).sessionID,
       ipAddress: req.ip,
       userAgent: req.get('User-Agent'),
       endpoint: req.path,
@@ -116,7 +116,7 @@ export const authEventLogger = (event: string, success: boolean) => {
       userAgent: req.get('User-Agent'),
       endpoint: req.path,
       method: req.method,
-      sessionId: req.sessionID
+      sessionId: (req as any).sessionID
     });
 
     next();

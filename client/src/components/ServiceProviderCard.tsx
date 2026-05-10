@@ -4,10 +4,11 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MapPin, Clock, Star, Shield, DollarSign } from 'lucide-react';
-import { useSignedIn } from '@/hooks/useSignedIn';
+import { MapPin, Clock, DollarSign } from 'lucide-react';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import type { PetServiceProvider } from '@shared/schema';
+import { getServiceCategoryEmoji, getServiceCategoryLabel } from '@shared/serviceCategories';
+import { ServiceBadge } from '@/components/badges/ServiceBadge';
 
 interface ServiceProviderCardProps {
   provider: PetServiceProvider & {
@@ -20,47 +21,37 @@ interface ServiceProviderCardProps {
     };
   };
   onBook: () => void;
+  /** Passed when listing uses guest/demo marketplace data (analytics / UI hooks). */
+  guestMarketplace?: boolean;
 }
 
 export function ServiceProviderCard({ provider, onBook }: ServiceProviderCardProps) {
   const navigate = useNavigate();
-  const isSignedIn = useSignedIn();
   const { requireAuth } = useRequireAuth();
   
+  const isWhelping = provider.service_type === 'whelping';
+
   const handleBookClick = () => {
+    if (isWhelping) {
+      navigate(`/services/provider/${provider.id}`);
+      return;
+    }
     requireAuth(() => onBook());
   };
 
-  const handleViewProfile = () => {
-    requireAuth(() => window.open(`/profile/${provider.user?.id}`, '_blank'));
-  };
-
-  const serviceTypeIcons: Record<string, string> = {
-    grooming: '✂️',
-    walking: '🚶',
-    sitting: '🏠',
-    training: '🎓',
-    boarding: '🏨',
-    veterinary: '🏥',
-  };
-
-  const serviceTypeLabels: Record<string, string> = {
-    grooming: 'Dog Grooming',
-    walking: 'Dog Walking',
-    sitting: 'Pet Sitting',
-    training: 'Dog Training',
-    boarding: 'Pet Boarding',
-    veterinary: 'Veterinary Care',
+  const handleViewDetails = () => {
+    navigate(`/services/provider/${provider.id}`);
   };
 
   return (
-    <Card className="hover:shadow-lg transition-shadow duration-200 relative overflow-hidden">
+    <Card className="relative overflow-hidden border-slate-200 shadow-sm transition-shadow duration-200 hover:shadow-lg">
       {provider.is_verified && (
         <div className="absolute top-2 right-2 z-10">
-          <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-300">
-            <Shield className="w-3 h-3 mr-1" />
-            Verified
-          </Badge>
+          <ServiceBadge
+            serviceType={provider.service_type}
+            verified={Boolean(provider.is_verified)}
+            className="text-xs"
+          />
         </div>
       )}
       
@@ -86,8 +77,8 @@ export function ServiceProviderCard({ provider, onBook }: ServiceProviderCardPro
             </div>
             
             <div className="flex items-center gap-1 text-sm text-slate-600">
-              <span>{serviceTypeIcons[provider.service_type] || '🐕'}</span>
-              <span>{serviceTypeLabels[provider.service_type] || provider.service_type}</span>
+              <span>{getServiceCategoryEmoji(provider.service_type)}</span>
+              <span>{getServiceCategoryLabel(provider.service_type)}</span>
             </div>
           </div>
         </div>
@@ -110,7 +101,7 @@ export function ServiceProviderCard({ provider, onBook }: ServiceProviderCardPro
           
           <div className="flex items-center gap-2 text-sm font-medium">
             <DollarSign className="h-4 w-4" />
-            <span>${provider.price}/hour</span>
+            <span>{provider.price ? `$${provider.price}/hour` : 'Price on request'}</span>
           </div>
 
           {provider.availability && (
@@ -122,18 +113,18 @@ export function ServiceProviderCard({ provider, onBook }: ServiceProviderCardPro
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2 pt-2">
-          <button onClick={handleBookClick} className="btn-primary flex-1 text-sm">
-            Book Service
+        <div className="flex flex-col gap-2 pt-2 sm:flex-row">
+          <button type="button" onClick={handleBookClick} className="btn-primary min-h-11 flex-1 text-sm font-semibold">
+            {isWhelping ? 'Apply waitlist' : 'Book service'}
           </button>
           
           <Button 
             variant="outline" 
             size="sm"
-            className="text-slate-700 font-medium border-slate-300 hover:bg-slate-50"
-            onClick={handleViewProfile}
+            className="min-h-11 min-w-[7rem] border-slate-300 font-medium text-slate-700 hover:bg-slate-50"
+            onClick={handleViewDetails}
           >
-            View Profile
+            View details
           </Button>
         </div>
 

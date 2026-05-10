@@ -9,10 +9,10 @@ import TagFilter from '@/components/feed/TagFilter';
 import PostCard from '@/components/feed/PostCard';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Hash, Tag, TrendingUp, Search } from 'lucide-react';
-import { useLocation } from 'wouter';
+import { useNavigate } from 'react-router-dom';
 
 const HashtagTestPage = () => {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [testText, setTestText] = useState("Check out this amazing #puppytraining session! Our #goldenretriever Luna is learning so fast 🐕 #rescuedogs #doghealth #puppylove");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -129,7 +129,7 @@ const HashtagTestPage = () => {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => setLocation('/explore')}
+                onClick={() => navigate('/explore')}
               >
                 <ArrowLeft className="w-4 h-4 mr-1" />
                 Back to Feed

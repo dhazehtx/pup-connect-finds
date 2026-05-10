@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
-import { serverSupabase } from "../../lib/supabaseServer";
+import { Pool } from "@neondatabase/serverless";
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL || process.env.NEON_DATABASE_URL });
 
 export async function POST(req: Request, res: Response) {
   try {
@@ -12,24 +14,25 @@ export async function POST(req: Request, res: Response) {
       });
     }
 
-    const supabase = serverSupabase();
-    
-    const { data, error } = await supabase
-      .from("provider_applications")
-      .update({ bgcheck_consent: consent })
-      .eq("id", applicationId)
-      .eq("user_id", userId)
-      .select()
-      .single();
+    const result = await pool.query(
+      `UPDATE provider_applications
+       SET bgcheck_consent = $1
+       WHERE id = $2
+         AND user_id = $3
+       RETURNING bgcheck_consent`,
+      [consent, applicationId, userId],
+    );
 
-    if (error) {
-      console.error("[applications/consent] Supabase error:", error);
-      throw error;
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Application not found.",
+      });
     }
 
     return res.json({ 
       success: true, 
-      consent: data.bgcheck_consent 
+      consent: result.rows[0].bgcheck_consent 
     });
     
   } catch (e: any) {

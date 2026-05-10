@@ -68,7 +68,7 @@ const EnhancedMapView = () => {
         location: result.location || 'Location unknown',
         lat,
         lng,
-        distance,
+        distance: distance ?? undefined,
         image: result.image_url || 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=300&h=200&fit=crop',
         verified: Boolean(result.profiles?.verified)
       };

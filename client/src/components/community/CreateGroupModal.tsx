@@ -51,7 +51,7 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
 
   const createGroupMutation = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest('POST', '/api/community', data);
+      return apiRequest('/api/community', { method: 'POST', body: data });
     },
     onSuccess: () => {
       toast({

@@ -56,7 +56,7 @@ export const useEncryptedMessaging = () => {
       combinedArray.set(iv);
       combinedArray.set(encryptedArray, iv.length);
 
-      const encryptedContent = btoa(String.fromCharCode(...combinedArray));
+      const encryptedContent = btoa(String.fromCharCode(...Array.from(combinedArray)));
       
       return {
         encryptedContent,

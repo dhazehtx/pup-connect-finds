@@ -7,7 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { useBreeds, useColorsByBreed } from '@/hooks/useBreedColorOptions';
-import { useExploreFilters } from '@/context/ExploreFiltersContext';
+import { EXPLORE_DEFAULT_FILTERS, useExploreFilters } from '@/context/ExploreFiltersContext';
 
 export default function AdvancedFilters() {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -27,29 +27,7 @@ export default function AdvancedFilters() {
   };
 
   const clearAllFilters = () => {
-    setFilters({
-      breedId: null,
-      color: null,
-      gender: 'any',
-      price: [0, 10000],
-      location: { city: '', lat: null, lng: null, radiusKm: 999 },
-      sort: 'newest',
-      age: { minWeeks: 0, maxWeeks: 104 },
-      source: null,
-      coatLength: null,
-      training: null,
-      energy: null,
-      paperwork: null,
-      toggles: {
-        verified: false,
-        availableNow: false,
-        healthChecked: false,
-        vaccinated: false,
-        goodWithKids: false,
-        goodWithPets: false,
-        spayedNeutered: false,
-      },
-    });
+    setFilters(structuredClone(EXPLORE_DEFAULT_FILTERS));
   };
 
   return (

@@ -46,10 +46,10 @@ export const SavePostButton: React.FC<SavePostButtonProps> = ({
     mutationFn: async () => {
       if (isSaved) {
         // Unsave post
-        return apiRequest('DELETE', `/api/saved-posts/${postId}`);
+        return apiRequest(`/api/saved-posts/${postId}`, { method: 'DELETE' });
       } else {
         // Save post
-        return apiRequest('POST', '/api/saved-posts', { post_id: postId });
+        return apiRequest('/api/saved-posts', { method: 'POST', body: { post_id: postId } });
       }
     },
     onSuccess: () => {

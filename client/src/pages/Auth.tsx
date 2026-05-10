@@ -5,10 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Heart, Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { LegalBlurb } from '@/components/legal/LegalBlurb';
+import { ChromaticAmbience } from '@/components/greeting/ChromaticAmbience';
+import { PawsWordmarkLockup } from '@/components/brand/PawsWordmark';
 
 const Auth = () => {
   const [activeTab, setActiveTab] = useState('signin');
@@ -28,6 +30,10 @@ const Auth = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
+    document.title = 'PAWS — Sign in or create an account';
   }, []);
 
   useEffect(() => {
@@ -154,8 +160,10 @@ const Auth = () => {
 
   if (resetMode) {
     return (
-      <div className="min-h-screen bg-blue-50 flex items-center justify-center p-4">
-        <Card className="max-w-md w-full">
+      <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-white via-slate-50 to-blue-50/20">
+        <ChromaticAmbience />
+        <div className="relative z-10 flex min-h-screen items-center justify-center p-4">
+        <Card className="w-full max-w-md border border-blue-100/50 shadow-lg shadow-[0_0_50px_-12px_rgba(37,99,235,0.1)]">
           <CardHeader>
             <CardTitle className="text-center text-black">Password Reset</CardTitle>
           </CardHeader>
@@ -185,30 +193,34 @@ const Auth = () => {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-md mx-auto">
-        {/* Logo and Title */}
-        <div className="text-center mb-8">
-          <div className="w-20 h-20 mx-auto mb-6 bg-white rounded-full flex items-center justify-center shadow-lg">
-            <Heart size={40} style={{ color: '#2363FF' }} />
-          </div>
-          
-          <h1 className="text-4xl font-bold text-black mb-2">
-            MY PUP
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-white via-slate-50 to-blue-50/20">
+      <ChromaticAmbience />
+      <div className="relative z-10 mx-auto flex w-full max-w-md flex-col items-center px-4 pt-6 pb-[calc(6.25rem+env(safe-area-inset-bottom,0px))] sm:pt-8 sm:pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))]">
+        {/* Logo + subtitle — centered, no boxed icon; room above bottom nav */}
+        <div className="mb-6 w-full text-center sm:mb-7">
+          <h1
+            className="group font-brand-wordmark mb-2 flex w-full items-baseline justify-center gap-1 text-[clamp(1.35rem,4vw,2rem)] font-medium leading-none tracking-widest text-slate-700"
+            aria-label="PAWS"
+          >
+            <PawsWordmarkLockup />
           </h1>
-          
-          <p className="text-black text-lg">
+
+          <p className="mx-auto max-w-sm text-[15px] font-extralight leading-snug tracking-wide text-slate-500 sm:text-base">
+            Pet Adoption &amp; Web Services
+          </p>
+          <p className="mt-3 text-[15px] font-normal text-slate-600">
             {activeTab === 'signup' ? 'Create your account' : 'Welcome back'}
           </p>
         </div>
 
         {/* Main Auth Card */}
-        <Card className="bg-white shadow-2xl">
+        <Card className="w-full border border-blue-100/50 bg-white/95 shadow-2xl shadow-[0_0_50px_-12px_rgba(37,99,235,0.12)] backdrop-blur-sm">
           <CardContent className="p-8">
             {/* Tab Toggle */}
             <div className="flex mb-6 rounded-lg overflow-hidden">
@@ -363,13 +375,13 @@ const Auth = () => {
         </Card>
 
         {/* Guest Access */}
-        <div className="mt-6">
+        <div className="mt-6 w-full">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-blue-400" />
+              <span className="w-full border-t border-slate-200/90" />
             </div>
-            <div className="relative flex justify-center text-sm uppercase">
-              <span className="bg-gradient-to-br from-blue-50 to-blue-100 px-4 text-blue-700 font-medium">
+            <div className="relative flex justify-center text-sm uppercase tracking-wide">
+              <span className="bg-gradient-to-b from-white via-slate-50 to-blue-50/20 px-4 font-semibold text-blue-600">
                 Just browsing?
               </span>
             </div>
@@ -385,7 +397,7 @@ const Auth = () => {
           </button>
         </div>
         
-        <p className="text-xs text-center text-blue-700 mt-6">
+        <p className="mt-6 text-center text-xs text-slate-500">
           By continuing, you agree to our Terms of Service and Privacy Policy
         </p>
       </div>

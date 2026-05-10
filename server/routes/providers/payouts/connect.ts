@@ -29,7 +29,7 @@ export async function connectStripePayout(req: Request, res: Response) {
     const stripeAccount = await createStripeConnectAccount({
       type: 'express',
       country: 'US', // Default to US, could be made configurable
-      email: req.user.email,
+      email: req.user.email ?? undefined,
       business_type: accountType === 'business' ? 'company' : 'individual',
     });
 

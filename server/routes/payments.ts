@@ -1,19 +1,19 @@
 import { Router, Request, Response } from 'express';
-import Stripe from 'stripe';
+import type Stripe from 'stripe';
 import { authMiddleware } from '../middleware/auth';
 import { generalRateLimit } from '../middleware/rateLimiting';
 import { asyncHandler } from '../middleware/errorHandler';
 import { storage } from '../storage';
+import { getStripe } from '../lib/stripeLazy';
+import { getPlatformFeePercent } from '../lib/platformFees';
 
 const router = Router();
 
-// Initialize Stripe with the correct API version
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { 
-  apiVersion: '2025-08-27.basil' as any 
-});
-
-// Platform fee percentage (default 15% if not set)
-const PLATFORM_FEE_PERCENT = Number(process.env.PLATFORM_FEE_PERCENT ?? "0.15");
+/**
+ * Connect destination PaymentIntent — funds route to provider with optional application_fee_amount.
+ * For launch fees default to 0 (see PLATFORM_FEE_PERCENT in `.env`).
+ * True platform-held escrow before provider payout requires PI without `transfer_data` plus a capture/transfer phase (see deals flow).
+ */
 
 /**
  * Convert dollars to cents
@@ -68,7 +68,7 @@ router.post('/create-intent', authMiddleware, generalRateLimit, asyncHandler(asy
         });
       }
       
-      if (provider.stripe_account_id !== providerStripeAccountId) {
+      if ((provider as any).stripe_account_id !== providerStripeAccountId) {
         return res.status(403).json({ 
           success: false, 
           message: "Stripe account mismatch for provider" 
@@ -77,12 +77,13 @@ router.post('/create-intent', authMiddleware, generalRateLimit, asyncHandler(asy
     }
 
     // Calculate amounts
+    const platformFeePercent = getPlatformFeePercent();
     const amountCents = toCents(amountNum);
-    const feeCents = Math.max(0, Math.floor(amountCents * PLATFORM_FEE_PERCENT));
+    const feeCents = Math.max(0, Math.floor(amountCents * platformFeePercent));
 
     // Verify the connected account exists and is active
     try {
-      const account = await stripe.accounts.retrieve(providerStripeAccountId);
+      const account = await getStripe().accounts.retrieve(providerStripeAccountId);
       if (!account.charges_enabled || !account.payouts_enabled) {
         return res.status(400).json({ 
           success: false, 
@@ -102,13 +103,13 @@ router.post('/create-intent', authMiddleware, generalRateLimit, asyncHandler(asy
       amount: amountCents,
       currency,
       description: description || `Payment to provider`,
-      application_fee_amount: feeCents,
+      ...(feeCents > 0 ? { application_fee_amount: feeCents } : {}),
       transfer_data: {
         destination: providerStripeAccountId,
       },
       automatic_payment_methods: { enabled: true },
       metadata: {
-        platform_fee_percent: PLATFORM_FEE_PERCENT.toString(),
+        platform_fee_percent: platformFeePercent.toString(),
         provider_id: providerId || '',
         user_id: req.user?.id || '',
       }
@@ -127,7 +128,7 @@ router.post('/create-intent', authMiddleware, generalRateLimit, asyncHandler(asy
     }
 
     // Create the PaymentIntent
-    const paymentIntent = await stripe.paymentIntents.create(
+    const paymentIntent = await getStripe().paymentIntents.create(
       paymentIntentParams, 
       idempotencyKey ? { idempotencyKey } : undefined
     );
@@ -177,7 +178,7 @@ router.post('/confirm-intent', authMiddleware, generalRateLimit, asyncHandler(as
       confirmParams.payment_method = paymentMethodId;
     }
 
-    const paymentIntent = await stripe.paymentIntents.confirm(
+    const paymentIntent = await getStripe().paymentIntents.confirm(
       paymentIntentId,
       confirmParams
     );
@@ -210,7 +211,7 @@ router.get('/intent/:id', authMiddleware, generalRateLimit, asyncHandler(async (
   const { id } = req.params;
 
   try {
-    const paymentIntent = await stripe.paymentIntents.retrieve(id);
+    const paymentIntent = await getStripe().paymentIntents.retrieve(id);
 
     res.json({ 
       success: true, 
@@ -241,7 +242,7 @@ router.get('/config', authMiddleware, asyncHandler(async (req: any, res: any) =>
   res.json({ 
     success: true, 
     config: {
-      platform_fee_percent: PLATFORM_FEE_PERCENT,
+      platform_fee_percent: getPlatformFeePercent(),
       currency: 'usd',
       min_charge_amount: 0.50, // $0.50 minimum
     }

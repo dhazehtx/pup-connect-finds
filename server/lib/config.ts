@@ -14,7 +14,8 @@ export const STRIPE_WEBHOOK_SECRET = IS_PROD
   ? (process.env.STRIPE_WEBHOOK_SECRET_LIVE || process.env.STRIPE_WEBHOOK_SECRET || '')
   : (process.env.STRIPE_WEBHOOK_SECRET_TEST || process.env.STRIPE_WEBHOOK_SECRET || '');
 
-export const CONNECT_APP_FEE_BPS = 1000; // 10% platform fee (adjust)
+/** @deprecated Prefer getConnectAppFeeBps() from ./platformFees (env CONNECT_APP_FEE_BPS). */
+export const CONNECT_APP_FEE_BPS = Number.parseInt(process.env.CONNECT_APP_FEE_BPS || "0", 10) || 0;
 
 // Hold window before releasing provider payouts (in days)
 export const PAYOUT_HOLD_DAYS = 1; // 24h after completion (adjust)

@@ -3,8 +3,7 @@ import * as React from "react";
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
+import { ExploreUniversalSearchBar } from '@/components/explore/ExploreUniversalSearchBar';
 import { useQueryClient } from '@tanstack/react-query';
 import CreateServiceDialog from './CreateServiceDialog';
 import { useProviders } from '@/hooks/useProviders';
@@ -68,15 +67,13 @@ const ServicesMarketplace = () => {
 
       {/* Search + pills (single row) */}
       <div className="mb-3 rounded-xl border bg-white/80 p-4 shadow-sm">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <Input
-            placeholder="Search services, providers, or locations..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-12 py-3 text-base rounded-lg shadow-sm border-2 bg-white"
-          />
-        </div>
+        <ExploreUniversalSearchBar
+          value={searchTerm}
+          onChange={setSearchTerm}
+          placeholder="Search services, providers, or locations..."
+          inputSize="lg"
+          id="services-marketplace-search"
+        />
       </div>
 
       <div className="mb-8 flex flex-wrap justify-center gap-3">

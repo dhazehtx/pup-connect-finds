@@ -152,10 +152,10 @@ export const AdminCommissionPanel: React.FC = () => {
     updateSettingsMutation.mutate({
       listingType: editingSettings.listing_type,
       settings: {
-        commission_percent: parseFloat(editingSettings.commission_percent),
-        flat_fee: editingSettings.flat_fee ? parseFloat(editingSettings.flat_fee) : undefined,
-        min_fee: editingSettings.min_fee ? parseFloat(editingSettings.min_fee) : undefined,
-        max_fee: editingSettings.max_fee ? parseFloat(editingSettings.max_fee) : undefined,
+        commission_percent: editingSettings.commission_percent,
+        flat_fee: editingSettings.flat_fee || undefined,
+        min_fee: editingSettings.min_fee || undefined,
+        max_fee: editingSettings.max_fee || undefined,
         description: editingSettings.description,
         is_active: editingSettings.is_active
       }

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useLocation } from 'wouter';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import AdminReportsPanel from '@/components/admin/AdminReportsPanel';
 import { logAdminAction } from '@/utils/logger';
@@ -9,7 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 
 const AdminReportsPage = () => {
   const { user, loading, profile } = useAuth();
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   
   // Track admin page navigation and time spent
   useAdminPageTracking('Reports & Moderation');
@@ -18,9 +18,9 @@ const AdminReportsPage = () => {
     // Check if user is not authenticated or not an admin
     if (!loading && (!user || !profile?.is_admin)) {
       console.log('Unauthorized access attempt to admin reports page');
-      setLocation('/'); // Redirect to home page
+      navigate('/'); // Redirect to home page
     }
-  }, [user, loading, profile, setLocation]);
+  }, [user, loading, profile, navigate]);
 
   useEffect(() => {
     // Log page access for monitoring (only if admin)

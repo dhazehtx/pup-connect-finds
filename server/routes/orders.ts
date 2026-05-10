@@ -46,7 +46,7 @@ router.patch('/:id/shipping', authMiddleware, async (req, res) => {
       (validatedData as any).shipped_at = new Date();
     }
 
-    const order = await storage.updateOrder(id, validatedData);
+    const order = await storage.updateOrder(id, validatedData as any);
     
     if (!order) {
       return res.status(404).json({ error: 'Order not found' });

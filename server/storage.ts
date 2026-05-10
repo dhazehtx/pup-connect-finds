@@ -300,7 +300,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db.select().from(profiles)
       .where(and(...conditions))
       .limit(options?.limit || 20);
-    return result;
+    return result as unknown as Profile[];
   }
 
   // Dog listing methods
@@ -502,6 +502,8 @@ export class DatabaseStorage implements IStorage {
           username: profiles.username,
           email: profiles.email,
           avatar_url: profiles.avatar_url,
+          verified: profiles.verified,
+          user_type: profiles.user_type,
         }).from(profiles).where(eq(profiles.id, otherUserId)).limit(1);
         otherProfile = p[0] || null;
       }
@@ -532,14 +534,28 @@ export class DatabaseStorage implements IStorage {
           sql`${messages.sender_id} != ${userId}`,
           eq(messages.read, false)
         ));
+      const isSellerInThread = otherUserId && c.seller_id === otherUserId;
+      const isVerifiedBreeder = Boolean(
+        otherProfile &&
+          otherProfile.verified &&
+          isSellerInThread
+      );
+
       results.push({
         ...c,
-        other_user: otherProfile ? {
-          id: otherProfile.id,
-          full_name: otherProfile.full_name || otherProfile.username || otherProfile.email?.split('@')[0] || 'Unknown User',
-          username: otherProfile.username,
-          avatar_url: otherProfile.avatar_url,
-        } : { id: otherUserId, full_name: 'Unknown User', avatar_url: null },
+        other_user: otherProfile
+          ? {
+              id: otherProfile.id,
+              full_name:
+                otherProfile.full_name ||
+                otherProfile.username ||
+                otherProfile.email?.split('@')[0] ||
+                'Unknown User',
+              username: otherProfile.username,
+              avatar_url: otherProfile.avatar_url,
+              is_verified_breeder: isVerifiedBreeder,
+            }
+          : { id: otherUserId, full_name: 'Unknown User', avatar_url: null, is_verified_breeder: false },
         listing,
         last_message: lastMsgResult[0] || null,
         unread_count: unreadResult[0]?.count || 0,
@@ -720,7 +736,7 @@ export class DatabaseStorage implements IStorage {
     .from(favorites)
     .innerJoin(dogListings, eq(favorites.listing_id, dogListings.id))
     .where(eq(favorites.user_id, userId));
-    return result;
+    return result as unknown as DogListing[];
   }
 
   async addFavorite(favorite: InsertFavorite): Promise<Favorite> {
@@ -753,7 +769,9 @@ export class DatabaseStorage implements IStorage {
     const result = await db.select({ listing_id: favorites.listing_id })
       .from(favorites)
       .where(eq(favorites.user_id, userId));
-    return result.map(r => r.listing_id);
+    return result
+      .map((r) => r.listing_id)
+      .filter((id): id is string => Boolean(id));
   }
 
   // Post likes methods
@@ -1020,7 +1038,9 @@ export class DatabaseStorage implements IStorage {
 
   async createComment(comment: InsertComment): Promise<Comment> {
     const result = await db.insert(comments).values([comment]).returning();
-    await db.update(posts).set({ comments_count: sql`${posts.comments_count} + 1` }).where(eq(posts.id, comment.post_id));
+    if (comment.post_id) {
+      await db.update(posts).set({ comments_count: sql`${posts.comments_count} + 1` as any }).where(eq(posts.id, comment.post_id));
+    }
     return result[0];
   }
 
@@ -1034,8 +1054,8 @@ export class DatabaseStorage implements IStorage {
     await db.delete(commentReplies).where(eq(commentReplies.comment_id, id));
     const result = await db.delete(comments).where(eq(comments.id, id));
     const deleted = (result.rowCount ?? 0) > 0;
-    if (deleted && comment[0]) {
-      await db.update(posts).set({ comments_count: sql`GREATEST(0, ${posts.comments_count} - 1)` }).where(eq(posts.id, comment[0].post_id));
+    if (deleted && comment[0]?.post_id) {
+      await db.update(posts).set({ comments_count: sql`GREATEST(0, ${posts.comments_count} - 1)` as any }).where(eq(posts.id, comment[0].post_id));
     }
     return deleted;
   }
@@ -1060,8 +1080,8 @@ export class DatabaseStorage implements IStorage {
   // Notification methods
   async getUserNotifications(userId: string): Promise<Notification[]> {
     return await db.select().from(notifications)
-      .where(eq(notifications.to_user_id, userId))
-      .orderBy(desc(notifications.created_at));
+      .where(eq(notifications.toUserId, userId))
+      .orderBy(desc(notifications.createdAt));
   }
 
   async createNotification(notification: InsertNotification): Promise<Notification> {
@@ -1070,7 +1090,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async markNotificationAsRead(id: string): Promise<boolean> {
-    const result = await db.update(notifications).set({ is_read: true }).where(eq(notifications.id, id));
+    const result = await db.update(notifications).set({ isRead: true }).where(eq(notifications.id, id));
     return (result.rowCount ?? 0) > 0;
   }
 
@@ -1175,42 +1195,43 @@ export class DatabaseStorage implements IStorage {
 
   // Store/Ecommerce methods
   async getProducts(filters?: { isActive?: boolean; isSubscription?: boolean; featured?: boolean; tag?: string }): Promise<Product[]> {
-    console.log("Storage getProducts - Received filters:", filters);
-    
+    const dev = process.env.NODE_ENV !== 'production';
+    if (dev) console.log("Storage getProducts - Received filters:", filters);
+
     const conditions = [];
-    
+
     // Only filter by is_active if explicitly provided
     if (filters?.isActive !== undefined) {
-      console.log("Storage getProducts - Adding isActive filter:", filters.isActive);
+      if (dev) console.log("Storage getProducts - Adding isActive filter:", filters.isActive);
       conditions.push(eq(products.is_active, filters.isActive));
     }
-    
+
     if (filters?.isSubscription !== undefined) {
-      console.log("Storage getProducts - Adding isSubscription filter:", filters.isSubscription);
+      if (dev) console.log("Storage getProducts - Adding isSubscription filter:", filters.isSubscription);
       conditions.push(eq(products.is_subscription, filters.isSubscription));
     }
     if (filters?.featured !== undefined) {
-      console.log("Storage getProducts - Adding featured filter:", filters.featured);
+      if (dev) console.log("Storage getProducts - Adding featured filter:", filters.featured);
       conditions.push(eq(products.is_featured, filters.featured));
     }
     if (filters?.tag) {
-      console.log("Storage getProducts - Adding tag filter:", filters.tag);
+      if (dev) console.log("Storage getProducts - Adding tag filter:", filters.tag);
       conditions.push(sql`${products.tags} @> ARRAY[${filters.tag}]`);
     }
-    
-    console.log("Storage getProducts - Executing query with", conditions.length, "conditions");
-    
+
+    if (dev) console.log("Storage getProducts - Executing query with", conditions.length, "conditions");
+
     const baseQuery = db.select().from(products);
     if (conditions.length > 0) {
       const result = await baseQuery
         .where(and(...conditions))
         .orderBy(desc(products.created_at));
-      console.log("Storage getProducts - Found", result.length, "products");
+      if (dev) console.log("Storage getProducts - Found", result.length, "products");
       return result;
     }
-    
+
     const result = await baseQuery.orderBy(desc(products.created_at));
-    console.log("Storage getProducts - Found", result.length, "products");
+    if (dev) console.log("Storage getProducts - Found", result.length, "products");
     return result;
   }
 
@@ -1271,7 +1292,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getOrderBySessionId(sessionId: string): Promise<Order | undefined> {
-    const result = await db.select().from(orders).where(eq(orders.stripe_session_id, sessionId)).limit(1);
+    const result = await db
+      .select()
+      .from(orders)
+      .where(
+        or(eq(orders.stripe_session_id, sessionId), eq(orders.checkout_session_id, sessionId)),
+      )
+      .limit(1);
     return result[0];
   }
 

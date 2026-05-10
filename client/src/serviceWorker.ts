@@ -19,7 +19,7 @@ const CACHEABLE_APIS = [
   '/api/help-center'
 ];
 
-self.addEventListener('install', (event: ExtendableEvent) => {
+self.addEventListener('install', (event: any) => {
   event.waitUntil(
     Promise.all([
       caches.open(STATIC_CACHE).then(cache => cache.addAll(STATIC_ASSETS)),
@@ -28,7 +28,7 @@ self.addEventListener('install', (event: ExtendableEvent) => {
   );
 });
 
-self.addEventListener('fetch', (event: FetchEvent) => {
+self.addEventListener('fetch', (event: any) => {
   const { request } = event;
   const url = new URL(request.url);
 
@@ -77,7 +77,7 @@ self.addEventListener('fetch', (event: FetchEvent) => {
   }
 });
 
-self.addEventListener('activate', (event: ExtendableEvent) => {
+self.addEventListener('activate', (event: any) => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(

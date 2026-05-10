@@ -76,7 +76,9 @@ export async function apiRequest(
       const errText = await res.text();
       const code = extractErrorCode(errText);
       const domain = domainFromPath(path);
-      console.log('[PROOF:ERR:UI]', domain, code, `${method} ${path} → ${res.status}`);
+      if (import.meta.env.DEV) {
+        console.debug('[api]', domain, code, `${method} ${path} → ${res.status}`);
+      }
       const err: any = new Error(`API request failed ${res.status}: ${errText}`);
       err.status = res.status;
       err.code = code;
@@ -96,7 +98,9 @@ export async function apiRequest(
       if (!e.domain) {
         const domain = domainFromPath(path);
         const status = e?.message?.match(/failed (\d+)/)?.[1] || 'NETWORK';
-        console.log('[PROOF:ERR:UI]', domain, status, `${method} ${path}`);
+        if (import.meta.env.DEV) {
+          console.debug('[api]', domain, status, `${method} ${path}`);
+        }
         e.domain = domain;
         e.code = e.code || status;
       }

@@ -1,14 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { GoogleMapsService } from '@/services/GoogleMapsService';
 import { useToast } from '@/hooks/use-toast';
-
-interface MapMarker {
-  id: string;
-  lat: number;
-  lng: number;
-  title: string;
-  type?: 'listing' | 'user' | 'breeder';
-}
+import { MapMarker } from '@/types/maps';
 
 interface RealGoogleMapProps {
   center: { lat: number; lng: number };

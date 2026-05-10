@@ -16,7 +16,7 @@ import {
   Settings,
   FileText
 } from 'lucide-react';
-import { Link } from 'wouter';
+import { Link } from 'react-router-dom';
 
 const PrivacySettingsPage: React.FC = () => {
   const [isExporting, setIsExporting] = useState(false);
@@ -242,7 +242,7 @@ const PrivacySettingsPage: React.FC = () => {
                   Reset Cookie Preferences
                 </Button>
                 
-                <Link href="/privacy">
+                <Link to="/privacy">
                   <Button variant="outline" className="gap-2">
                     <FileText className="w-4 h-4" />
                     View Privacy Policy

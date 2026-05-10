@@ -2,20 +2,66 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { AlertTriangle, Download, Trash2, Shield, FileText, ExternalLink } from 'lucide-react';
+import {
+  AlertTriangle,
+  Download,
+  Trash2,
+  Shield,
+  FileText,
+  ExternalLink,
+  Globe,
+  Moon,
+  Ban,
+  LifeBuoy,
+} from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useBlockedUsers, useToggleBlock } from '@/hooks/useBlocks';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+type BlockedRow = {
+  id: string;
+  blocked_id: string;
+  created_at?: string;
+  username: string | null;
+  full_name: string | null;
+  avatar_url: string | null;
+};
+
 const AccountSettings = () => {
-  const { user, signOut } = useAuth();
+  const { signOut } = useAuth();
   const { toast } = useToast();
+  const { theme, setTheme } = useTheme();
+  const { data: blockedRaw, isLoading: blockedLoading } = useBlockedUsers();
+  const toggleBlock = useToggleBlock();
+  const blockedList: BlockedRow[] = Array.isArray(blockedRaw) ? blockedRaw : [];
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
+  const [showDeleteWarning, setShowDeleteWarning] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   // Data export mutation
@@ -43,7 +89,7 @@ const AccountSettings = () => {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `my-pup-data-${new Date().toISOString().split('T')[0]}.json`;
+      link.download = `paws-account-data-${new Date().toISOString().split('T')[0]}.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -120,10 +166,10 @@ const AccountSettings = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-6">
+    <div className="mx-auto max-w-2xl space-y-6 p-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Account Settings</h1>
-        <p className="text-gray-600 mt-2">Manage your account data and privacy settings</p>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Account Settings</h1>
+        <p className="mt-2 text-slate-600 dark:text-slate-400">Manage your account data and privacy settings</p>
         <Link 
           to="/account-data" 
           className="inline-flex items-center gap-1 text-sm text-primary hover:underline mt-2"
@@ -132,6 +178,139 @@ const AccountSettings = () => {
           <ExternalLink className="h-3 w-3" />
         </Link>
       </div>
+
+      {/* General — appearance & language */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Globe className="h-5 w-5 text-blue-600" aria-hidden />
+            <CardTitle>General</CardTitle>
+          </div>
+          <CardDescription>Appearance and language preferences.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex flex-col gap-3 rounded-lg border border-slate-200/90 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/50 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Moon className="h-4 w-4 text-slate-600 dark:text-slate-300" aria-hidden />
+                <Label htmlFor="dark-mode-setting" className="text-base font-medium">
+                  Dark mode
+                </Label>
+              </div>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Use dark theme across the app. More appearance options (e.g. system default, high contrast) may come
+                later.
+              </p>
+            </div>
+            <Switch
+              id="dark-mode-setting"
+              checked={theme === 'dark'}
+              onCheckedChange={(on) => setTheme(on ? 'dark' : 'light')}
+              aria-label="Enable dark mode"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="language-setting">Language</Label>
+            <Select value="en" disabled>
+              <SelectTrigger id="language-setting" className="max-w-md border-slate-200 dark:border-slate-700">
+                <SelectValue placeholder="Language" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="en">English (US)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Additional languages are planned for a future update.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Safety — blocks & reporting */}
+      <Card id="settings-safety">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-amber-600" aria-hidden />
+            <CardTitle>Safety</CardTitle>
+          </div>
+          <CardDescription>Report problems and manage who you’ve blocked.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+            <Button variant="outline" className="justify-start" asChild>
+              <Link to="/help-center">
+                <LifeBuoy className="mr-2 h-4 w-4" />
+                Help &amp; report issues
+              </Link>
+            </Button>
+            <Button variant="outline" className="justify-start" asChild>
+              <Link to="/contact">
+                <ExternalLink className="mr-2 h-4 w-4" />
+                Contact support
+              </Link>
+            </Button>
+            <Button variant="outline" className="justify-start" asChild>
+              <Link to="/legal/guidelines">
+                <Shield className="mr-2 h-4 w-4" />
+                Community guidelines
+              </Link>
+            </Button>
+          </div>
+
+          <div>
+            <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
+              <Ban className="h-4 w-4" aria-hidden />
+              Blocked users
+            </h3>
+            <p className="mb-3 text-sm text-slate-600 dark:text-slate-400">
+              People you block can’t message you or interact with you in the same ways. You can unblock anytime.
+            </p>
+            {blockedLoading ? (
+              <p className="text-sm text-slate-500">Loading…</p>
+            ) : blockedList.length === 0 ? (
+              <p className="rounded-lg border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                You haven’t blocked anyone. You can block someone from their profile or from a conversation.
+              </p>
+            ) : (
+              <ul className="space-y-2">
+                {blockedList.map((row) => {
+                  const label = row.full_name?.trim() || row.username || 'User';
+                  const initial = label.charAt(0).toUpperCase();
+                  return (
+                    <li
+                      key={row.id}
+                      className="flex items-center justify-between gap-3 rounded-lg border border-slate-200/90 bg-white px-3 py-2 dark:border-slate-800 dark:bg-slate-950/50"
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <Avatar className="h-9 w-9">
+                          <AvatarImage src={row.avatar_url || undefined} alt="" />
+                          <AvatarFallback>{initial}</AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-slate-900 dark:text-slate-100">{label}</p>
+                          {row.username ? (
+                            <p className="truncate text-xs text-slate-500">@{row.username}</p>
+                          ) : null}
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        disabled={toggleBlock.isPending}
+                        onClick={() => toggleBlock.mutate(row.blocked_id)}
+                      >
+                        Unblock
+                      </Button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Data Export Section */}
       <Card>
@@ -187,8 +366,7 @@ const AccountSettings = () => {
             <CardTitle className="text-red-900">Delete Account</CardTitle>
           </div>
           <CardDescription>
-            Permanently delete your MY PUP account and all associated data. 
-            This action cannot be undone.
+            Permanently delete your PAWS account and all associated data. This action cannot be undone.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -210,13 +388,45 @@ const AccountSettings = () => {
               </div>
             </div>
 
-            <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-              <DialogTrigger asChild>
-                <Button variant="destructive" className="bg-red-600 hover:bg-red-700">
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete My Account
-                </Button>
-              </DialogTrigger>
+            <Button
+              variant="destructive"
+              className="bg-red-600 hover:bg-red-700"
+              onClick={() => setShowDeleteWarning(true)}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete My Account
+            </Button>
+
+            <AlertDialog open={showDeleteWarning} onOpenChange={setShowDeleteWarning}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete your account?</AlertDialogTitle>
+                  <AlertDialogDescription className="text-left">
+                    This permanently removes your profile, listings, messages, and other data. You will not be able to
+                    recover your account.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    className="bg-red-600 text-white hover:bg-red-700 focus:ring-red-600 dark:bg-red-600 dark:hover:bg-red-700"
+                    onClick={() => {
+                      setShowDeleteDialog(true);
+                    }}
+                  >
+                    Continue
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            <Dialog
+              open={showDeleteDialog}
+              onOpenChange={(open) => {
+                setShowDeleteDialog(open);
+                if (!open) setDeleteConfirmation('');
+              }}
+            >
               <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                   <DialogTitle className="text-red-900">Confirm Account Deletion</DialogTitle>

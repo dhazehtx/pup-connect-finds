@@ -130,7 +130,7 @@ export const useAISearch = () => {
       .ilike('breed', `%${query}%`)
       .limit(5);
 
-    return data?.map(item => item.breed).filter(Boolean) || [];
+    return (data?.map(item => item.breed).filter((breed): breed is string => Boolean(breed)) || []);
   };
 
   const getLocationSuggestions = async (query: string) => {
@@ -140,7 +140,7 @@ export const useAISearch = () => {
       .ilike('location', `%${query}%`)
       .limit(5);
 
-    return data?.map(item => item.location).filter(Boolean) || [];
+    return (data?.map(item => item.location).filter((location): location is string => Boolean(location)) || []);
   };
 
   const saveSearch = useCallback(async (name: string, filters: AISearchFilters, notifyOnNewMatches = true) => {

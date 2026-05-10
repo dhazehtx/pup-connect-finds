@@ -26,12 +26,13 @@ router.get('/:groupId/posts', async (req, res) => {
 
     // Check if user has access to this group
     if (req.isAuthenticated()) {
+      const userId = req.user!.id;
       const [membership] = await db
         .select()
         .from(groupMemberships)
         .where(and(
           eq(groupMemberships.group_id, groupId),
-          eq(groupMemberships.user_id, req.user.id),
+          eq(groupMemberships.user_id, userId),
           eq(groupMemberships.status, 'active')
         ))
         .limit(1);
@@ -95,12 +96,13 @@ router.get('/:groupId/posts', async (req, res) => {
     // If user is authenticated, get their like status for each post
     let userLikes: string[] = [];
     if (req.isAuthenticated() && posts.length > 0) {
+      const userId = req.user!.id;
       const postIds = posts.map(p => p.id);
       const likes = await db
         .select({ post_id: groupPostLikes.post_id })
         .from(groupPostLikes)
         .where(and(
-          eq(groupPostLikes.user_id, req.user.id),
+          eq(groupPostLikes.user_id, userId),
           sql`${groupPostLikes.post_id} = ANY(${postIds})`
         ));
       
@@ -140,6 +142,7 @@ router.post('/:groupId/posts', async (req, res) => {
   }
 
   try {
+    const userId = req.user!.id;
     const { groupId } = req.params;
     const {
       title,
@@ -156,7 +159,7 @@ router.post('/:groupId/posts', async (req, res) => {
       .from(groupMemberships)
       .where(and(
         eq(groupMemberships.group_id, groupId),
-        eq(groupMemberships.user_id, req.user.id),
+        eq(groupMemberships.user_id, userId),
         eq(groupMemberships.status, 'active')
       ))
       .limit(1);
@@ -170,7 +173,7 @@ router.post('/:groupId/posts', async (req, res) => {
       .insert(groupPosts)
       .values({
         group_id: groupId,
-        author_id: req.user.id,
+        author_id: userId,
         title,
         content,
         images,
@@ -195,7 +198,7 @@ router.post('/:groupId/posts', async (req, res) => {
       .set({ last_activity: new Date() })
       .where(and(
         eq(groupMemberships.group_id, groupId),
-        eq(groupMemberships.user_id, req.user.id)
+        eq(groupMemberships.user_id, userId)
       ));
 
     res.status(201).json({
@@ -216,6 +219,7 @@ router.post('/posts/:postId/like', async (req, res) => {
   }
 
   try {
+    const userId = req.user!.id;
     const { postId } = req.params;
 
     // Check if post exists and get group info
@@ -239,7 +243,7 @@ router.post('/posts/:postId/like', async (req, res) => {
       .from(groupMemberships)
       .where(and(
         eq(groupMemberships.group_id, post.group_id),
-        eq(groupMemberships.user_id, req.user.id),
+        eq(groupMemberships.user_id, userId),
         eq(groupMemberships.status, 'active')
       ))
       .limit(1);
@@ -254,7 +258,7 @@ router.post('/posts/:postId/like', async (req, res) => {
       .from(groupPostLikes)
       .where(and(
         eq(groupPostLikes.post_id, postId),
-        eq(groupPostLikes.user_id, req.user.id)
+        eq(groupPostLikes.user_id, userId)
       ))
       .limit(1);
 
@@ -264,7 +268,7 @@ router.post('/posts/:postId/like', async (req, res) => {
         .delete(groupPostLikes)
         .where(and(
           eq(groupPostLikes.post_id, postId),
-          eq(groupPostLikes.user_id, req.user.id)
+          eq(groupPostLikes.user_id, userId)
         ));
 
       // Decrement like count
@@ -283,7 +287,7 @@ router.post('/posts/:postId/like', async (req, res) => {
         .insert(groupPostLikes)
         .values({
           post_id: postId,
-          user_id: req.user.id
+          user_id: userId
         });
 
       // Increment like count
@@ -324,12 +328,13 @@ router.get('/posts/:postId/comments', async (req, res) => {
 
     // Check group access for authenticated users
     if (req.isAuthenticated()) {
+      const userId = req.user!.id;
       const [membership] = await db
         .select()
         .from(groupMemberships)
         .where(and(
           eq(groupMemberships.group_id, post.group_id),
-          eq(groupMemberships.user_id, req.user.id),
+          eq(groupMemberships.user_id, userId),
           eq(groupMemberships.status, 'active')
         ))
         .limit(1);
@@ -380,6 +385,7 @@ router.post('/posts/:postId/comments', async (req, res) => {
   }
 
   try {
+    const userId = req.user!.id;
     const { postId } = req.params;
     const { content, parent_comment_id } = req.body;
 
@@ -402,7 +408,7 @@ router.post('/posts/:postId/comments', async (req, res) => {
       .from(groupMemberships)
       .where(and(
         eq(groupMemberships.group_id, post.group_id),
-        eq(groupMemberships.user_id, req.user.id),
+        eq(groupMemberships.user_id, userId),
         eq(groupMemberships.status, 'active')
       ))
       .limit(1);
@@ -416,7 +422,7 @@ router.post('/posts/:postId/comments', async (req, res) => {
       .insert(groupPostComments)
       .values({
         post_id: postId,
-        author_id: req.user.id,
+        author_id: userId,
         content,
         parent_comment_id: parent_comment_id || null
       })

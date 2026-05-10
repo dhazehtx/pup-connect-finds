@@ -37,6 +37,17 @@ export const useSmartRecommendations = () => {
   const [trendingListings, setTrendingListings] = useState<SmartRecommendation[]>([]);
   const { user } = useAuth();
 
+  type DbRecommendationListing = {
+    id: string;
+    dog_name: string;
+    breed: string | null;
+    price: number | null;
+    image_url: string | null;
+    location: string | null;
+    age: number | null;
+    created_at: string | null;
+  };
+
   const generateRecommendations = useCallback(async (
     filters: RecommendationFilters = {},
     limit: number = 10
@@ -92,13 +103,14 @@ export const useSmartRecommendations = () => {
       if (listingsError) throw listingsError;
 
       // Generate simple recommendations with scoring
-      const scoredRecommendations = (listings || []).map(listing => {
+      const scoredRecommendations = ((listings || []) as DbRecommendationListing[]).map(listing => {
         let score = Math.random() * 50 + 50; // Base score between 50-100
         let reasons: string[] = ['Great match for you'];
 
         // Recency bonus
+        const createdAt = listing.created_at ? new Date(listing.created_at).getTime() : Date.now();
         const daysOld = Math.floor(
-          (Date.now() - new Date(listing.created_at).getTime()) / (1000 * 60 * 60 * 24)
+          (Date.now() - createdAt) / (1000 * 60 * 60 * 24)
         );
         if (daysOld <= 7) {
           score += 10;
@@ -111,9 +123,9 @@ export const useSmartRecommendations = () => {
           score,
           reason: reasons.join(', '),
           dog_name: listing.dog_name,
-          breed: listing.breed,
-          price: listing.price,
-          image_url: listing.image_url,
+          breed: listing.breed ?? 'Unknown',
+          price: listing.price ?? 0,
+          image_url: listing.image_url ?? undefined,
           location: listing.location || 'Location not specified'
         };
       });

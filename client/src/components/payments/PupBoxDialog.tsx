@@ -19,7 +19,15 @@ const PupBoxDialog: React.FC<PupBoxDialogProps> = ({ isOpen, onClose }) => {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const boxes = {
+  type PupBoxOption = {
+    name: string;
+    price: number;
+    description: string;
+    items: string[];
+    value: string;
+    popular?: boolean;
+  };
+  const boxes: Record<'starter' | 'deluxe' | 'premium', PupBoxOption> = {
     starter: {
       name: 'Starter Pup Box',
       price: 29.99,
@@ -81,7 +89,7 @@ const PupBoxDialog: React.FC<PupBoxDialogProps> = ({ isOpen, onClose }) => {
     
     const result = await createPaymentIntent({
       amount: currentBox.price,
-      productType: 'pup_box',
+      productType: 'pupbox_onetime',
       metadata: {
         boxType: selectedBox,
         boxName: currentBox.name,
@@ -121,7 +129,7 @@ const PupBoxDialog: React.FC<PupBoxDialogProps> = ({ isOpen, onClose }) => {
                   ? 'border-purple-500 bg-purple-50'
                   : 'border-gray-200 hover:border-gray-300'
               }`}
-              onClick={() => setSelectedBox(key as any)}
+              onClick={() => setSelectedBox(key as 'starter' | 'deluxe' | 'premium')}
             >
               {box.popular && (
                 <Badge className="absolute -top-2 left-4 bg-purple-500">

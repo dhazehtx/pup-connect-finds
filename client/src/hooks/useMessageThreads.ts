@@ -9,6 +9,16 @@ interface MessageThread {
   created_at: string;
 }
 
+const normalizeThread = (thread: {
+  id: string;
+  parent_message_id: string;
+  reply_message_id: string;
+  created_at: string | null;
+}): MessageThread => ({
+  ...thread,
+  created_at: thread.created_at ?? new Date().toISOString(),
+});
+
 interface ThreadMessage {
   id: string;
   conversation_id: string;
@@ -39,7 +49,7 @@ export const useMessageThreads = () => {
       if (!acc[thread.parent_message_id]) {
         acc[thread.parent_message_id] = [];
       }
-      acc[thread.parent_message_id].push(thread);
+      acc[thread.parent_message_id].push(normalizeThread(thread));
       return acc;
     }, {} as Record<string, MessageThread[]>);
 
@@ -103,7 +113,7 @@ export const useMessageThreads = () => {
 
     setThreads(prev => ({
       ...prev,
-      [parentMessageId]: [...(prev[parentMessageId] || []), data]
+      [parentMessageId]: [...(prev[parentMessageId] || []), normalizeThread(data)]
     }));
   };
 

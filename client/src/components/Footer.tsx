@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Heart } from 'lucide-react';
+import { PawsWordmarkLockup } from '@/components/brand/PawsWordmark';
 
 const Footer = () => {
   const scrollToTop = () => {
@@ -13,80 +13,180 @@ const Footer = () => {
   };
 
   return (
-    <footer className="text-white mt-auto" style={{ backgroundColor: '#336FCC' }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* MY PUP Section */}
+    <footer className="mt-auto border-t border-slate-200/80 bg-gradient-to-b from-slate-50 via-slate-50 to-blue-50/30 text-slate-700">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-10">
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <Heart size={20} className="text-white" />
-              <span className="text-xl font-bold text-white">MY PUP</span>
+            <div className="font-brand-wordmark mb-3 inline-flex items-baseline gap-1 text-lg font-medium tracking-widest text-slate-800">
+              <PawsWordmarkLockup />
             </div>
-            <p className="text-white mb-4">
-              Connecting loving families with their perfect puppy companions.
+            <p className="max-w-sm text-sm leading-relaxed text-slate-600">
+              Connecting families with healthy puppies, trusted care providers, and curated PAWS essentials.
             </p>
           </div>
 
-          {/* Quick Links */}
           <div>
-            <h3 className="font-semibold mb-4 text-white">Quick Links</h3>
-            <ul className="space-y-2">
+            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
+              Discover
+            </h3>
+            <ul className="space-y-2 text-sm">
               <li>
-                <Link to="/explore" onClick={handleLinkClick} className="text-white hover:text-blue-200 transition-colors">
+                <Link
+                  to="/explore"
+                  onClick={handleLinkClick}
+                  className="text-slate-700 transition-colors hover:text-blue-600"
+                >
                   Browse Puppies
                 </Link>
               </li>
               <li>
-                <Link to="/education" onClick={handleLinkClick} className="text-white hover:text-blue-200 transition-colors">
+                <Link
+                  to="/marketplace"
+                  onClick={handleLinkClick}
+                  className="text-slate-700 transition-colors hover:text-blue-600"
+                >
+                  Marketplace
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/marketplace?tab=store"
+                  onClick={handleLinkClick}
+                  className="text-slate-700 transition-colors hover:text-blue-600"
+                >
+                  PAWS Store
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/marketplace?tab=box"
+                  onClick={handleLinkClick}
+                  className="text-slate-700 transition-colors hover:text-blue-600"
+                >
+                  Pup Box
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/education"
+                  onClick={handleLinkClick}
+                  className="text-slate-700 transition-colors hover:text-blue-600"
+                >
                   Education
                 </Link>
               </li>
               <li>
-                <Link to="/legal" onClick={handleLinkClick} className="text-white hover:text-blue-200 transition-colors">
-                  Legal Guide
+                <Link
+                  to="/services"
+                  onClick={handleLinkClick}
+                  className="text-slate-700 transition-colors hover:text-blue-600"
+                >
+                  Services
                 </Link>
               </li>
               <li>
-                <Link to="/services" onClick={handleLinkClick} className="text-white hover:text-blue-200 transition-colors">
-                  Services
+                <Link
+                  to="/legal"
+                  onClick={handleLinkClick}
+                  className="text-slate-700 transition-colors hover:text-blue-600"
+                >
+                  Legal Guide
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Support */}
           <div>
-            <h3 className="font-semibold mb-4 text-white">Support</h3>
-            <ul className="space-y-2">
+            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
+              Support
+            </h3>
+            <ul className="space-y-2 text-sm">
               <li>
-                <Link to="/help-center" onClick={handleLinkClick} className="text-white hover:text-blue-200 transition-colors">
+                <Link
+                  to="/help-center"
+                  onClick={handleLinkClick}
+                  className="text-slate-700 transition-colors hover:text-blue-600"
+                >
                   Help Center
                 </Link>
               </li>
               <li>
-                <Link to="/trust-safety" onClick={handleLinkClick} className="text-white hover:text-blue-200 transition-colors">
-                  Trust & Safety
+                <Link
+                  to="/legal/guidelines"
+                  onClick={handleLinkClick}
+                  className="text-slate-700 transition-colors hover:text-blue-600"
+                >
+                  Trust &amp; Safety
                 </Link>
               </li>
               <li>
-                <Link to="/contact" onClick={handleLinkClick} className="text-white hover:text-blue-200 transition-colors">
+                <Link
+                  to="/contact"
+                  onClick={handleLinkClick}
+                  className="text-slate-700 transition-colors hover:text-blue-600"
+                >
                   Contact Us
                 </Link>
               </li>
               <li>
-                <Link to="/support" onClick={handleLinkClick} className="text-white hover:text-blue-200 transition-colors">
+                <Link
+                  to="/support"
+                  onClick={handleLinkClick}
+                  className="text-slate-700 transition-colors hover:text-blue-600"
+                >
                   Support Tickets
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
+              Legal
+            </h3>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link
+                  to="/legal/terms"
+                  onClick={handleLinkClick}
+                  className="text-slate-700 transition-colors hover:text-blue-600"
+                >
+                  Terms of Service
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/legal/privacy"
+                  onClick={handleLinkClick}
+                  className="text-slate-700 transition-colors hover:text-blue-600"
+                >
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/legal/shipping"
+                  onClick={handleLinkClick}
+                  className="text-slate-700 transition-colors hover:text-blue-600"
+                >
+                  Shipping
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/legal/returns"
+                  onClick={handleLinkClick}
+                  className="text-slate-700 transition-colors hover:text-blue-600"
+                >
+                  Returns &amp; Refunds
                 </Link>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Bottom Section */}
-        <div className="border-t border-blue-400 mt-8 pt-8 text-center">
-          <div className="text-white text-sm">
-            <span>© 2024 MY PUP. All rights reserved.</span>
-          </div>
+        <div className="mt-8 border-t border-slate-200/90 pt-6 text-center">
+          <p className="text-xs text-slate-500">© {new Date().getFullYear()} PAWS. All rights reserved.</p>
         </div>
       </div>
     </footer>

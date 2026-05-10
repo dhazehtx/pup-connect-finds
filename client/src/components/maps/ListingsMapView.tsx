@@ -4,21 +4,12 @@ import MapContainer from './MapContainer';
 import MapControls from './MapControls';
 import SelectedListingPopup from './SelectedListingPopup';
 import ListingsOverlay from './ListingsOverlay';
-
-interface Listing {
-  id: string;
-  dog_name: string;
-  breed: string;
-  price: number;
-  location: string;
-  image_url?: string;
-  coordinates?: { lat: number; lng: number };
-}
+import { MarketplaceListing } from '@/types/marketplace';
 
 interface ListingsMapViewProps {
-  listings: Listing[];
-  onListingSelect?: (listing: Listing) => void;
-  selectedListing?: Listing;
+  listings: MarketplaceListing[];
+  onListingSelect?: (listing: MarketplaceListing) => void;
+  selectedListing?: MarketplaceListing;
   userLocation?: { lat: number; lng: number };
 }
 
@@ -32,7 +23,7 @@ const ListingsMapView = ({
   const [zoom, setZoom] = useState(12);
   const mapRef = useRef<HTMLDivElement>(null);
 
-  const handleMarkerClick = (listing: Listing) => {
+  const handleMarkerClick = (listing: MarketplaceListing) => {
     onListingSelect?.(listing);
   };
 

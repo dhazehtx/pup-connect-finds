@@ -24,24 +24,24 @@ const FooterLinksMenu = ({ variant = 'default' }: FooterLinksMenuProps) => {
       links: [
         { name: 'Education', path: '/education', icon: <FileText className="w-4 h-4" /> },
         { name: 'Legal Guide', path: '/legal', icon: <Shield className="w-4 h-4" /> },
-        { name: 'Terms of Service', path: '/terms', icon: <FileText className="w-4 h-4" /> },
-        { name: 'Privacy Policy', path: '/privacy-policy', icon: <Shield className="w-4 h-4" /> },
-        { name: 'Terms of Use', path: '/terms', icon: <FileText className="w-4 h-4" /> },
+        { name: 'Terms of Service', path: '/legal/terms', icon: <FileText className="w-4 h-4" /> },
+        { name: 'Privacy Policy', path: '/legal/privacy', icon: <Shield className="w-4 h-4" /> },
+        { name: 'Community Guidelines', path: '/legal/guidelines', icon: <FileText className="w-4 h-4" /> },
       ]
     },
     {
       title: 'Support',
       links: [
         { name: 'Help Center', path: '/help-center', icon: <HelpCircle className="w-4 h-4" /> },
-        { name: 'Trust & Safety', path: '/trust-safety', icon: <Shield className="w-4 h-4" /> },
+        { name: 'Trust & Safety', path: '/legal/guidelines', icon: <Shield className="w-4 h-4" /> },
         { name: 'Contact Us', path: '/contact', icon: <Mail className="w-4 h-4" /> },
       ]
     },
     {
       title: 'Analytics',
       links: [
-        { name: 'Messaging Analytics', path: '/messaging-analytics', icon: <MessageSquare className="w-4 h-4" /> },
-        { name: 'Enhanced Analytics', path: '/analytics', icon: <TrendingUp className="w-4 h-4" /> },
+        { name: 'Messaging', path: '/messages', icon: <MessageSquare className="w-4 h-4" /> },
+        { name: 'QA Dashboard', path: '/qa', icon: <TrendingUp className="w-4 h-4" /> },
         { name: 'Professional Network', path: '/network', icon: <Users className="w-4 h-4" /> },
       ]
     }

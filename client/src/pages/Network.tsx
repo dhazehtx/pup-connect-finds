@@ -5,17 +5,15 @@ import ProfessionalNetworkDashboard from '@/components/network/ProfessionalNetwo
 import BreedingPortfolioManager from '@/components/network/BreedingPortfolioManager';
 import AdvancedCalendarScheduler from '@/components/scheduling/AdvancedCalendarScheduler';
 import EnhancedMobileFeatures from '@/components/mobile/EnhancedMobileFeatures';
-import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Network = () => {
-  const { t } = useTranslation();
   const { user } = useAuth();
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">{t('network.professionalNetwork')}</h1>
+        <h1 className="text-3xl font-bold">Professional Network</h1>
         <p className="text-muted-foreground mt-2">
           Connect with other professionals, manage your portfolio, and schedule meetings
         </p>

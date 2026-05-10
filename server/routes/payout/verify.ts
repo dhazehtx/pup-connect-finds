@@ -1,12 +1,6 @@
-import Stripe from 'stripe';
 import type { Request, Response } from 'express';
-import { Pool } from '@neondatabase/serverless';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { 
-  apiVersion: '2025-08-27.basil'
-});
-
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+import { pool } from '../../db';
+import { getStripe } from '../../lib/stripeLazy';
 
 export async function verifyPayout(req: Request, res: Response) {
   try {
@@ -34,7 +28,7 @@ export async function verifyPayout(req: Request, res: Response) {
     }
 
     // Retrieve account status from Stripe
-    const acct = await stripe.accounts.retrieve(stripeAccountId);
+    const acct = await getStripe().accounts.retrieve(stripeAccountId);
 
     const connected = !!acct.details_submitted;
     const payoutsEnabled = !!acct.payouts_enabled;

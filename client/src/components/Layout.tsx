@@ -1,6 +1,6 @@
 
 import React from 'react';
-import Footer from './layout/Footer';
+import Footer from './Footer';
 import BottomNavigation from './BottomNavigation';
 
 import StickyHeader from './layout/StickyHeader';

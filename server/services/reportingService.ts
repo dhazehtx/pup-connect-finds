@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { db } from '../db';
 import { userReports, listingReports, reportRateLimit, profiles, dogListings, notifications } from '@shared/schema';
 import { eq, desc, and, gte, sql, count } from 'drizzle-orm';

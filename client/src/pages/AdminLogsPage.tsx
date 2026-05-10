@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Shield, Activity, Clock, User, Database } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useLocation } from 'wouter';
+import { useNavigate } from 'react-router-dom';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 
 interface AdminLog {
@@ -18,13 +18,13 @@ interface AdminLog {
 
 const AdminLogsPage: React.FC = () => {
   const { user } = useAuth();
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const [isAuthorized, setIsAuthorized] = useState(false);
 
   // Check if user is admin
   useEffect(() => {
     if (!user) {
-      setLocation('/auth');
+      navigate('/auth');
       return;
     }
 
@@ -34,7 +34,7 @@ const AdminLogsPage: React.FC = () => {
       try {
         const response = await fetch(`/api/admin/logs?userId=${user.id}`);
         if (response.status === 403) {
-          setLocation('/');
+          navigate('/');
           return;
         }
         if (response.ok) {
@@ -42,12 +42,12 @@ const AdminLogsPage: React.FC = () => {
         }
       } catch (error) {
         console.error('Error checking admin status:', error);
-        setLocation('/');
+        navigate('/');
       }
     };
 
     checkAdminStatus();
-  }, [user, setLocation]);
+  }, [user, navigate]);
 
   const { data: logs, isLoading, error } = useQuery({
     queryKey: ['admin-logs'],
@@ -118,7 +118,7 @@ const AdminLogsPage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <LoadingSkeleton />
+        <LoadingSkeleton viewMode="list" />
       </div>
     );
   }

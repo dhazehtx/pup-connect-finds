@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { Pool } from '@neondatabase/serverless';
 import Stripe from 'stripe';
-import { STRIPE_SECRET_KEY, CONNECT_APP_FEE_BPS } from '../lib/config';
+import { STRIPE_SECRET_KEY } from '../lib/config';
+import { getConnectAppFeeBps } from '../lib/platformFees';
 
 const router = Router();
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
@@ -9,12 +10,12 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 // Initialize Stripe only if we have a secret key
 let stripe: Stripe | null = null;
 if (STRIPE_SECRET_KEY) {
-  stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' });
+  stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2025-08-27.basil' });
 }
 
 // Compute platform/app fee (in cents) from gross amount (cents)
 function computeAppFee(amountCents: number) {
-  const fee = Math.floor((amountCents * CONNECT_APP_FEE_BPS) / 10_000);
+  const fee = Math.floor((amountCents * getConnectAppFeeBps()) / 10_000);
   return fee;
 }
 

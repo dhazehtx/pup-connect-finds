@@ -1,6 +1,7 @@
 import React, { Component, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle } from 'lucide-react';
+import { captureError } from '@/utils/sentry';
 
 interface Props {
   children: ReactNode;
@@ -23,7 +24,13 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('[ERROR BOUNDARY] Component error caught:', error, errorInfo);
+    if (import.meta.env.DEV) {
+      console.error('[ERROR BOUNDARY]', error, errorInfo.componentStack);
+    }
+    captureError(error, {
+      componentStack: errorInfo.componentStack,
+      source: 'ErrorBoundary',
+    });
   }
 
   render() {
@@ -40,20 +47,17 @@ class ErrorBoundary extends Component<Props, State> {
               Something went wrong
             </h3>
             <p className="text-gray-600 mb-4">
-              This component encountered an error. Please try refreshing the page or navigating to a different section.
+              Something broke while rendering this screen. You can reload, go home, or try again if you have not changed anything important.
             </p>
-            <div className="space-x-2">
-              <Button 
-                onClick={() => window.location.reload()} 
-                variant="outline"
-              >
-                Refresh Page
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button onClick={() => window.location.reload()} variant="outline">
+                Refresh page
               </Button>
-              <Button 
-                onClick={() => this.setState({ hasError: false })}
-                variant="default"
-              >
-                Try Again
+              <Button asChild variant="outline">
+                <a href="/">Go home</a>
+              </Button>
+              <Button onClick={() => this.setState({ hasError: false, error: undefined })} variant="default">
+                Try again
               </Button>
             </div>
           </div>

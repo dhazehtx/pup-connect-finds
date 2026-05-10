@@ -1,13 +1,14 @@
+import { debugApiLog } from '../../lib/debugApi';
 import { Router } from "express";
 import Stripe from "stripe";
 import { STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET } from "../../lib/config";
 import { 
   upsertProviderStatus, 
-  markBookingPaid, 
   logStripeEvent, 
   handleTransferResult, 
   handleRefund 
 } from "../../lib/stripe-handlers";
+import { processCheckoutSessionCompleted } from "../../lib/checkoutSessionWebhook";
 import { withDbIdempotency } from "../../lib/idempotency";
 import { Pool } from '@neondatabase/serverless';
 import { ensureVerifiedBadge } from "../../lib/badges";
@@ -77,7 +78,7 @@ router.post("/", async (req, res) => {
 
         case 'checkout.session.completed': {
           const session = event.data.object as Stripe.Checkout.Session;
-          await markBookingPaid({ checkoutSessionId: session.id });
+          await processCheckoutSessionCompleted(session);
           break;
         }
 
@@ -92,7 +93,7 @@ router.post("/", async (req, res) => {
               [pi.id]
             );
 
-            console.log(`[PROOF:PAYMENT:SUCCEEDED] deal=${dealId} pi=${pi.id} kind=${kind}`);
+            debugApiLog(`[PROOF:PAYMENT:SUCCEEDED] deal=${dealId} pi=${pi.id} kind=${kind}`);
 
             if (kind === 'DEPOSIT') {
               await pool.query(
@@ -106,15 +107,15 @@ router.post("/", async (req, res) => {
                   [listingId]
                 );
               }
-              console.log(`[PROOF:DEAL:DEPOSIT_PAID] deal=${dealId} pi=${pi.id}`);
-              console.log(`[PROOF:WEBHOOK:PROCESSED] event=${event.id} type=payment_intent.succeeded kind=DEPOSIT`);
+              debugApiLog(`[PROOF:DEAL:DEPOSIT_PAID] deal=${dealId} pi=${pi.id}`);
+              debugApiLog(`[PROOF:WEBHOOK:PROCESSED] event=${event.id} type=payment_intent.succeeded kind=DEPOSIT`);
             } else if (kind === 'BALANCE') {
               await pool.query(
                 "UPDATE deals SET status = 'PAID_IN_FULL', updated_at = NOW() WHERE id = $1 AND status = 'DEPOSIT_PAID'",
                 [dealId]
               );
-              console.log(`[PROOF:DEAL:BALANCE_PAID] deal=${dealId} pi=${pi.id}`);
-              console.log(`[PROOF:WEBHOOK:PROCESSED] event=${event.id} type=payment_intent.succeeded kind=BALANCE`);
+              debugApiLog(`[PROOF:DEAL:BALANCE_PAID] deal=${dealId} pi=${pi.id}`);
+              debugApiLog(`[PROOF:WEBHOOK:PROCESSED] event=${event.id} type=payment_intent.succeeded kind=BALANCE`);
             }
           } else {
             console.log('[STRIPE WEBHOOK] Payment succeeded (non-deal):', pi.id);
@@ -130,7 +131,7 @@ router.post("/", async (req, res) => {
               "UPDATE deal_payments SET status = 'failed', updated_at = NOW() WHERE stripe_payment_intent_id = $1",
               [pi.id]
             );
-            console.log(`[PROOF:PAYMENT:FAILED] deal=${dealId} pi=${pi.id}`);
+            debugApiLog(`[PROOF:PAYMENT:FAILED] deal=${dealId} pi=${pi.id}`);
           }
           break;
         }
@@ -155,7 +156,7 @@ router.post("/", async (req, res) => {
               "UPDATE subscriptions SET status = 'active', updated_at = NOW() WHERE stripe_subscription_id = $1",
               [subId]
             );
-            console.log(`[PROOF:WEBHOOK:INVOICE_PAID] subscription=${subId}`);
+            debugApiLog(`[PROOF:WEBHOOK:INVOICE_PAID] subscription=${subId}`);
           }
           break;
         }
@@ -168,7 +169,7 @@ router.post("/", async (req, res) => {
               "UPDATE subscriptions SET status = 'past_due', updated_at = NOW() WHERE stripe_subscription_id = $1",
               [subId2]
             );
-            console.log(`[PROOF:WEBHOOK:INVOICE_FAILED] subscription=${subId2}`);
+            debugApiLog(`[PROOF:WEBHOOK:INVOICE_FAILED] subscription=${subId2}`);
           }
           break;
         }

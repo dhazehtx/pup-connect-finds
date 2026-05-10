@@ -32,8 +32,8 @@ export interface SellerEarnings {
 export class CommissionService {
   // Default commission rates if not configured
   private static DEFAULT_RATES = {
-    puppy: { percent: 10, description: 'Puppy listings commission' },
-    service: { percent: 15, description: 'Pet services commission' },
+    puppy: { percent: 0, description: 'Puppy listings commission (0% at launch; raise via admin / env later)' },
+    service: { percent: 0, description: 'Pet services commission (0% at launch)' },
     rehoming: { percent: 0, flat_fee: 19.99, description: 'Rehoming flat fee' },
     premium: { percent: 0, description: 'Premium features - direct platform revenue' },
     subscription: { percent: 0, description: 'Subscription fees - direct platform revenue' }
@@ -236,7 +236,7 @@ export class CommissionService {
     endDate?: Date
   ): Promise<CommissionSummary> {
     try {
-      let query = db
+      let query: any = db
         .select({
           totalEarnings: sum(commissions.platform_fee),
           totalPaidOut: sum(sql`CASE WHEN ${commissions.status} = 'completed' THEN ${commissions.seller_payout} ELSE 0 END`),
@@ -246,7 +246,7 @@ export class CommissionService {
         })
         .from(commissions);
 
-      let finalQuery = query;
+      let finalQuery: any = query;
       
       if (startDate && endDate) {
         finalQuery = finalQuery.where(between(commissions.created_at, startDate, endDate));
@@ -325,7 +325,7 @@ export class CommissionService {
     offset?: number;
   } = {}): Promise<any[]> {
     try {
-      let baseQuery = db
+      let baseQuery: any = db
         .select({
           id: commissions.id,
           transaction_id: commissions.transaction_id,

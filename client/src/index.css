@@ -352,13 +352,81 @@ button.border:hover {
   background-color: transparent !important;
 }
 
-.greeting-hero h1 span:first-child {
-  color: #0F172A !important;
+/* Wordmark: lone "PAWS" span stays soft navy (icon is sibling SVG, not a span) */
+.greeting-hero h1 > span {
+  color: #334155 !important;
 }
 
-.greeting-hero h1 span:last-child,
 .greeting-hero .accent {
-  color: #0074D4 !important;
+  color: #0074d4 !important;
+}
+
+/* Greeting — luxury brand mark: subtle fade + 5px lift on load */
+@keyframes greeting-brand-mark-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.greeting-brand-mark {
+  animation: greeting-brand-mark-in 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  opacity: 0;
+}
+
+.greeting-brand-mark--subtitle {
+  animation-delay: 0.1s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .greeting-brand-mark {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Brand wordmark — rounded, friendly sans */
+.font-brand-wordmark {
+  font-family:
+    'Quicksand',
+    ui-sans-serif,
+    system-ui,
+    sans-serif;
+}
+
+/* Easter egg: paw emojis wobble when hovering the wordmark container */
+@keyframes greeting-paw-wobble {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  20% {
+    transform: translateY(-2px) rotate(-5deg);
+  }
+  40% {
+    transform: translateY(1px) rotate(4deg);
+  }
+  60% {
+    transform: translateY(-1px) rotate(-3deg);
+  }
+  80% {
+    transform: translateY(0.5px) rotate(2deg);
+  }
+}
+
+.group:hover .greeting-paw-emoji {
+  animation: greeting-paw-wobble 0.55s ease-in-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .group:hover .greeting-paw-emoji {
+    animation: none;
+  }
 }
 
 /* ============================================================
@@ -477,7 +545,7 @@ button[class*="bg-blue-700"],
 button[class*="bg-primary"],
 button.btn-primary,
 .btn-primary,
-.greeting-page button,
+.greeting-page button:not(.greeting-btn-secondary):not(.greeting-btn-ghost),
 .explore-guest-page button[class*="bg-blue"] {
   background-color: #0074D4 !important;
   background: #0074D4 !important;
@@ -497,7 +565,7 @@ button[class*="bg-blue-700"]:hover,
 button[class*="bg-primary"]:hover,
 button.btn-primary:hover,
 .btn-primary:hover,
-.greeting-page button:hover {
+.greeting-page button:not(.greeting-btn-secondary):not(.greeting-btn-ghost):hover {
   background-color: #0063B8 !important;
   background: #0063B8 !important;
   color: #FFFFFF !important;
@@ -512,7 +580,7 @@ button[class*="bg-blue-700"]:active,
 button[class*="bg-primary"]:active,
 button.btn-primary:active,
 .btn-primary:active,
-.greeting-page button:active {
+.greeting-page button:not(.greeting-btn-secondary):not(.greeting-btn-ghost):active {
   background-color: #004a7d !important;
   background: #004a7d !important;
   color: #FFFFFF !important;
@@ -528,7 +596,7 @@ button[class*="bg-primary"]:focus,
 button[class*="bg-primary"]:focus-visible,
 button.btn-primary:focus,
 .btn-primary:focus,
-.greeting-page button:focus {
+.greeting-page button:not(.greeting-btn-secondary):not(.greeting-btn-ghost):focus {
   background-color: #0074D4 !important;
   color: #FFFFFF !important;
   opacity: 1 !important;
@@ -537,12 +605,12 @@ button.btn-primary:focus,
   box-shadow: 0 0 0 3px rgba(0, 116, 212, 0.4) !important;
 }
 
-/* Icons inside buttons - white */
+/* Icons inside buttons - white (exclude greeting outline/ghost CTAs) */
 button[class*="bg-blue"] svg,
 button[class*="bg-primary"] svg,
 button.btn-primary svg,
 .btn-primary svg,
-.greeting-page button svg {
+.greeting-page button:not(.greeting-btn-secondary):not(.greeting-btn-ghost) svg {
   color: #FFFFFF !important;
   opacity: 1 !important;
 }
@@ -552,7 +620,7 @@ button[class*="bg-blue"] span,
 button[class*="bg-primary"] span,
 button.btn-primary span,
 .btn-primary span,
-.greeting-page button span {
+.greeting-page button:not(.greeting-btn-secondary):not(.greeting-btn-ghost) span {
   color: #FFFFFF !important;
   opacity: 1 !important;
 }
@@ -582,16 +650,12 @@ body,
   background-color: #ffffff !important;
 }
 
-/* Bottom Navigation & Button Styling - White Text/Icons */
-.bottom-nav a,
-.bottom-nav svg {
-  color: white !important;
-}
+/* Bottom nav link colors set in component (glass bar uses slate / blue active) */
 
 .btn-list-puppy,
 .btn-list-puppy *,
-.greeting-page button,
-.greeting-page button *,
+.greeting-page button:not(.greeting-btn-secondary):not(.greeting-btn-ghost),
+.greeting-page button:not(.greeting-btn-secondary):not(.greeting-btn-ghost) *,
 .marketplace .tabs button {
   color: white !important;
 }
@@ -658,16 +722,49 @@ input[class*="border-amber"] {
   color: white !important;
 }
 
-/* Bottom navigation container styling - Royal blue to violet gradient */
+/* Bottom navigation — solid brand blue (matches Explore CTA gradient start #2563eb) */
 .bottom-nav {
-  background: linear-gradient(135deg, #0074d4, #7c3aed);
+  background: #2563eb !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.14) !important;
+  /* Subtle lift + inner shadow along top edge for depth against page content */
+  box-shadow:
+    inset 0 10px 14px -12px rgba(0, 0, 0, 0.22),
+    0 -8px 28px rgba(15, 23, 42, 0.12);
+  color: #ffffff !important;
 }
 
-/* Ensure icons and text remain white in all states */
 .bottom-nav button,
 .bottom-nav button svg,
 .bottom-nav button span {
-  color: white !important;
+  color: inherit !important;
+}
+
+.bottom-nav button.bottom-nav__item--inactive {
+  color: rgba(255, 255, 255, 0.82) !important;
+}
+
+.bottom-nav button.bottom-nav__item--inactive svg,
+.bottom-nav button.bottom-nav__item--inactive span {
+  color: rgba(255, 255, 255, 0.82) !important;
+}
+
+.bottom-nav button.bottom-nav__item--active {
+  color: #ffffff !important;
+  background-color: rgba(255, 255, 255, 0.16) !important;
+  border-radius: 0.75rem;
+  /* Subtle “lit” glow on the active tab */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 0 0 1px rgba(255, 255, 255, 0.12),
+    0 0 18px rgba(255, 255, 255, 0.28);
+}
+
+.bottom-nav button.bottom-nav__item--active svg,
+.bottom-nav button.bottom-nav__item--active span {
+  color: #ffffff !important;
+  font-weight: 600;
 }
 
 /* List Puppy button specific styling */
@@ -678,12 +775,12 @@ input[class*="border-amber"] {
 
 /* Greeting page button styling - CRITICAL: Force blue backgrounds */
 /* DO NOT apply blue to the container itself - only to buttons */
-.greeting-page button,
-.greeting-page button[type="button"],
-div.greeting-page button,
-section.greeting-hero button,
-.greeting-page > section button,
-.greeting-page section button {
+.greeting-page button:not(.greeting-btn-secondary):not(.greeting-btn-ghost),
+.greeting-page button[type="button"]:not(.greeting-btn-secondary):not(.greeting-btn-ghost),
+div.greeting-page button:not(.greeting-btn-secondary):not(.greeting-btn-ghost),
+section.greeting-hero button:not(.greeting-btn-secondary):not(.greeting-btn-ghost),
+.greeting-page > section button:not(.greeting-btn-secondary):not(.greeting-btn-ghost),
+.greeting-page section button:not(.greeting-btn-secondary):not(.greeting-btn-ghost) {
   background-color: #0074d4 !important;
   background: #0074d4 !important;
   color: #ffffff !important;
@@ -693,25 +790,126 @@ section.greeting-hero button,
   visibility: visible !important;
 }
 
-.greeting-page button:hover,
-.greeting-page button[type="button"]:hover,
-div.greeting-page button:hover,
-section.greeting-hero button:hover {
+.greeting-page button:not(.greeting-btn-secondary):not(.greeting-btn-ghost):hover,
+.greeting-page button[type="button"]:not(.greeting-btn-secondary):not(.greeting-btn-ghost):hover,
+div.greeting-page button:not(.greeting-btn-secondary):not(.greeting-btn-ghost):hover,
+section.greeting-hero button:not(.greeting-btn-secondary):not(.greeting-btn-ghost):hover {
   background-color: #005aa8 !important;
   background: #005aa8 !important;
 }
 
-.greeting-page button svg,
-.greeting-page button span,
-.greeting-hero button svg,
-.greeting-hero button span {
+.greeting-page button:not(.greeting-btn-secondary):not(.greeting-btn-ghost) svg,
+.greeting-page button:not(.greeting-btn-secondary):not(.greeting-btn-ghost) span,
+.greeting-hero button:not(.greeting-btn-secondary):not(.greeting-btn-ghost) svg,
+.greeting-hero button:not(.greeting-btn-secondary):not(.greeting-btn-ghost) span {
   color: #ffffff !important;
   opacity: 1 !important;
   visibility: visible !important;
 }
 
+/* Greeting page — CTA hierarchy (overrides nuclear solid-blue rules above) */
+.greeting-page button.greeting-btn-primary,
+section.greeting-hero button.greeting-btn-primary {
+  background-color: #0074d4 !important;
+  background: #0074d4 !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+.greeting-page button.greeting-btn-primary:hover,
+section.greeting-hero button.greeting-btn-primary:hover {
+  background-color: #0063b8 !important;
+  color: #ffffff !important;
+}
+.greeting-page button.greeting-btn-primary svg,
+.greeting-page button.greeting-btn-primary span {
+  color: #ffffff !important;
+}
+
+/* Primary CTA — horizontal blue gradient + soft blue lift shadow */
+.greeting-page button.greeting-btn-primary.greeting-btn-explore-gradient,
+section.greeting-hero button.greeting-btn-primary.greeting-btn-explore-gradient {
+  background: linear-gradient(to right, #2563eb 0%, #3b82f6 100%) !important;
+  border: none !important;
+  color: #ffffff !important;
+  box-shadow:
+    0 14px 36px -10px rgba(37, 99, 235, 0.45),
+    0 6px 16px -6px rgba(30, 64, 175, 0.25) !important;
+}
+.greeting-page button.greeting-btn-primary.greeting-btn-explore-gradient:hover,
+section.greeting-hero button.greeting-btn-primary.greeting-btn-explore-gradient:hover {
+  background: linear-gradient(to right, #1d4ed8 0%, #2563eb 100%) !important;
+  box-shadow:
+    0 18px 40px -10px rgba(37, 99, 235, 0.5),
+    0 8px 18px -6px rgba(30, 64, 175, 0.3) !important;
+}
+.greeting-page button.greeting-btn-primary.greeting-btn-explore-gradient svg {
+  color: #111827 !important;
+}
+.greeting-page button.greeting-btn-primary.greeting-btn-explore-gradient span {
+  color: #ffffff !important;
+}
+
+.greeting-page button.greeting-btn-secondary,
+section.greeting-hero button.greeting-btn-secondary {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  color: #2563eb !important;
+  border: 2px solid #2563eb !important;
+  box-shadow: none !important;
+}
+.greeting-page button.greeting-btn-secondary--polished,
+section.greeting-hero button.greeting-btn-secondary--polished {
+  border-width: 1.5px !important;
+  border-color: #93c5fd !important;
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.06),
+    0 1px 3px rgba(37, 99, 235, 0.06) !important;
+}
+.greeting-page button.greeting-btn-secondary:hover,
+section.greeting-hero button.greeting-btn-secondary:hover {
+  background-color: #eff6ff !important;
+  color: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
+}
+.greeting-page button.greeting-btn-secondary--polished:hover,
+section.greeting-hero button.greeting-btn-secondary--polished:hover {
+  border-color: #3b82f6 !important;
+  box-shadow:
+    0 2px 6px rgba(15, 23, 42, 0.07),
+    0 2px 8px rgba(37, 99, 235, 0.12) !important;
+}
+.greeting-page button.greeting-btn-secondary span,
+section.greeting-hero button.greeting-btn-secondary span {
+  color: #2563eb !important;
+}
+
+.greeting-page button.greeting-btn-secondary svg,
+section.greeting-hero button.greeting-btn-secondary svg {
+  color: #111827 !important;
+  stroke: #111827 !important;
+  opacity: 1 !important;
+}
+
+.greeting-page button.greeting-btn-ghost,
+section.greeting-hero button.greeting-btn-ghost {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: #475569 !important;
+  border: none !important;
+  font-weight: 500 !important;
+  box-shadow: none !important;
+}
+.greeting-page button.greeting-btn-ghost:hover,
+section.greeting-hero button.greeting-btn-ghost:hover {
+  background-color: transparent !important;
+  color: #1e293b !important;
+}
+.greeting-page button.greeting-btn-ghost span {
+  color: inherit !important;
+}
+
 /* Greeting page section styling - remove borders, allow theme backgrounds */
-.greeting-page section,
+.greeting-page section:not(.greeting-trust-bar),
 .greeting-page .relative {
   border: none !important;
   border-top: none !important;
@@ -719,6 +917,16 @@ section.greeting-hero button:hover {
   box-shadow: none !important;
   outline: none !important;
   background-image: none !important;
+}
+
+/* Trust strip — separation from hero, sits above bottom nav */
+.greeting-page section.greeting-trust-bar {
+  background-color: rgba(255, 255, 255, 0.55) !important;
+  border: 1px solid transparent !important;
+  border-top-color: rgb(226 232 240 / 0.95) !important;
+  border-radius: 1rem 1rem 0 0 !important;
+  backdrop-filter: blur(2px) !important;
+  box-shadow: none !important;
 }
 
 /* Force white text on active Radix tabs */
@@ -735,7 +943,7 @@ section.greeting-hero button:hover {
 }
 
 /* Force white text on marketplace filter buttons when active */
-.bg-\[#0074d4\] {
+[class*="bg-\\[\\#0074d4\\]"] {
   color: white !important;
 }
 
@@ -1089,9 +1297,6 @@ button[type="submit"],
 }
 
 /* Specific targeting for sign-in buttons */
-button:contains("Sign In"),
-button:contains("Sign Up"),
-button:contains("Continue with"),
 .social-auth-button {
   color: #000000 !important;
   background-color: #ffffff !important;
@@ -1183,15 +1388,15 @@ button:contains("Continue with"),
 /* Fix profile page buttons - Report a Bug and Privacy */
 .profile-page button[class*="bg-yellow"],
 .profile-page button[class*="bg-amber"],
-button:contains("Report a Bug"),
-button:contains("Privacy") {
+.profile-page button[class*="report"],
+.profile-page button[class*="privacy"] {
   background-color: #ffffff !important;
   color: #0074d4 !important;
   border-color: #93c5fd !important;
 }
 
-button:contains("Report a Bug"):hover,
-button:contains("Privacy"):hover {
+.profile-page button[class*="report"]:hover,
+.profile-page button[class*="privacy"]:hover {
   background-color: #eff6ff !important;
   color: #0074d4 !important;
 }
@@ -1264,9 +1469,9 @@ button:contains("Privacy"):hover {
 .marketplace button[type="button"],
 .services-tab button[type="button"],
 .store-tab button[type="button"],
-button:contains("Add to Cart"),
-button:contains("Buy Now"),
-button:contains("Become a Service Provider") {
+.marketplace button[class*="add-to-cart"],
+.marketplace button[class*="buy-now"],
+.marketplace button[class*="provider"] {
   background-color: hsl(var(--primary)) !important;
   color: hsl(var(--primary-foreground)) !important;
   border: 1px solid hsl(var(--primary)) !important;
@@ -1317,7 +1522,6 @@ button:contains("Become a Service Provider") {
 }
 
 /* Target all price elements in store tab */
-.store-tab div:contains('$'),
 .store-tab *[class*="price"],
 .store-tab .text-2xl,
 .store-tab .font-bold {
@@ -1628,8 +1832,11 @@ button:contains("Become a Service Provider") {
 
 /* Auth page - ensure Sign In / Sign Up tabs have white text when active */
 .auth-tab-active {
-  color: #FFFFFF !important;
+  color: #ffffff !important;
   background-color: #0074d4 !important;
+  box-shadow:
+    0 2px 8px rgba(37, 99, 235, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .auth-tab-inactive {
@@ -1783,6 +1990,28 @@ button:contains("Become a Service Provider") {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* Marketplace Store tab: wide / tightly cropped heroes read as “zoomed” with cover — show full frame */
+.store-tab .product-card__image img {
+  object-fit: contain;
+  object-position: center;
+}
+
+/* Featured strip only: global [class*="card"] rules can draw a harsh box around shadcn Card (e.g. bg-card) */
+.featured-store-card {
+  border: none !important;
+  border-width: 0 !important;
+  border-color: transparent !important;
+  box-shadow:
+    0 1px 2px rgb(15 23 42 / 0.04),
+    0 10px 28px -8px rgb(15 23 42 / 0.1);
+}
+
+.featured-store-card:hover {
+  box-shadow:
+    0 2px 4px rgb(15 23 42 / 0.05),
+    0 16px 36px -10px rgb(15 23 42 / 0.14);
 }
 
 /* Card body */

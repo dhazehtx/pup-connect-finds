@@ -1,0 +1,11 @@
+Price ID,Product ID,Product Name,Product Statement Descriptor,Product Tax Code,Description,Created (UTC),Amount,Currency,Interval,Interval Count,Usage Type,Aggregate Usage,Billing Scheme,Trial Period Days,Tax Behavior
+price_1TTWbsAECpn9W1U9MHfFpew1,prod_USRUunXPhQp1Yk,ZippyPaws Miniz 3 Pack Hedgehogs,,,,2026-05-05 00:13,13.99,usd,,,,,per_unit,,unspecified
+price_1TTWYBAECpn9W1U9XCbivnvm,prod_USRR9aXU62P4rX,SodaPup Nylon Fish Bone (Purple),,,,2026-05-05 00:09,12.99,usd,,,,,per_unit,,unspecified
+price_1TTWMBAECpn9W1U9M1ytYO66,prod_USREY8rPxycmF7,Multipet Mini Lamb Chop,,,,2026-05-04 23:56,7.50,usd,,,,,per_unit,,unspecified
+price_1TTWJiAECpn9W1U9H0XcXKYv,prod_USRCfiXAucvR7E,"SodaPup TPE eMat Enrichment Lick Mat Jigsaw Blue Large 8""",,,,2026-05-04 23:54,14.99,usd,,,,,per_unit,,unspecified
+price_1TTWGVAECpn9W1U9hCrnHOd7,prod_USR838JxXLxtx0,ZippyPaws Donutz (Pink),,,,2026-05-04 23:51,10.99,usd,,,,,per_unit,,unspecified
+price_1TTWFUAECpn9W1U9GSAtKhYG,prod_USR7XPz0sXh11t,Messy Mutts Travel Bowl (Blue),,,,2026-05-04 23:50,4.50,usd,,,,,per_unit,,unspecified
+price_1TTW85AECpn9W1U9mbvSdVi9,prod_USR0Nq9QMckOyn,Barkworthies Beef Trachea,,,,2026-05-04 23:42,9.99,usd,,,,,per_unit,,unspecified
+price_1TTW62AECpn9W1U97HDhRR2I,prod_USQxZZxRpYVbka,PlaqueOff Dental Bones Bacon Plaque,,,,2026-05-04 23:40,5.99,usd,,,,,per_unit,,unspecified
+price_1TSubvAECpn9W1U9m9epKdq6,prod_URoE7Sadw6NG1r,Etta Cookie Crunchers Peanut Butter Dog Biscuit Dog,,,,2026-05-03 07:38,4.50,usd,,,,,per_unit,,unspecified
+price_1TSu28AECpn9W1U91XNR5wS5,prod_URndh1k6a89Td6,Barkworthies Duck Feet,,,,2026-05-03 07:01,3.99,usd,,,,,per_unit,,unspecified

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -33,11 +34,12 @@ interface Booking {
 
 function ProviderDashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('pending');
 
-  const { data: bookings = [], isLoading } = useQuery({
+  const { data: bookings = [], isLoading, isError, refetch } = useQuery({
     queryKey: ['/api/services/bookings/provider', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
@@ -79,6 +81,7 @@ function ProviderDashboard() {
     sitting: 'Pet Sitting',
     training: 'Dog Training',
     boarding: 'Pet Boarding',
+    whelping: 'Whelping Care',
     veterinary: 'Veterinary Care',
   };
 
@@ -154,7 +157,7 @@ function ProviderDashboard() {
             <Button
               onClick={() => updateBookingStatus.mutate({ bookingId: booking.id, status: 'accepted' })}
               disabled={updateBookingStatus.isPending}
-              className="flex-1 bg-green-600 hover:bg-green-700"
+              className="min-h-11 flex-1 bg-green-600 hover:bg-green-700"
               size="sm"
             >
               <CheckCircle className="w-4 h-4 mr-2" />
@@ -165,7 +168,7 @@ function ProviderDashboard() {
               onClick={() => updateBookingStatus.mutate({ bookingId: booking.id, status: 'rejected' })}
               disabled={updateBookingStatus.isPending}
               variant="destructive"
-              className="flex-1"
+              className="min-h-11 flex-1"
               size="sm"
             >
               <XCircle className="w-4 h-4 mr-2" />
@@ -178,7 +181,7 @@ function ProviderDashboard() {
           <Button
             onClick={() => updateBookingStatus.mutate({ bookingId: booking.id, status: 'completed' })}
             disabled={updateBookingStatus.isPending}
-            className="w-full"
+            className="min-h-11 w-full"
             size="sm"
           >
             <CheckCircle className="w-4 h-4 mr-2" />
@@ -190,8 +193,8 @@ function ProviderDashboard() {
         <Button 
           variant="outline" 
           size="sm" 
-          className="w-full"
-          onClick={() => window.open(`/messages?user=${booking.user.id}`, '_blank')}
+          className="min-h-11 w-full"
+          onClick={() => navigate(`/messages?user=${booking.user.id}`)}
         >
           <MessageSquare className="w-4 h-4 mr-2" />
           Contact Client
@@ -224,6 +227,27 @@ function ProviderDashboard() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="mx-auto max-w-xl rounded-xl border border-red-200 bg-red-50 p-6 text-center">
+          <h1 className="text-xl font-semibold text-red-900">Could not load provider bookings</h1>
+          <p className="mt-2 text-sm text-red-800">
+            Please try again. If this keeps failing, refresh your session and retry.
+          </p>
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-center">
+            <Button className="min-h-11" onClick={() => void refetch()}>
+              Try again
+            </Button>
+            <Button variant="outline" className="min-h-11" onClick={() => navigate('/marketplace')}>
+              Go to marketplace
+            </Button>
           </div>
         </div>
       </div>

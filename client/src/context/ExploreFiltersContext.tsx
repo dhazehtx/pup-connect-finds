@@ -24,7 +24,8 @@ export type Filters = {
   };
 };
 
-const defaultFilters: Filters = {
+/** Default filter state — use for “Reset all filters” on Explore / listings. */
+export const EXPLORE_DEFAULT_FILTERS: Filters = {
   breedId: null,
   color: null,
   gender: 'any',
@@ -51,10 +52,10 @@ const defaultFilters: Filters = {
 const ExploreFiltersContext = createContext<{
   filters: Filters;
   setFilters: React.Dispatch<React.SetStateAction<Filters>>;
-}>({ filters: defaultFilters, setFilters: () => {} });
+}>({ filters: EXPLORE_DEFAULT_FILTERS, setFilters: () => {} });
 
 export const ExploreFiltersProvider = ({ children }: { children: React.ReactNode }) => {
-  const [filters, setFilters] = useState<Filters>(defaultFilters);
+  const [filters, setFilters] = useState<Filters>(EXPLORE_DEFAULT_FILTERS);
   return (
     <ExploreFiltersContext.Provider value={{ filters, setFilters }}>
       {children}

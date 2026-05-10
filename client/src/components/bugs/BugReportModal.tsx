@@ -80,7 +80,7 @@ const BugReportModal: React.FC<BugReportModalProps> = ({ isOpen, onClose }) => {
 
   const submitBugMutation = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest('POST', '/api/bugs', data);
+      return apiRequest('/api/bugs', { method: 'POST', body: data });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bug-reports'] });

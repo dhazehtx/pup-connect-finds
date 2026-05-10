@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { CheckCircle, XCircle, Clock, MapPin, DollarSign, Shield, Eye, FileText, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { useLocation } from 'wouter';
+import { useNavigate } from 'react-router-dom';
 
 interface ServiceApplication {
   id: string;
@@ -58,7 +58,7 @@ interface DetailedApplication {
 function ServiceProviderApplications() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [, navigate] = useLocation();
+  const navigate = useNavigate();
   const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
   const [reviewNotes, setReviewNotes] = useState('');
   const [zoomImage, setZoomImage] = useState<{ url: string; label: string } | null>(null);

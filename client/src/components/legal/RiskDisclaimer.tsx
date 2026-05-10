@@ -1,4 +1,4 @@
-import { Link } from 'wouter';
+import { Link } from 'react-router-dom';
 
 interface RiskDisclaimerProps {
   variant?: 'stripe' | 'booking' | 'general';
@@ -11,29 +11,29 @@ export function RiskDisclaimer({ variant = 'general', className = '' }: RiskDisc
       case 'stripe':
         return (
           <>
-            My Pup is a marketplace. We don't provide pet services or insurance and don't supervise users. 
-            By continuing, you accept animal-related risks and agree services are between you and the other party. 
-            See our <Link href="/legal/terms" className="underline hover:text-gray-700">Terms</Link> (release, indemnity, arbitration) 
-            and <Link href="/legal/privacy" className="underline hover:text-gray-700">Privacy</Link>.
+            PAWS is a marketplace. We don&apos;t provide pet services or insurance and don&apos;t supervise users.
+            By continuing, you accept animal-related risks and agree services are between you and the other party.
+            See our <Link to="/legal/terms" className="underline hover:text-gray-700">Terms</Link> (release, indemnity, arbitration)
+            and <Link to="/legal/privacy" className="underline hover:text-gray-700">Privacy</Link>.
           </>
         );
       case 'booking':
         return (
           <>
-            Services are provided by independent users, not My Pup. 
-            You assume animal-related risks and agree disputes are between the parties. 
-            See our <Link href="/legal/terms" className="underline hover:text-gray-700">Terms</Link> and{' '}
-            <Link href="/legal/privacy" className="underline hover:text-gray-700">Privacy</Link>.
+            Services are provided by independent users, not PAWS.
+            You assume animal-related risks and agree disputes are between the parties.
+            See our <Link to="/legal/terms" className="underline hover:text-gray-700">Terms</Link> and{' '}
+            <Link to="/legal/privacy" className="underline hover:text-gray-700">Privacy</Link>.
           </>
         );
       case 'general':
       default:
         return (
           <>
-            Services are provided by independent users, not My Pup. 
-            You assume animal-related risks and agree disputes are between the parties. 
-            See our <Link href="/legal/terms" className="underline hover:text-gray-700">Terms</Link> and{' '}
-            <Link href="/legal/privacy" className="underline hover:text-gray-700">Privacy</Link>.
+            Services are provided by independent users, not PAWS.
+            You assume animal-related risks and agree disputes are between the parties.
+            See our <Link to="/legal/terms" className="underline hover:text-gray-700">Terms</Link> and{' '}
+            <Link to="/legal/privacy" className="underline hover:text-gray-700">Privacy</Link>.
           </>
         );
     }

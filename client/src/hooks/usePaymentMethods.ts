@@ -11,6 +11,30 @@ export const usePaymentMethods = () => {
   const { user } = useAuth();
   const { toast } = useToast();
 
+  type DbPaymentMethod = {
+    id: string;
+    user_id: string;
+    stripe_payment_method_id: string;
+    type: string;
+    brand: string | null;
+    last_four: string | null;
+    is_default: boolean | null;
+    created_at: string | null;
+    updated_at: string | null;
+  };
+
+  const normalizePaymentMethod = (item: DbPaymentMethod): PaymentMethod => ({
+    id: item.id,
+    user_id: item.user_id,
+    stripe_payment_method_id: item.stripe_payment_method_id,
+    type: item.type as PaymentMethod['type'],
+    brand: item.brand ?? undefined,
+    last_four: item.last_four ?? undefined,
+    is_default: item.is_default ?? false,
+    created_at: item.created_at ?? new Date().toISOString(),
+    updated_at: item.updated_at ?? new Date().toISOString(),
+  });
+
   const loadPaymentMethods = useCallback(async () => {
     if (!user) return;
 
@@ -25,10 +49,7 @@ export const usePaymentMethods = () => {
       if (error) throw error;
       
       // Type assertion to ensure compatibility
-      const typedData = (data || []).map(item => ({
-        ...item,
-        type: item.type as PaymentMethod['type']
-      }));
+      const typedData = (data || []).map(item => normalizePaymentMethod(item as DbPaymentMethod));
       
       setPaymentMethods(typedData);
     } catch (error) {
@@ -75,12 +96,14 @@ export const usePaymentMethods = () => {
   }, [user, loadPaymentMethods, toast]);
 
   const removePaymentMethod = useCallback(async (paymentMethodId: string) => {
+    if (!user) return;
+
     try {
       const { error } = await supabase
         .from('payment_methods')
         .delete()
         .eq('id', paymentMethodId)
-        .eq('user_id', user?.id);
+        .eq('user_id', user.id);
 
       if (error) throw error;
 

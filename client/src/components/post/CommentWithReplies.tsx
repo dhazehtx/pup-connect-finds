@@ -25,6 +25,19 @@ interface CommentWithRepliesProps {
   onProfileClick?: (userId: string) => void;
 }
 
+interface CommentReply {
+  id: string;
+  comment_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  profiles?: {
+    full_name: string | null;
+    username: string | null;
+    avatar_url: string | null;
+  } | null;
+}
+
 const CommentWithReplies: React.FC<CommentWithRepliesProps> = ({
   comment,
   onProfileClick
@@ -149,7 +162,7 @@ const CommentWithReplies: React.FC<CommentWithRepliesProps> = ({
               <div className="text-sm text-gray-500">Loading replies...</div>
             </div>
           ) : replies.length > 0 ? (
-            replies.map((reply) => (
+            (replies as CommentReply[]).map((reply) => (
               <CommentReplyItem
                 key={reply.id}
                 reply={reply}

@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { supabaseAdmin } from '../lib/supabaseAdmin';
 import multer from 'multer';
+import { isSupabaseDegraded, runSupabaseWithRetry } from '../lib/supabaseResilience';
 
 const router = Router();
 
@@ -34,7 +35,10 @@ async function getUserIdFromToken(req: Request): Promise<string | null> {
     const auth = req.headers.authorization || '';
     const token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
     if (!token) return null;
-    const { data, error } = await supabaseAdmin.auth.getUser(token);
+    const { data, error } = await runSupabaseWithRetry(
+      () => supabaseAdmin.auth.getUser(token),
+      { opName: 'upload-id.auth.getUser' },
+    );
     if (error) return null;
     return data.user?.id ?? null;
   } catch {
@@ -48,6 +52,13 @@ async function getUserIdFromToken(req: Request): Promise<string | null> {
  */
 router.post('/front', upload.single('file'), async (req: Request, res: Response) => {
   try {
+    if (isSupabaseDegraded()) {
+      return res.status(503).json({
+        error: 'Upload service temporarily degraded',
+        code: 'SUPABASE_DEGRADED',
+        message: 'Please retry in a minute.',
+      });
+    }
     const userId = await getUserIdFromToken(req);
     if (!userId) {
       return res.status(401).json({ error: 'Authentication required' });
@@ -63,12 +74,16 @@ router.post('/front', upload.single('file'), async (req: Request, res: Response)
     console.log('[UPLOAD-ID] Uploading front image:', { userId, filePath, size: req.file.size });
 
     // Upload using supabaseAdmin (service role) - bypasses RLS
-    const { data, error } = await supabaseAdmin.storage
-      .from(BUCKET_NAME)
-      .upload(filePath, req.file.buffer, {
-        contentType: req.file.mimetype,
-        upsert: true
-      });
+    const { data, error } = await runSupabaseWithRetry(
+      () =>
+        supabaseAdmin.storage
+          .from(BUCKET_NAME)
+          .upload(filePath, req.file!.buffer, {
+            contentType: req.file!.mimetype,
+            upsert: true
+          }),
+      { opName: 'upload-id.front.storage.upload' },
+    );
 
     if (error) {
       console.error('[UPLOAD-ID] Upload error:', error);
@@ -99,6 +114,13 @@ router.post('/front', upload.single('file'), async (req: Request, res: Response)
  */
 router.post('/back', upload.single('file'), async (req: Request, res: Response) => {
   try {
+    if (isSupabaseDegraded()) {
+      return res.status(503).json({
+        error: 'Upload service temporarily degraded',
+        code: 'SUPABASE_DEGRADED',
+        message: 'Please retry in a minute.',
+      });
+    }
     const userId = await getUserIdFromToken(req);
     if (!userId) {
       return res.status(401).json({ error: 'Authentication required' });
@@ -114,12 +136,16 @@ router.post('/back', upload.single('file'), async (req: Request, res: Response) 
     console.log('[UPLOAD-ID] Uploading back image:', { userId, filePath, size: req.file.size });
 
     // Upload using supabaseAdmin (service role) - bypasses RLS
-    const { data, error } = await supabaseAdmin.storage
-      .from(BUCKET_NAME)
-      .upload(filePath, req.file.buffer, {
-        contentType: req.file.mimetype,
-        upsert: true
-      });
+    const { data, error } = await runSupabaseWithRetry(
+      () =>
+        supabaseAdmin.storage
+          .from(BUCKET_NAME)
+          .upload(filePath, req.file!.buffer, {
+            contentType: req.file!.mimetype,
+            upsert: true
+          }),
+      { opName: 'upload-id.back.storage.upload' },
+    );
 
     if (error) {
       console.error('[UPLOAD-ID] Upload error:', error);

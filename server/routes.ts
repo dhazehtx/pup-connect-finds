@@ -1,4 +1,6 @@
+import { debugApiLog, debugApiWarn } from './lib/debugApi';
 import type { Express } from "express";
+import type Stripe from "stripe";
 import { createServer, type Server } from "http";
 import { setupSocketIO } from "./socket";
 import { db } from "./db";
@@ -15,8 +17,10 @@ import supportRouter from './routes/support';
 import bugsRouter from './routes/bugs';
 import authRouter from './routes/auth';
 import productsRouter from './routes/products';
+import pupboxRouter from './routes/pupbox';
 import checkoutRouter from './routes/checkout';
 import ordersRouter from './routes/orders';
+import transportJobsRouter from './routes/transport-jobs';
 import webhookRouter from './routes/webhook';
 import adminRouter from './routes/admin';
 import adminDashboardRouter from './routes/adminDashboard';
@@ -88,12 +92,8 @@ import { securityMiddleware, additionalSecurityHeaders } from './middleware/secu
 // AI Content Moderation
 import { contentModerationMiddleware } from './utils/aiModeration';
 
-// Stripe initialization
-import Stripe from 'stripe';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-08-27.basil',
-});
+import { getStripe } from './lib/stripeLazy';
+import { processCheckoutSessionCompleted } from './lib/checkoutSessionWebhook';
 
 import { 
   insertProfileSchema, 
@@ -148,9 +148,9 @@ async function cleanupParentMedia(parentType: string, parentId: string) {
       and(eq(mediaAssets.parent_type, parentType), eq(mediaAssets.parent_id, parentId))
     );
 
-    console.log('[PROOF:MEDIA:DELETE]', JSON.stringify({ parentType, parentId, deletedCount: assets.length + thumbs.length, ts: Date.now() }));
+    debugApiLog('[PROOF:MEDIA:DELETE]', JSON.stringify({ parentType, parentId, deletedCount: assets.length + thumbs.length, ts: Date.now() }));
   } catch (err: any) {
-    console.error('[PROOF:MEDIA:CASCADE_DELETE:ERR]', err?.message);
+    debugApiLog('[PROOF:MEDIA:CASCADE_DELETE:ERR]', err?.message);
   }
 }
 
@@ -178,8 +178,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register store/ecommerce routes first (before auth middleware for public product listing)
   app.use('/api/products', productsRouter);
+  app.use('/api/pupbox', pupboxRouter);
   app.use('/api/checkout', checkoutRouter);
   app.use('/api/orders', ordersRouter);
+  app.use('/api/transport-jobs', transportJobsRouter);
   app.use('/api/reviews', reviewsRouter);
   app.use('/api/services', servicesRouter);
   // Admin moderation routes (reports queue + enforcement actions) - mount BEFORE generic admin router
@@ -294,6 +296,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     `);
   });
 
+  // Stripe Connect account-link return handlers for local preview + production.
+  app.get('/services/onboarding/stripe/return', (_req, res) => {
+    return res.redirect('/services/onboarding?from=stripe&step=4');
+  });
+
+  app.get('/services/onboarding/stripe/refresh', (_req, res) => {
+    return res.redirect('/services/onboarding?from=stripe&step=4');
+  });
+
   // Add authentication middleware for all other API routes
   app.use('/api', authMiddleware);
 
@@ -404,7 +415,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           filtered = listings.filter((l: any) => !blockedSet.has(l.seller_id) && !blockedSet.has(l.user_id));
           const filteredCount = before - filtered.length;
           if (filteredCount > 0) {
-            console.log('[PROOF:BLOCK:READ]', JSON.stringify({ actorUserId: actorId, filteredCount, domain: 'listings', ts: Date.now() }));
+            debugApiLog('[PROOF:BLOCK:READ]', JSON.stringify({ actorUserId: actorId, filteredCount, domain: 'listings', ts: Date.now() }));
           }
         }
       }
@@ -414,11 +425,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const augmented = attachThumbUrls(filtered as any[], thumbMap);
 
       const usedThumb = augmented.some((l: any) => l.thumbUrls && l.thumbUrls.length > 0 && thumbMap.has(l.id));
-      console.log("[PROOF:MEDIA:FEED]", JSON.stringify({ domain: "listings", usedThumb, count: augmented.length, ts: Date.now() }));
-      console.log('[PROOF:LISTINGS]', JSON.stringify({ count: augmented.length, filters: { breed: filters.breed, status: filters.status, location: filters.location, gender: filters.gender, sort: filters.sort } }));
+      debugApiLog("[PROOF:MEDIA:FEED]", JSON.stringify({ domain: "listings", usedThumb, count: augmented.length, ts: Date.now() }));
+      debugApiLog('[PROOF:LISTINGS]', JSON.stringify({ count: augmented.length, filters: { breed: filters.breed, status: filters.status, location: filters.location, gender: filters.gender, sort: filters.sort } }));
       res.json(augmented);
     } catch (error) {
-      console.error("[PROOF:LISTINGS:ERR]", { ts: new Date().toISOString(), error: String(error), stack: (error as any)?.stack });
+      debugApiLog("[PROOF:LISTINGS:ERR]", { ts: new Date().toISOString(), error: String(error), stack: (error as any)?.stack });
       res.status(500).json({ error: "LISTINGS_FAILED", code: "LISTINGS_FAILED" });
     }
   };
@@ -529,10 +540,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ));
 
       const mediaCount = mediaResult.rowCount ?? 0;
-      console.log("[PROOF:TRASH:LISTING]", JSON.stringify({ listingId, userId, mediaCount, ts: Date.now() }));
+      debugApiLog("[PROOF:TRASH:LISTING]", JSON.stringify({ listingId, userId, mediaCount, ts: Date.now() }));
       res.json({ success: true, trashed: true, mediaCount });
     } catch (error) {
-      console.error("[PROOF:LISTINGS:ERR]", { listingId: req.params.id, ts: new Date().toISOString(), error: String(error) });
+      debugApiLog("[PROOF:LISTINGS:ERR]", { listingId: req.params.id, ts: new Date().toISOString(), error: String(error) });
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -564,10 +575,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ));
 
       const restoredMediaCount = restoredMedia.rowCount ?? 0;
-      console.log("[PROOF:RESTORE:LISTING]", JSON.stringify({ listingId, userId, restoredMediaCount, ts: Date.now() }));
+      debugApiLog("[PROOF:RESTORE:LISTING]", JSON.stringify({ listingId, userId, restoredMediaCount, ts: Date.now() }));
       res.json({ success: true, restored: true, restoredMediaCount });
     } catch (error) {
-      console.error("[PROOF:LISTINGS:ERR]", { listingId: req.params.id, ts: new Date().toISOString(), error: String(error) });
+      debugApiLog("[PROOF:LISTINGS:ERR]", { listingId: req.params.id, ts: new Date().toISOString(), error: String(error) });
       res.status(500).json({ error: "RESTORE_FAILED" });
     }
   });
@@ -594,7 +605,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         await ensureProfile({ id: userId, email: req.user!.email || null, username: req.user!.username || null });
       } catch (epErr: any) {
-        console.error('[PROOF:MSG:ERR] ensureProfile in conversations list', epErr?.message);
+        debugApiLog('[PROOF:MSG:ERR] ensureProfile in conversations list', epErr?.message);
       }
 
       const convList = await storage.getUserConversationsWithDetails(userId);
@@ -609,13 +620,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         const filteredCount = before - filtered.length;
         if (filteredCount > 0) {
-          console.log('[PROOF:BLOCK:READ]', JSON.stringify({ actorUserId: userId, filteredCount, domain: 'conversations', ts: Date.now() }));
+          debugApiLog('[PROOF:BLOCK:READ]', JSON.stringify({ actorUserId: userId, filteredCount, domain: 'conversations', ts: Date.now() }));
         }
       }
-      console.log('[PROOF:MSG:LIST]', JSON.stringify({ actorUserId: userId, count: filtered.length, ts: Date.now() }));
+      debugApiLog('[PROOF:MSG:LIST]', JSON.stringify({ actorUserId: userId, count: filtered.length, ts: Date.now() }));
       res.json(filtered);
     } catch (error: any) {
-      console.error('[PROOF:MSG:ERR] conversations list', JSON.stringify({ error: error?.message, stack: error?.stack, ts: Date.now() }));
+      debugApiLog('[PROOF:MSG:ERR] conversations list', JSON.stringify({ error: error?.message, stack: error?.stack, ts: Date.now() }));
       res.json([]);
     }
   });
@@ -632,12 +643,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       const otherId = (detail as any).buyer_id === userId ? (detail as any).seller_id : (detail as any).buyer_id;
       if (otherId && await isBlocked(userId, otherId)) {
-        console.log('[PROOF:BLOCK:READ]', JSON.stringify({ actorUserId: userId, filteredCount: 1, domain: 'conversation-detail', ts: Date.now() }));
+        debugApiLog('[PROOF:BLOCK:READ]', JSON.stringify({ actorUserId: userId, filteredCount: 1, domain: 'conversation-detail', ts: Date.now() }));
         return blockedResponse(res);
       }
       res.json(detail);
     } catch (error: any) {
-      console.error('[PROOF:CONV_DETAIL] error', JSON.stringify({ convId: req.params.id, userId: req.user?.id, error: error?.message, stack: error?.stack }));
+      debugApiLog('[PROOF:CONV_DETAIL] error', JSON.stringify({ convId: req.params.id, userId: req.user?.id, error: error?.message, stack: error?.stack }));
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -648,7 +659,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const bodyKeys = Object.keys(req.body || {});
     const targetUserId_raw = req.body?.targetUserId || req.body?.seller_id || req.body?.participant_id || req.body?.target_id;
     const actorRaw = req.user?.id || null;
-    console.log('[PROOF:MSG:IN]', JSON.stringify({ actorUserId: actorRaw, targetUserId: targetUserId_raw, bodyKeys: [...bodyKeys], ts: Date.now() }));
+    debugApiLog('[PROOF:MSG:IN]', JSON.stringify({ actorUserId: actorRaw, targetUserId: targetUserId_raw, bodyKeys: [...bodyKeys], ts: Date.now() }));
     try {
       if (!req.isAuthenticated || !req.isAuthenticated()) {
         return res.status(401).json({ ok: false, error: 'Unauthorized', code: 'AUTH_REQUIRED' });
@@ -664,7 +675,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           username: req.user!.username || null,
         });
       } catch (epErr: any) {
-        console.error('[PROOF:MSG:ERR]', JSON.stringify({ actorUserId, targetUserId: targetUserId_raw, code: 'PROFILE_INIT_FAILED', error: epErr?.message, stack: epErr?.stack, ts: Date.now() }));
+        debugApiLog('[PROOF:MSG:ERR]', JSON.stringify({ actorUserId, targetUserId: targetUserId_raw, code: 'PROFILE_INIT_FAILED', error: epErr?.message, stack: epErr?.stack, ts: Date.now() }));
         return res.status(422).json({ ok: false, error: 'Failed to initialize user profile', code: 'PROFILE_INIT_FAILED' });
       }
 
@@ -689,19 +700,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (await isBlocked(actorUserId, targetUserId)) {
-        console.log('[PROOF:BLOCK]', JSON.stringify({ actorUserId, targetUserId, action: 'messaging_blocked', ts: Date.now() }));
+        debugApiLog('[PROOF:BLOCK]', JSON.stringify({ actorUserId, targetUserId, action: 'messaging_blocked', ts: Date.now() }));
         return blockedResponse(res);
+      }
+
+      const { parsePrivacySettingsObject } = await import('./lib/profilePrivacy');
+      const { userFollows } = await import('./lib/follows');
+      const priv = parsePrivacySettingsObject(targetProfile.privacy_settings);
+      const msgPref = (priv.messages_from as string) || 'everyone';
+      if (msgPref === 'none') {
+        return res.status(403).json({
+          ok: false,
+          code: 'MSG_DISABLED',
+          error: 'This user does not accept new messages.',
+        });
+      }
+      if (msgPref === 'followers') {
+        const canMessage = await userFollows(actorUserId, targetUserId);
+        if (!canMessage) {
+          return res.status(403).json({
+            ok: false,
+            code: 'MSG_FOLLOWERS_ONLY',
+            error: 'Only people who follow this user can send a message.',
+          });
+        }
       }
 
       const conversation = await storage.findOrCreateConversation(actorUserId, targetUserId, listing_id || null);
       const conversationId = conversation.id;
-      console.log('[PROOF:MSG:OK]', JSON.stringify({ actorUserId, targetUserId, conversationId, created: conversation.created, ts: Date.now() }));
+      debugApiLog('[PROOF:MSG:OK]', JSON.stringify({ actorUserId, targetUserId, conversationId, created: conversation.created, ts: Date.now() }));
       res.json({ ok: true, conversationId, id: conversationId, created: conversation.created });
     } catch (error: any) {
       const errCode = error?.code === '23503' ? 'MSG_TARGET_NOT_FOUND'
         : error?.code === '23505' ? 'MSG_DUPLICATE'
         : 'MSG_FAILED';
-      console.error('[PROOF:MSG:ERR]', JSON.stringify({
+      debugApiLog('[PROOF:MSG:ERR]', JSON.stringify({
         actorUserId: actorRaw,
         targetUserId: targetUserId_raw,
         code: errCode,
@@ -821,7 +854,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (conv) {
         const otherId = conv.buyer_id === user.id ? conv.seller_id : conv.buyer_id;
         if (otherId && await isBlocked(user.id, otherId)) {
-          console.log('[PROOF:BLOCK]', JSON.stringify({ userId: user.id, otherId, action: 'message_send_blocked', ts: Date.now() }));
+          debugApiLog('[PROOF:BLOCK]', JSON.stringify({ userId: user.id, otherId, action: 'message_send_blocked', ts: Date.now() }));
           return blockedResponse(res);
         }
       }
@@ -915,7 +948,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const results = await storage.searchMessages(user.id, query);
       res.json(results);
     } catch (error: any) {
-      console.error('[PROOF:MSG:ERR]', JSON.stringify({ code: 'MSG_SEARCH_FAILED', error: error?.message, stack: error?.stack, ts: Date.now() }));
+      debugApiLog('[PROOF:MSG:ERR]', JSON.stringify({ code: 'MSG_SEARCH_FAILED', error: error?.message, stack: error?.stack, ts: Date.now() }));
       res.status(500).json({ error: "MSG_SEARCH_FAILED", code: "MSG_SEARCH_FAILED" });
     }
   });
@@ -929,7 +962,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (conv) {
           const otherId = conv.buyer_id === validatedData.sender_id ? conv.seller_id : conv.buyer_id;
           if (otherId && await isBlocked(validatedData.sender_id, otherId)) {
-            console.log('[PROOF:BLOCK]', JSON.stringify({ senderId: validatedData.sender_id, otherId, action: 'message_send_blocked', ts: Date.now() }));
+            debugApiLog('[PROOF:BLOCK]', JSON.stringify({ senderId: validatedData.sender_id, otherId, action: 'message_send_blocked', ts: Date.now() }));
             return blockedResponse(res);
           }
         }
@@ -938,7 +971,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const message = await storage.createMessage(validatedData);
       res.json(message);
     } catch (error: any) {
-      console.error('[PROOF:MSG:ERR]', JSON.stringify({ code: 'MSG_CREATE_FAILED', error: error?.message, stack: error?.stack, ts: Date.now() }));
+      debugApiLog('[PROOF:MSG:ERR]', JSON.stringify({ code: 'MSG_CREATE_FAILED', error: error?.message, stack: error?.stack, ts: Date.now() }));
       res.status(500).json({ error: "MSG_CREATE_FAILED", code: "MSG_CREATE_FAILED" });
     }
   });
@@ -1019,7 +1052,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const likedByUser = userId ? await storage.checkPostLike(postId, userId) : false;
       res.json({ count, likedByUser });
     } catch (error) {
-      console.error("[PROOF:LIKES:POST:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });
+      debugApiLog("[PROOF:LIKES:POST:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -1032,12 +1065,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const [postOwner] = await db.select({ user_id: posts.user_id }).from(posts).where(eq(posts.id, postId));
       if (postOwner?.user_id && await isBlocked(userId, postOwner.user_id)) {
-        console.log('[PROOF:BLOCK]', JSON.stringify({ userId, postOwnerId: postOwner.user_id, action: 'like_post_blocked', ts: Date.now() }));
+        debugApiLog('[PROOF:BLOCK]', JSON.stringify({ userId, postOwnerId: postOwner.user_id, action: 'like_post_blocked', ts: Date.now() }));
         return blockedResponse(res);
       }
 
       const result = await storage.togglePostLike(postId, userId);
-      console.log("[PROOF:LIKES:POST]", { action: result.isLiked ? "liked" : "unliked", postId, userId, likeCount: result.likeCount, ts: new Date().toISOString() });
+      debugApiLog("[PROOF:LIKES:POST]", { action: result.isLiked ? "liked" : "unliked", postId, userId, likeCount: result.likeCount, ts: new Date().toISOString() });
 
       if (result.isLiked) {
         const [post] = await db.select({ user_id: posts.user_id }).from(posts).where(eq(posts.id, postId));
@@ -1056,7 +1089,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ isLiked: result.isLiked, likeCount: result.likeCount });
     } catch (error) {
-      console.error("[PROOF:LIKES:POST:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });
+      debugApiLog("[PROOF:LIKES:POST:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });
       res.status(500).json({ error: "LIKES_FAILED" });
     }
   });
@@ -1069,15 +1102,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const [commentOwner] = await db.select({ user_id: comments.user_id }).from(comments).where(eq(comments.id, commentId));
       if (commentOwner?.user_id && await isBlocked(userId, commentOwner.user_id)) {
-        console.log('[PROOF:BLOCK]', JSON.stringify({ userId, commentOwnerId: commentOwner.user_id, action: 'like_comment_blocked', ts: Date.now() }));
+        debugApiLog('[PROOF:BLOCK]', JSON.stringify({ userId, commentOwnerId: commentOwner.user_id, action: 'like_comment_blocked', ts: Date.now() }));
         return blockedResponse(res);
       }
 
       const result = await storage.toggleCommentLike(commentId, userId);
-      console.log("[PROOF:LIKES:COMMENT]", { action: result.isLiked ? "liked" : "unliked", commentId, userId, likeCount: result.likeCount, ts: new Date().toISOString() });
+      debugApiLog("[PROOF:LIKES:COMMENT]", { action: result.isLiked ? "liked" : "unliked", commentId, userId, likeCount: result.likeCount, ts: new Date().toISOString() });
       res.json({ isLiked: result.isLiked, likeCount: result.likeCount });
     } catch (error) {
-      console.error("[PROOF:LIKES:COMMENT:ERR]", { commentId: req.params.id, ts: new Date().toISOString(), error: String(error) });
+      debugApiLog("[PROOF:LIKES:COMMENT:ERR]", { commentId: req.params.id, ts: new Date().toISOString(), error: String(error) });
       res.status(500).json({ error: "LIKES_FAILED" });
     }
   });
@@ -1088,10 +1121,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!userId) return res.status(401).json({ error: "Unauthorized" });
       await storage.addPostLike(req.params.id, userId);
       const count = await storage.getPostLikeCount(req.params.id);
-      console.log("[PROOF:LIKES:POST]", { action: "liked", postId: req.params.id, userId, likeCount: count, ts: new Date().toISOString() });
+      debugApiLog("[PROOF:LIKES:POST]", { action: "liked", postId: req.params.id, userId, likeCount: count, ts: new Date().toISOString() });
       res.json({ liked: true, count });
     } catch (error) {
-      console.error("[PROOF:LIKES:POST:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });
+      debugApiLog("[PROOF:LIKES:POST:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -1102,10 +1135,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!userId) return res.status(401).json({ error: "Unauthorized" });
       await storage.removePostLike(req.params.id, userId);
       const count = await storage.getPostLikeCount(req.params.id);
-      console.log("[PROOF:LIKES:POST]", { action: "unliked", postId: req.params.id, userId, likeCount: count, ts: new Date().toISOString() });
+      debugApiLog("[PROOF:LIKES:POST]", { action: "unliked", postId: req.params.id, userId, likeCount: count, ts: new Date().toISOString() });
       res.json({ liked: false, count });
     } catch (error) {
-      console.error("[PROOF:LIKES:POST:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });
+      debugApiLog("[PROOF:LIKES:POST:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -1151,7 +1184,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           filtered = result.filter((p: any) => !blockedSet.has(p.user_id));
           const filteredCount = result.length - filtered.length;
           if (filteredCount > 0) {
-            console.log('[PROOF:BLOCK:READ]', JSON.stringify({ actorUserId: actorId, filteredCount, domain: 'posts', ts: Date.now() }));
+            debugApiLog('[PROOF:BLOCK:READ]', JSON.stringify({ actorUserId: actorId, filteredCount, domain: 'posts', ts: Date.now() }));
           }
         }
       }
@@ -1161,11 +1194,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const augmented = attachThumbUrls(filtered as any[], thumbMap);
 
       const usedThumb = augmented.some((p: any) => p.thumbUrls && p.thumbUrls.length > 0 && thumbMap.has(p.id));
-      console.log("[PROOF:MEDIA:FEED]", JSON.stringify({ domain: "posts", usedThumb, count: augmented.length, ts: Date.now() }));
-      console.log("[PROOF:POSTS:LIST]", { count: augmented.length, userId: userId || "all", ts: new Date().toISOString() });
+      debugApiLog("[PROOF:MEDIA:FEED]", JSON.stringify({ domain: "posts", usedThumb, count: augmented.length, ts: Date.now() }));
+      debugApiLog("[PROOF:POSTS:LIST]", { count: augmented.length, userId: userId || "all", ts: new Date().toISOString() });
       res.json(augmented);
     } catch (error) {
-      console.error("[PROOF:POSTS:ERR]", { ts: new Date().toISOString(), error: String(error), stack: (error as any)?.stack });
+      debugApiLog("[PROOF:POSTS:ERR]", { ts: new Date().toISOString(), error: String(error), stack: (error as any)?.stack });
       res.status(500).json({ error: "POSTS_FAILED", code: "POSTS_FAILED" });
     }
   });
@@ -1187,7 +1220,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         filtered = filtered.filter((p: any) => !blockedSet.has(p.user_id));
         const filteredCount = before - filtered.length;
         if (filteredCount > 0) {
-          console.log('[PROOF:BLOCK:READ]', JSON.stringify({ actorUserId: userId, filteredCount, domain: 'home-feed', ts: Date.now() }));
+          debugApiLog('[PROOF:BLOCK:READ]', JSON.stringify({ actorUserId: userId, filteredCount, domain: 'home-feed', ts: Date.now() }));
         }
       }
       const feedIds = filtered.map((p: any) => p.id).filter(Boolean);
@@ -1195,7 +1228,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const augmentedFeed = attachThumbUrls(filtered as any[], feedThumbMap);
       res.json(augmentedFeed);
     } catch (error) {
-      console.error('[PROOF:POSTS:ERR]', { domain: 'home-feed', ts: new Date().toISOString(), error: String(error), stack: (error as any)?.stack });
+      debugApiLog('[PROOF:POSTS:ERR]', { domain: 'home-feed', ts: new Date().toISOString(), error: String(error), stack: (error as any)?.stack });
       res.status(500).json({ error: 'Failed to fetch home feed', code: 'HOME_FEED_FAILED' });
     }
   });
@@ -1218,7 +1251,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertPostSchema.parse(req.body);
       const post = await storage.createPost(validatedData);
-      console.log("[PROOF:POSTS:CREATE]", { postId: post.id, userId: validatedData.user_id, ts: new Date().toISOString() });
+      debugApiLog("[PROOF:POSTS:CREATE]", { postId: post.id, userId: validatedData.user_id, ts: new Date().toISOString() });
       
       if (validatedData.user_id) {
         await logPostAction(validatedData.user_id, 'create', post.id);
@@ -1226,7 +1259,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(post);
     } catch (error) {
-      console.error("[PROOF:POSTS:ERR]", { ts: new Date().toISOString(), error: String(error) });
+      debugApiLog("[PROOF:POSTS:ERR]", { ts: new Date().toISOString(), error: String(error) });
       res.status(500).json({ error: "POSTS_FAILED" });
     }
   });
@@ -1247,15 +1280,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           filtered = result.filter((c: any) => !blockedSet.has(c.user_id));
           const filteredCount = before - filtered.length;
           if (filteredCount > 0) {
-            console.log('[PROOF:BLOCK:READ]', JSON.stringify({ actorUserId: actorId, filteredCount, domain: 'comments', ts: Date.now() }));
+            debugApiLog('[PROOF:BLOCK:READ]', JSON.stringify({ actorUserId: actorId, filteredCount, domain: 'comments', ts: Date.now() }));
           }
         }
       }
 
-      console.log("[PROOF:COMMENTS:LIST]", { postId, count: filtered.length, ts: new Date().toISOString() });
+      debugApiLog("[PROOF:COMMENTS:LIST]", { postId, count: filtered.length, ts: new Date().toISOString() });
       res.json(filtered);
     } catch (error) {
-      console.error("[PROOF:COMMENTS:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error), code: 'COMMENTS_FAILED', stack: (error as any)?.stack });
+      debugApiLog("[PROOF:COMMENTS:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error), code: 'COMMENTS_FAILED', stack: (error as any)?.stack });
       res.status(500).json({ error: "COMMENTS_FAILED", code: "COMMENTS_FAILED" });
     }
   });
@@ -1267,13 +1300,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (validatedData.post_id && validatedData.user_id) {
         const [postForBlock] = await db.select({ user_id: posts.user_id }).from(posts).where(eq(posts.id, validatedData.post_id));
         if (postForBlock?.user_id && await isBlocked(validatedData.user_id, postForBlock.user_id)) {
-          console.log('[PROOF:BLOCK]', JSON.stringify({ userId: validatedData.user_id, postOwnerId: postForBlock.user_id, action: 'comment_blocked', ts: Date.now() }));
+          debugApiLog('[PROOF:BLOCK]', JSON.stringify({ userId: validatedData.user_id, postOwnerId: postForBlock.user_id, action: 'comment_blocked', ts: Date.now() }));
           return blockedResponse(res);
         }
       }
 
       const comment = await storage.createComment(validatedData);
-      console.log("[PROOF:COMMENTS:CREATE]", { commentId: comment.id, postId: validatedData.post_id, userId: validatedData.user_id, ts: new Date().toISOString() });
+      debugApiLog("[PROOF:COMMENTS:CREATE]", { commentId: comment.id, postId: validatedData.post_id, userId: validatedData.user_id, ts: new Date().toISOString() });
       
       if (validatedData.user_id) {
         await logCommentAction(validatedData.user_id, 'create', comment.id);
@@ -1297,7 +1330,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(comment);
     } catch (error) {
-      console.error("[PROOF:COMMENTS:ERR]", { ts: new Date().toISOString(), error: String(error) });
+      debugApiLog("[PROOF:COMMENTS:ERR]", { ts: new Date().toISOString(), error: String(error) });
       res.status(500).json({ error: "COMMENTS_FAILED" });
     }
   });
@@ -1307,10 +1340,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const updated = await storage.updatePost(req.params.id, req.body);
       if (!updated) return res.status(404).json({ error: "POST_NOT_FOUND" });
-      console.log("[PROOF:POSTS:UPDATE]", { postId: req.params.id, ts: new Date().toISOString() });
+      debugApiLog("[PROOF:POSTS:UPDATE]", { postId: req.params.id, ts: new Date().toISOString() });
       res.json(updated);
     } catch (error) {
-      console.error("[PROOF:POSTS:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });
+      debugApiLog("[PROOF:POSTS:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });
       res.status(500).json({ error: "POSTS_FAILED" });
     }
   });
@@ -1345,10 +1378,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ));
 
       const mediaCount = mediaResult.rowCount ?? 0;
-      console.log("[PROOF:TRASH:POST]", JSON.stringify({ postId, userId, mediaCount, ts: Date.now() }));
+      debugApiLog("[PROOF:TRASH:POST]", JSON.stringify({ postId, userId, mediaCount, ts: Date.now() }));
       res.json({ success: true, trashed: true, mediaCount });
     } catch (error) {
-      console.error("[PROOF:POSTS:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });
+      debugApiLog("[PROOF:POSTS:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });
       res.status(500).json({ error: "POSTS_FAILED" });
     }
   });
@@ -1380,10 +1413,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ));
 
       const restoredMediaCount = restoredMedia.rowCount ?? 0;
-      console.log("[PROOF:RESTORE:POST]", JSON.stringify({ postId, userId, restoredMediaCount, ts: Date.now() }));
+      debugApiLog("[PROOF:RESTORE:POST]", JSON.stringify({ postId, userId, restoredMediaCount, ts: Date.now() }));
       res.json({ success: true, restored: true, restoredMediaCount });
     } catch (error) {
-      console.error("[PROOF:POSTS:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });
+      debugApiLog("[PROOF:POSTS:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });
       res.status(500).json({ error: "RESTORE_FAILED" });
     }
   });
@@ -1395,10 +1428,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!content) return res.status(400).json({ error: "COMMENT_BAD_REQUEST" });
       const updated = await storage.updateComment(req.params.id, content);
       if (!updated) return res.status(404).json({ error: "COMMENT_NOT_FOUND" });
-      console.log("[PROOF:COMMENTS:UPDATE]", { commentId: req.params.id, ts: new Date().toISOString() });
+      debugApiLog("[PROOF:COMMENTS:UPDATE]", { commentId: req.params.id, ts: new Date().toISOString() });
       res.json(updated);
     } catch (error) {
-      console.error("[PROOF:COMMENTS:ERR]", { commentId: req.params.id, ts: new Date().toISOString(), error: String(error) });
+      debugApiLog("[PROOF:COMMENTS:ERR]", { commentId: req.params.id, ts: new Date().toISOString(), error: String(error) });
       res.status(500).json({ error: "COMMENTS_FAILED" });
     }
   });
@@ -1408,10 +1441,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const deleted = await storage.deleteComment(req.params.id);
       if (!deleted) return res.status(404).json({ error: "COMMENT_NOT_FOUND" });
-      console.log("[PROOF:COMMENTS:DELETE]", { commentId: req.params.id, ts: new Date().toISOString() });
+      debugApiLog("[PROOF:COMMENTS:DELETE]", { commentId: req.params.id, ts: new Date().toISOString() });
       res.json({ success: true });
     } catch (error) {
-      console.error("[PROOF:COMMENTS:ERR]", { commentId: req.params.id, ts: new Date().toISOString(), error: String(error) });
+      debugApiLog("[PROOF:COMMENTS:ERR]", { commentId: req.params.id, ts: new Date().toISOString(), error: String(error) });
       res.status(500).json({ error: "COMMENTS_FAILED" });
     }
   });
@@ -1422,7 +1455,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const count = await storage.getCommentCount(req.params.id);
       res.json({ count });
     } catch (error) {
-      console.error("[PROOF:COMMENTS:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });
+      debugApiLog("[PROOF:COMMENTS:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });
       res.status(500).json({ error: "COMMENTS_FAILED" });
     }
   });
@@ -1432,10 +1465,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const commentId = req.params.id;
       const replies = await storage.getCommentReplies(commentId);
-      console.log("[PROOF:REPLIES:LIST]", { commentId, count: replies.length, ts: new Date().toISOString() });
+      debugApiLog("[PROOF:REPLIES:LIST]", { commentId, count: replies.length, ts: new Date().toISOString() });
       res.json(replies);
     } catch (error) {
-      console.error("[PROOF:REPLIES:ERR]", { commentId: req.params.id, ts: new Date().toISOString(), error: String(error) });
+      debugApiLog("[PROOF:REPLIES:ERR]", { commentId: req.params.id, ts: new Date().toISOString(), error: String(error) });
       res.status(500).json({ error: "REPLIES_FAILED" });
     }
   });
@@ -1444,10 +1477,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertCommentReplySchema.parse(req.body);
       const reply = await storage.createCommentReply(validatedData);
-      console.log("[PROOF:REPLIES:CREATE]", { replyId: reply.id, commentId: validatedData.comment_id, userId: validatedData.user_id, ts: new Date().toISOString() });
+      debugApiLog("[PROOF:REPLIES:CREATE]", { replyId: reply.id, commentId: validatedData.comment_id, userId: validatedData.user_id, ts: new Date().toISOString() });
       res.json(reply);
     } catch (error) {
-      console.error("[PROOF:REPLIES:ERR]", { ts: new Date().toISOString(), error: String(error) });
+      debugApiLog("[PROOF:REPLIES:ERR]", { ts: new Date().toISOString(), error: String(error) });
       res.status(500).json({ error: "REPLIES_FAILED" });
     }
   });
@@ -1461,10 +1494,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         limit: limit ? parseInt(limit as string, 10) : 20,
         cursor: cursor as string,
       });
-      console.log("[PROOF:POSTS:LIST:ALIAS]", { count: result.length, ts: new Date().toISOString() });
+      debugApiLog("[PROOF:POSTS:LIST:ALIAS]", { count: result.length, ts: new Date().toISOString() });
       res.json(result);
     } catch (error) {
-      console.error("[PROOF:POSTS:ERR]", { ts: new Date().toISOString(), error: String(error) });
+      debugApiLog("[PROOF:POSTS:ERR]", { ts: new Date().toISOString(), error: String(error) });
       res.status(500).json({ error: "POSTS_FAILED" });
     }
   });
@@ -1473,10 +1506,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const postId = req.params.id;
       const result = await storage.getPostCommentsWithProfiles(postId);
-      console.log("[PROOF:COMMENTS:LIST:ALIAS]", { postId, count: result.length, ts: new Date().toISOString() });
+      debugApiLog("[PROOF:COMMENTS:LIST:ALIAS]", { postId, count: result.length, ts: new Date().toISOString() });
       res.json(result);
     } catch (error) {
-      console.error("[PROOF:COMMENTS:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });
+      debugApiLog("[PROOF:COMMENTS:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });
       res.status(500).json({ error: "COMMENTS_FAILED" });
     }
   });
@@ -1634,7 +1667,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Create payment intent
-      const paymentIntent = await stripe.paymentIntents.create({
+      const paymentIntent = await getStripe().paymentIntents.create({
         amount: Math.round(amount * 100), // Convert to cents
         currency,
         automatic_payment_methods: {
@@ -1669,7 +1702,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create or retrieve customer
       let customer;
       try {
-        const customers = await stripe.customers.list({
+        const customers = await getStripe().customers.list({
           email,
           limit: 1,
         });
@@ -1679,7 +1712,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (!customer) {
-        customer = await stripe.customers.create({
+        customer = await getStripe().customers.create({
           email,
           metadata: {
             userId,
@@ -1688,7 +1721,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Create subscription
-      const subscription = await stripe.subscriptions.create({
+      const subscription = await getStripe().subscriptions.create({
         customer: customer.id,
         items: [{ price: priceId }],
         payment_behavior: 'default_incomplete',
@@ -1723,14 +1756,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const rawBody = req.rawBody || req.body;
-      event = stripe.webhooks.constructEvent(rawBody, sig as string, process.env.STRIPE_WEBHOOK_SECRET!);
+      event = getStripe().webhooks.constructEvent(rawBody, sig as string, process.env.STRIPE_WEBHOOK_SECRET!);
     } catch (error) {
-      console.error('[PROOF:WEBHOOK:SIG_FAIL]', error);
+      debugApiLog('[PROOF:WEBHOOK:SIG_FAIL]', error);
       return res.status(400).send('Webhook signature verification failed');
     }
 
     if (processedWebhookEvents.has(event.id)) {
-      console.log(`[PROOF:WEBHOOK:DUPLICATE] event=${event.id} type=${event.type}`);
+      debugApiLog(`[PROOF:WEBHOOK:DUPLICATE] event=${event.id} type=${event.type}`);
       return res.json({ received: true, duplicate: true });
     }
     processedWebhookEvents.add(event.id);
@@ -1739,61 +1772,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       entries.slice(0, 5000).forEach(e => processedWebhookEvents.delete(e));
     }
 
-    console.log(`[PROOF:WEBHOOK:RECEIVED] event=${event.id} type=${event.type}`);
+    debugApiLog(`[PROOF:WEBHOOK:RECEIVED] event=${event.id} type=${event.type}`);
 
     try {
       switch (event.type) {
         case 'checkout.session.completed': {
           const session = event.data.object as Stripe.Checkout.Session;
-          const orderId = session.metadata?.order_id;
-          const userId = session.metadata?.user_id || session.client_reference_id;
-
-          console.log(`[PROOF:WEBHOOK:CHECKOUT_COMPLETED] session=${session.id} order=${orderId} user=${userId}`);
-
-          if (orderId) {
-            const existingOrder = await storage.getOrder(orderId);
-            if (existingOrder && existingOrder.status === 'pending') {
-              await storage.updateOrder(orderId, {
-                status: 'paid',
-                stripe_session_id: session.id,
-                stripe_payment_intent_id: typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id || null,
-              });
-
-              const orderItems = await storage.getOrderItems(orderId);
-              for (const item of orderItems) {
-                if (item.product_id) {
-                  await storage.decrementProductInventory(item.product_id, item.qty);
-                }
-              }
-
-              console.log(`[PROOF:CHECKOUT:ORDER_PAID] order=${orderId} amount=${existingOrder.amount_total}`);
-            } else {
-              console.log(`[PROOF:CHECKOUT:SKIP] order=${orderId} status=${existingOrder?.status || 'not_found'}`);
-            }
-          } else {
-            const productId = session.metadata?.product_id;
-            const qty = parseInt(session.metadata?.quantity || '1');
-            if (userId && productId) {
-              const product = await storage.getProduct(productId);
-              if (product) {
-                const order = await storage.createOrder({
-                  user_id: userId,
-                  amount_total: (session.amount_total! / 100).toString(),
-                  status: 'paid',
-                  stripe_session_id: session.id,
-                  stripe_payment_intent_id: typeof session.payment_intent === 'string' ? session.payment_intent : null,
-                });
-                await storage.createOrderItem({
-                  order_id: order.id,
-                  product_id: productId,
-                  qty,
-                  unit_price: product.unit_price,
-                });
-                await storage.decrementProductInventory(productId, qty);
-                console.log(`[PROOF:CHECKOUT:LEGACY_ORDER_PAID] order=${order.id}`);
-              }
-            }
-          }
+          await processCheckoutSessionCompleted(session);
           break;
         }
 
@@ -1811,13 +1796,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
               stripe_payment_intent_id: paymentIntent.id,
             });
           }
-          console.log(`[PROOF:WEBHOOK:PAYMENT_SUCCEEDED] pi=${paymentIntent.id}`);
+          debugApiLog(`[PROOF:WEBHOOK:PAYMENT_SUCCEEDED] pi=${paymentIntent.id}`);
           break;
         }
 
         case 'payment_intent.payment_failed': {
           const pi = event.data.object as Stripe.PaymentIntent;
-          console.log(`[PROOF:WEBHOOK:PAYMENT_FAILED] pi=${pi.id}`);
+          debugApiLog(`[PROOF:WEBHOOK:PAYMENT_FAILED] pi=${pi.id}`);
           break;
         }
 
@@ -1862,12 +1847,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         default:
-          console.log(`[PROOF:WEBHOOK:UNHANDLED] type=${event.type}`);
+          debugApiLog(`[PROOF:WEBHOOK:UNHANDLED] type=${event.type}`);
       }
 
       res.json({ received: true });
     } catch (error) {
-      console.error('[PROOF:WEBHOOK:ERROR]', error);
+      debugApiLog('[PROOF:WEBHOOK:ERROR]', error);
       res.status(500).json({ error: 'Webhook handler failed' });
     }
   };
@@ -1940,7 +1925,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })),
         conversations: conversations.map(conv => ({
           id: conv.id,
-          participant_id: conv.participant_id,
+          participant_id: (conv as any).participant_id,
           created_at: conv.created_at,
           updated_at: conv.updated_at
         })),
@@ -2086,7 +2071,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'User email not found' });
       }
 
-      const existingCustomers = await stripe.customers.list({
+      const existingCustomers = await getStripe().customers.list({
         email: user.email,
         limit: 1
       });
@@ -2094,7 +2079,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (existingCustomers.data.length > 0) {
         customer = existingCustomers.data[0];
       } else {
-        customer = await stripe.customers.create({
+        customer = await getStripe().customers.create({
           email: user.email,
           metadata: { userId }
         });
@@ -2122,7 +2107,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       }
 
-      const session = await stripe.checkout.sessions.create(sessionConfig);
+      const session = await getStripe().checkout.sessions.create(sessionConfig);
 
       res.json({ 
         sessionId: session.id,
@@ -2153,7 +2138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Verify with Stripe
-      const stripeSubscription = await stripe.subscriptions.retrieve(
+      const stripeSubscription = await getStripe().subscriptions.retrieve(
         activeSubscription.stripe_subscription_id!
       );
 
@@ -2183,7 +2168,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Cancel subscription at period end
-      const subscription = await stripe.subscriptions.update(subscriptionId, {
+      const subscription = await getStripe().subscriptions.update(subscriptionId, {
         cancel_at_period_end: true,
       });
 
@@ -2262,7 +2247,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create Stripe checkout session
   app.post("/create-checkout-session", asyncHandler(async (req: any, res: any) => {
     try {
-      const session = await stripe.checkout.sessions.create({
+      const session = await getStripe().checkout.sessions.create({
         payment_method_types: ["card"],
         mode: "payment",
         line_items: [
@@ -2422,7 +2407,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/auth/refresh", (req, res) => {
     const userId = req.user?.id || null;
-    console.log('[PROOF:AUTH:REFRESH]', JSON.stringify({ ran: true, ok: true, reason: 'supabase_handles_refresh', userId }));
+    debugApiLog('[PROOF:AUTH:REFRESH]', JSON.stringify({ ran: true, ok: true, reason: 'supabase_handles_refresh', userId }));
     res.json({ ok: true, message: 'Supabase handles token refresh automatically' });
   });
 
@@ -2517,6 +2502,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.use('/api/applications/progress', progressRouter);
   app.use('/api/applications/submit', submitRouter);
+  app.post('/api/applications/consent', async (req, res) => {
+    const { POST } = await import('./routes/applications/consent');
+    return POST(req, res);
+  });
   
   // User consent recording for legal agreements
   app.post('/api/consent/record', async (req, res) => {
@@ -2560,8 +2549,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-      const account = await stripe.accounts.retrieve(accountId);
+      const account = await getStripe().accounts.retrieve(accountId);
       
       res.json({
         success: true,
@@ -2604,7 +2592,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const authHeader = req.headers.authorization;
       if (!authHeader?.startsWith('Bearer ')) {
-        console.log('[PROOF:WHOAMI]', JSON.stringify({ supabaseUserId: null, neonProfileExists: false, neonProfileId: null, username: null }));
+        debugApiLog('[PROOF:WHOAMI]', JSON.stringify({ supabaseUserId: null, neonProfileExists: false, neonProfileId: null, username: null }));
         return res.json({ supabaseUserId: null, neonProfileExists: false, neonProfileId: null, username: null });
       }
       const token = authHeader.substring(7);
@@ -2612,7 +2600,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const sb = createClient(process.env.VITE_SUPABASE_URL || '', process.env.SUPABASE_SERVICE_ROLE_KEY || '');
       const { data: { user }, error: authError } = await sb.auth.getUser(token);
       if (authError || !user) {
-        console.log('[PROOF:WHOAMI]', JSON.stringify({ supabaseUserId: null, neonProfileExists: false, neonProfileId: null, username: null, authError: authError?.message }));
+        debugApiLog('[PROOF:WHOAMI]', JSON.stringify({ supabaseUserId: null, neonProfileExists: false, neonProfileId: null, username: null, authError: authError?.message }));
         return res.json({ supabaseUserId: null, neonProfileExists: false, neonProfileId: null, username: null, authError: authError?.message });
       }
       const neonProfile = await storage.getProfile(user.id);
@@ -2622,7 +2610,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         neonProfileId: neonProfile?.id || null,
         username: neonProfile?.username || null,
       };
-      console.log('[PROOF:WHOAMI]', JSON.stringify(result));
+      debugApiLog('[PROOF:WHOAMI]', JSON.stringify(result));
       res.json(result);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
@@ -2700,21 +2688,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const actorId = allProfiles[0].id;
       const targetId = allProfiles[1].id;
       const conversation = await storage.findOrCreateConversation(actorId, targetId, null);
-      console.log('[PROOF:MSG:OK]', JSON.stringify({ actorUserId: actorId, targetUserId: targetId, conversationId: conversation.id, created: conversation.created, ts: Date.now() }));
+      debugApiLog('[PROOF:MSG:OK]', JSON.stringify({ actorUserId: actorId, targetUserId: targetId, conversationId: conversation.id, created: conversation.created, ts: Date.now() }));
 
       const convList = await storage.getUserConversationsWithDetails(actorId);
-      console.log('[PROOF:MSG:LIST]', JSON.stringify({ actorUserId: actorId, count: convList.length, ts: Date.now() }));
+      debugApiLog('[PROOF:MSG:LIST]', JSON.stringify({ actorUserId: actorId, count: convList.length, ts: Date.now() }));
 
       res.json({ ok: true, conversationId: conversation.id, created: conversation.created, actorId, targetId, conversationsCount: convList.length });
     } catch (error: any) {
-      console.error('[PROOF:MSG:ERR] test-messaging', error?.message);
+      debugApiLog('[PROOF:MSG:ERR] test-messaging', error?.message);
       res.status(500).json({ error: error?.message });
     }
   });
 
   app.post("/api/dev/seed-listings", async (req, res) => {
     if (process.env.NODE_ENV === 'production') {
-      console.log('[PROOF:SEED:LISTINGS]', JSON.stringify({ ran: false, env: 'production' }));
+      debugApiLog('[PROOF:SEED:LISTINGS]', JSON.stringify({ ran: false, env: 'production' }));
       return res.status(403).json({ error: 'Seeding disabled in production' });
     }
     try {
@@ -2736,10 +2724,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ];
 
       const inserted = await db.insert(dogListings).values(seedListings as any).returning();
-      console.log('[PROOF:SEED:LISTINGS]', JSON.stringify({ ran: true, count: inserted.length, env: process.env.NODE_ENV || 'development' }));
+      debugApiLog('[PROOF:SEED:LISTINGS]', JSON.stringify({ ran: true, count: inserted.length, env: process.env.NODE_ENV || 'development' }));
       res.json({ ok: true, count: inserted.length });
     } catch (error: any) {
-      console.error('[PROOF:SEED:LISTINGS] error', error?.message);
+      debugApiLog('[PROOF:SEED:LISTINGS] error', error?.message);
       res.status(500).json({ error: 'Seeding failed' });
     }
   });
@@ -2755,13 +2743,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch {}
     const supabaseStorageConfigured = !!(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
     const result = { neonConnected, supabaseStorageConfigured, nodeEnv: process.env.NODE_ENV || 'development', ts: Date.now() };
-    console.log('[PROOF:HEALTH]', JSON.stringify(result));
+    debugApiLog('[PROOF:HEALTH]', JSON.stringify(result));
     res.json(result);
   });
 
   app.post("/api/dev/smoke-migration", async (req, res) => {
     if (process.env.NODE_ENV === 'production') {
-      console.log('[PROOF:SMOKE:MIGRATION]', JSON.stringify({ ran: false, env: 'production', reason: 'blocked_in_production' }));
+      debugApiLog('[PROOF:SMOKE:MIGRATION]', JSON.stringify({ ran: false, env: 'production', reason: 'blocked_in_production' }));
       return res.status(403).json({ error: 'Smoke test disabled in production' });
     }
 
@@ -2800,10 +2788,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       results.follows = Number(followRows[0]?.count) || 0;
 
       const response = { ok: true, ...results, ts };
-      console.log('[PROOF:SMOKE:MIGRATION]', JSON.stringify(response));
+      debugApiLog('[PROOF:SMOKE:MIGRATION]', JSON.stringify(response));
       res.json(response);
     } catch (error: any) {
-      console.error('[PROOF:SMOKE:MIGRATION:ERR]', JSON.stringify({ error: error?.message, stack: error?.stack, ts }));
+      debugApiLog('[PROOF:SMOKE:MIGRATION:ERR]', JSON.stringify({ error: error?.message, stack: error?.stack, ts }));
       res.status(500).json({ ok: false, error: error?.message, ts });
     }
   });

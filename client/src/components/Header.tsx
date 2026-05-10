@@ -69,7 +69,7 @@ const Header = () => {
                   <>
                     <NotificationBell />
                     {profile?.is_admin && (
-                      <Link to="/admin/dashboard" data-testid="admin-shield-link">
+                      <Link to="/admin" data-testid="admin-shield-link">
                         <button 
                           className="p-2 rounded-full hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors"
                           title="Admin Dashboard"

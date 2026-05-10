@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Star, ShoppingCart } from 'lucide-react';
 
@@ -12,6 +13,7 @@ interface Product {
   unit_price: string;
   image_url: string | null;
   is_featured: boolean;
+  is_active?: boolean;
   tags: string[] | null;
   rating: string | null;
   reviews_count: number;
@@ -37,16 +39,19 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({ onProductSelect }) 
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
+      <div className="featured-products-strip space-y-4">
         <h2 className="text-2xl font-bold">Featured Products</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <div className="w-full h-48 bg-gray-200 rounded-t-lg"></div>
-              <CardContent className="p-4">
-                <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded mb-4"></div>
-                <div className="h-8 bg-gray-200 rounded"></div>
+            <Card
+              key={i}
+              className={cn('featured-store-card overflow-hidden rounded-2xl border-0 bg-white', 'animate-pulse')}
+            >
+              <div className="h-52 bg-gradient-to-b from-slate-100 to-slate-200/80" />
+              <CardContent className="space-y-3 p-5 pt-4">
+                <div className="h-4 rounded-md bg-slate-200" />
+                <div className="h-3 w-4/5 rounded-md bg-slate-200" />
+                <div className="h-9 rounded-lg bg-slate-200" />
               </CardContent>
             </Card>
           ))}
@@ -55,7 +60,9 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({ onProductSelect }) 
     );
   }
 
-  if (featuredProducts.length === 0) {
+  const visibleFeatured = featuredProducts.filter((p: Product) => p.is_active !== false);
+
+  if (visibleFeatured.length === 0) {
     return (
       <div className="text-center py-8">
         <h2 className="text-2xl font-bold mb-4">Featured Products</h2>
@@ -83,35 +90,37 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({ onProductSelect }) 
   };
 
   return (
-    <div className="space-y-6">
+    <div className="featured-products-strip space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">Featured Products</h2>
-        <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+        <Badge variant="secondary" className="border-0 bg-blue-100/90 text-blue-800 shadow-none">
           Featured
         </Badge>
       </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {featuredProducts.map((product: Product) => (
-          <Card key={product.id} className="group hover:shadow-lg transition-shadow duration-200">
-            <div className="relative">
+
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {visibleFeatured.map((product: Product) => (
+          <Card
+            key={product.id}
+            className={cn(
+              'featured-store-card group overflow-hidden rounded-2xl border-0 bg-white',
+              'transition-all duration-200 ease-out hover:-translate-y-0.5',
+            )}
+          >
+            <div className="relative overflow-hidden bg-gradient-to-b from-slate-50 via-slate-50 to-slate-100/85">
               {product.image_url ? (
-                <img 
-                  src={product.image_url} 
-                  alt={product.name}
-                  className="w-full h-48 object-cover rounded-t-lg"
-                />
+                <FeaturedCardImage src={product.image_url} alt={product.name} />
               ) : (
-                <div className="w-full h-48 bg-gradient-to-br from-blue-100 to-blue-200 rounded-t-lg flex items-center justify-center">
-                  <ShoppingCart className="w-12 h-12 text-blue-400" />
+                <div className="flex h-52 w-full items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100/90">
+                  <ShoppingCart className="h-12 w-12 text-blue-400/90" aria-hidden />
                 </div>
               )}
-              <Badge className="absolute top-2 right-2 bg-blue-500 text-white">
+              <Badge className="absolute right-3 top-3 border-0 bg-blue-600/95 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm backdrop-blur-[2px]">
                 Featured
               </Badge>
             </div>
-            
-            <CardContent className="p-4 space-y-3">
+
+            <CardContent className="space-y-3 bg-white p-5 pt-5">
               <div>
                 <h3 className="font-semibold text-lg text-gray-900 group-hover:text-blue-600 transition-colors">
                   {product.name}
@@ -144,10 +153,10 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({ onProductSelect }) 
                 <div className="text-2xl font-bold text-green-600">
                   ${parseFloat(product.unit_price).toFixed(2)}
                 </div>
-                <Button 
+                <Button
                   size="sm"
                   onClick={() => onProductSelect?.(product.id)}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="rounded-lg bg-[#0074d4] font-semibold text-white shadow-sm hover:bg-[#0068c0]"
                 >
                   <ShoppingCart className="w-4 h-4 mr-2" />
                   Buy Now
@@ -160,5 +169,26 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({ onProductSelect }) 
     </div>
   );
 };
+
+function FeaturedCardImage({ src, alt }: { src: string; alt: string }) {
+  const [broken, setBroken] = useState(false);
+  if (broken) {
+    return (
+      <div className="flex h-52 w-full items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100/90">
+        <ShoppingCart className="h-12 w-12 text-blue-400/90" aria-hidden />
+      </div>
+    );
+  }
+  return (
+    <img
+      src={src}
+      alt={alt}
+      loading="lazy"
+      decoding="async"
+      className="box-border h-52 w-full object-contain object-center px-4 pb-3 pt-4"
+      onError={() => setBroken(true)}
+    />
+  );
+}
 
 export default FeaturedProducts;

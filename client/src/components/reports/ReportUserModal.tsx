@@ -107,17 +107,21 @@ const ReportUserModal: React.FC<ReportUserModalProps> = ({
       const response = await fetch('/api/reports/user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
+          target_id: reportedUserId,
+          userId: reportedUserId,
           reportedUserId,
           reason,
+          description: message.trim(),
           message: message.trim(),
-          severity
-        })
+          severity,
+        }),
       });
 
       const data = await response.json();
 
-      if (data.success) {
+      if (data.ok || data.success) {
         toast({
           title: "Report Submitted",
           description: "Thank you for helping keep our community safe. We'll review your report shortly."

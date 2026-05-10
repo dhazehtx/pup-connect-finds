@@ -3,7 +3,7 @@ import { Search, Loader2, User, MapPin, DollarSign } from 'lucide-react';
 import { useGlobalSearch } from '@/hooks/useGlobalSearch';
 import { COMPONENTS } from '@/styles/constants';
 import { Input } from '@/components/ui/input';
-import { useLocation } from 'wouter';
+import { useNavigate } from 'react-router-dom';
 
 interface GlobalSearchProps {
   placeholder?: string;
@@ -17,7 +17,7 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const { results, loading } = useGlobalSearch(query);
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const searchRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
@@ -48,9 +48,9 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
     console.log('[GLOBAL SEARCH] Result clicked:', result);
     
     if (result.type === 'listing') {
-      setLocation(`/listing/${result.id}`);
+      navigate(`/listing/${result.id}`);
     } else if (result.type === 'profile') {
-      setLocation(`/profile/${result.id}`);
+      navigate(`/profile/${result.id}`);
     }
     
     setIsOpen(false);

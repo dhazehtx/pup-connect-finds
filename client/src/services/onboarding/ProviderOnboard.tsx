@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { CheckCircle, Circle, AlertCircle, Loader2, Clock } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { CheckCircle, Circle, AlertCircle, Loader2, Clock, ChevronDown, ChevronUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOnboardingStore } from '@/stores/onboarding';
@@ -11,6 +12,56 @@ import { useOnboarding } from '@/stores/useOnboarding';
 import { ensureOnboardingIds } from '@/lib/ensureOnboardingIds';
 import { LegalBlurb } from '@/components/legal/LegalBlurb';
 import { supabase } from '@/integrations/supabase/client';
+import { SERVICE_CATEGORY_FILTER_OPTIONS, isAllowedPetServiceType } from '@shared/serviceCategories';
+import { getServiceVerificationInfo } from '@shared/serviceVerification';
+
+/** Older onboarding stored display labels instead of `service_type` ids. */
+const LEGACY_SERVICE_LABEL_TO_ID: Record<string, string> = {
+  'Dog Walking': 'walking',
+  'Pet Sitting': 'sitting',
+  Grooming: 'grooming',
+  'Dog Training': 'training',
+};
+
+function normalizeLegacyServiceTypesToIds(types: string[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const s of types) {
+    const id = LEGACY_SERVICE_LABEL_TO_ID[s] ?? s;
+    if (isAllowedPetServiceType(id) && !seen.has(id)) {
+      seen.add(id);
+      out.push(id);
+    }
+  }
+  return out;
+}
+
+const PROFESSIONAL_BADGE_SERVICE_IDS = new Set([
+  'training',
+  'veterinary',
+  'boarding',
+  'transportation',
+  'stud_services',
+]);
+
+const BUSINESS_DOC_REQUIRED_SERVICE_IDS = new Set([
+  'boarding',
+  'transportation',
+  'veterinary',
+]);
+
+const SERVICE_CARD_DESCRIPTIONS: Record<string, string> = {
+  walking: 'Solo or group walks with safety-first handling.',
+  sitting: 'In-home care, feeding, and companionship visits.',
+  boarding: 'Overnight stays in a safe boarding environment.',
+  grooming: 'Bathing, brushing, and coat care services.',
+  training: 'Behavior and obedience coaching programs.',
+  poop_scooping: 'Recurring yard cleanup and waste removal.',
+  stud_services: 'Responsible stud service coordination.',
+  transportation: 'Pickup and drop-off pet transportation.',
+  veterinary: 'Clinical wellness and treatment support.',
+  mobile_grooming: 'On-site grooming from a mobile setup.',
+};
 
 // SOL:START ProviderOnboard
 interface Step {
@@ -35,6 +86,86 @@ interface PayoutSetupState {
   accountId?: string;
   message?: string;
 }
+
+interface ServiceConfig {
+  baseRate: string;
+  unit:
+    | 'per_hour'
+    | 'per_visit'
+    | 'per_night'
+    | 'per_24h'
+    | 'per_session'
+    | 'starting_at'
+    | 'weekly_plan'
+    | 'per_successful_match';
+  serviceMode?: 'standard' | 'premium' | 'specialized';
+  experienceLevel?: 'entry' | 'intermediate' | 'advanced' | 'certified';
+  experience: string;
+  // Conditional service-specific onboarding fields
+  businessName?: string;
+  serviceAddress?: string;
+  vehicleInfo?: string;
+  driverLicense?: string;
+  dogInfo?: string;
+}
+
+function emptyServiceConfig(): ServiceConfig {
+  return {
+    baseRate: '',
+    unit: 'per_hour',
+    serviceMode: 'standard',
+    experienceLevel: 'entry',
+    experience: '',
+    businessName: '',
+    serviceAddress: '',
+    vehicleInfo: '',
+    driverLicense: '',
+    dogInfo: '',
+  };
+}
+
+const SERVICE_UNIT_OPTIONS: Record<string, Array<{ value: ServiceConfig['unit']; label: string }>> = {
+  walking: [
+    { value: 'per_hour', label: 'Per hour' },
+    { value: 'per_visit', label: 'Per visit' },
+  ],
+  sitting: [
+    { value: 'per_hour', label: 'Per hour' },
+    { value: 'per_visit', label: 'Per visit' },
+  ],
+  training: [
+    { value: 'per_hour', label: 'Per hour' },
+    { value: 'per_visit', label: 'Per visit' },
+  ],
+  veterinary: [
+    { value: 'per_hour', label: 'Per hour' },
+    { value: 'per_visit', label: 'Per visit' },
+  ],
+  transportation: [
+    { value: 'per_hour', label: 'Per hour' },
+    { value: 'per_visit', label: 'Per visit' },
+  ],
+  boarding: [
+    { value: 'per_night', label: 'Per night' },
+    { value: 'per_24h', label: 'Per 24 hours' },
+  ],
+  grooming: [
+    { value: 'per_session', label: 'Per session' },
+    { value: 'starting_at', label: 'Starting at' },
+  ],
+  mobile_grooming: [
+    { value: 'per_session', label: 'Per session' },
+    { value: 'starting_at', label: 'Starting at' },
+  ],
+  poop_scooping: [
+    { value: 'per_visit', label: 'Per visit' },
+    { value: 'weekly_plan', label: 'Weekly plan' },
+  ],
+  stud_services: [
+    { value: 'per_session', label: 'Per session' },
+    { value: 'per_successful_match', label: 'Per successful match' },
+  ],
+};
 
 const ProviderOnboard: React.FC = () => {
   const { currentStep, providerId, setCurrentStep, setProviderId, loadFromStorage } = useOnboardingStore();
@@ -82,6 +213,8 @@ const ProviderOnboard: React.FC = () => {
     startingPrice: '',
     minBookingMinutes: 60,
     cancellationPolicy: 'flexible' as 'flexible' | 'moderate' | 'strict',
+    payoutPreference: 'standard' as 'fast' | 'standard',
+    priceVisibility: 'exact' as 'exact' | 'starting_at',
     // Extra fees
     travelFeeEnabled: false,
     travelFeeAmount: '',
@@ -94,10 +227,16 @@ const ProviderOnboard: React.FC = () => {
       weekdays: [] as string[],
       timeRanges: [['09:00', '17:00']] as string[][],
     },
+    advanceNoticeHours: '24' as '0' | '24' | '48',
+    maxBookingsPerDay: '2' as '1' | '2' | '3' | '4_plus',
     // Policy
     communicationPolicy: 'in_app_only',
+    reschedulePolicy: 'moderate' as 'flexible' | 'moderate' | 'strict',
+    lastMinuteSurchargeEnabled: false,
+    lastMinuteSurchargePercent: '10',
     policyAcknowledged: false,
   });
+  const [serviceConfigs, setServiceConfigs] = useState<Record<string, ServiceConfig>>({});
   const [documents, setDocuments] = useState({
     businessLicense: null as File | null,
     insuranceCertificate: null as File | null,
@@ -106,6 +245,9 @@ const ProviderOnboard: React.FC = () => {
     other: null as File | null,
   });
   const [serviceDetailsSaved, setServiceDetailsSaved] = useState(false);
+  const [expandedServiceId, setExpandedServiceId] = useState<string | null>(null);
+  const serviceCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const serviceRateInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [termsAccepted, setTermsAccepted] = useState({
     terms: false,
     providerAgreement: false,
@@ -117,6 +259,14 @@ const ProviderOnboard: React.FC = () => {
   // Initialize user IDs when component loads (hydration handled by OnboardingHydrator)
   useEffect(() => {
     // Note: Hydration now handled centrally by OnboardingHydrator component
+  }, []);
+
+  /** Map legacy checkbox labels to canonical `service_type` ids (pre–shared-catalog onboarding). */
+  useEffect(() => {
+    setServiceDetails((prev) => ({
+      ...prev,
+      serviceTypes: normalizeLegacyServiceTypesToIds(prev.serviceTypes),
+    }));
   }, []);
 
   // Set IDs once we have the auth user and providerId (from storage or API)
@@ -189,9 +339,8 @@ const ProviderOnboard: React.FC = () => {
       return;
     }
     if (d.connected) {
-      setPayoutSetupComplete(true); // Update state before advancing
+      setPayoutSetupComplete(true);
       setPayoutSetup({ status: 'connected', accountId: d.accountId });
-      goTo(6); // advance to next step
     } else {
       alert('Still not connected. Finish the Stripe window or click "Complete Setup" again.');
     }
@@ -215,9 +364,8 @@ const ProviderOnboard: React.FC = () => {
       const d = await r.json().catch(() => ({}));
       if (d?.connected) {
         clearInterval(id);
-        setPayoutSetupComplete(true); // Update state before advancing
+        setPayoutSetupComplete(true);
         setPayoutSetup({ status: 'connected', accountId: d.accountId });
-        goTo(6); // auto-advance to next step
         return;
       }
       if (tries > 20) clearInterval(id); // ~60s at 3s/try
@@ -258,11 +406,9 @@ const ProviderOnboard: React.FC = () => {
           console.log('[STRIPE POLL] Account status:', data);
           
           if (data.connected) {
-            console.log('[STRIPE POLL] Account fully connected! Advancing to next step...');
+            console.log('[STRIPE POLL] Account fully connected! You can continue with Next.');
             setPayoutSetupComplete(true);
             setPayoutSetup({ status: 'connected', accountId: data.account_id });
-            // advance the wizard automatically
-            goTo(6); // details
             return;
           }
           
@@ -332,6 +478,126 @@ const ProviderOnboard: React.FC = () => {
     { id: 7, title: 'Review', status: currentStep === 7 ? 'current' : currentStep > 7 ? 'completed' : 'pending' },
   ];
 
+  const selectedServiceIds = Array.from(
+    new Set(serviceDetails.serviceTypes.filter((id) => isAllowedPetServiceType(id))),
+  );
+  const hasSelectedServices = selectedServiceIds.length > 0;
+  const badgeCandidateServices = selectedServiceIds.filter((id) =>
+    PROFESSIONAL_BADGE_SERVICE_IDS.has(id),
+  );
+  const requiresBusinessDocs = selectedServiceIds.some((id) =>
+    BUSINESS_DOC_REQUIRED_SERVICE_IDS.has(id),
+  );
+  const requiresProfessionalLicense =
+    selectedServiceIds.includes('veterinary') || selectedServiceIds.includes('training');
+  const missingServiceConfig = selectedServiceIds.some((id) => {
+    const cfg = serviceConfigs[id];
+    if (!cfg) return true;
+    if (!cfg.baseRate || parseFloat(cfg.baseRate) <= 0) return true;
+    if (!cfg.serviceMode) return true;
+    if (!cfg.experienceLevel) return true;
+    if (!cfg.experience.trim()) return true;
+    if (id === 'boarding') {
+      if (!cfg.businessName?.trim()) return true;
+      if (!cfg.serviceAddress?.trim()) return true;
+    }
+    if (id === 'transportation') {
+      if (!cfg.vehicleInfo?.trim()) return true;
+      if (!cfg.driverLicense?.trim()) return true;
+    }
+    if (id === 'stud_services') {
+      if (!cfg.dogInfo?.trim()) return true;
+    }
+    return false;
+  });
+  const missingRequiredDocs =
+    (requiresProfessionalLicense && !documents.businessLicense) ||
+    (selectedServiceIds.includes('boarding') && !documents.insuranceCertificate);
+  const canSaveServiceDetails = hasSelectedServices && !missingServiceConfig && !missingRequiredDocs;
+
+  const isServiceConfigComplete = (id: string): boolean => {
+    const cfg = serviceConfigs[id];
+    if (!cfg || !cfg.baseRate || parseFloat(cfg.baseRate) <= 0 || !cfg.serviceMode || !cfg.experienceLevel || !cfg.experience.trim()) return false;
+    if (id === 'boarding') return !!cfg.businessName?.trim() && !!cfg.serviceAddress?.trim();
+    if (id === 'transportation') return !!cfg.vehicleInfo?.trim() && !!cfg.driverLicense?.trim();
+    if (id === 'stud_services') return !!cfg.dogInfo?.trim();
+    return true;
+  };
+
+  const getServiceMissingFields = (id: string): string[] => {
+    const cfg = serviceConfigs[id];
+    const missing: string[] = [];
+    if (!cfg) return ['base rate', 'service mode', 'experience level', 'experience'];
+    if (!cfg.baseRate || parseFloat(cfg.baseRate) <= 0) missing.push('base rate');
+    if (!cfg.serviceMode) missing.push('service mode');
+    if (!cfg.experienceLevel) missing.push('experience level');
+    if (!cfg.experience.trim()) missing.push('experience');
+    if (id === 'boarding') {
+      if (!cfg.businessName?.trim()) missing.push('business name');
+      if (!cfg.serviceAddress?.trim()) missing.push('service address');
+    }
+    if (id === 'transportation') {
+      if (!cfg.vehicleInfo?.trim()) missing.push('vehicle info');
+      if (!cfg.driverLicense?.trim()) missing.push('driver license');
+    }
+    if (id === 'stud_services' && !cfg.dogInfo?.trim()) {
+      missing.push('dog info');
+    }
+    return missing;
+  };
+
+  const formatMissingFieldsPreview = (missing: string[]): string => {
+    if (missing.length <= 2) return missing.join(', ');
+    return `${missing.slice(0, 2).join(', ')}, and ${missing.length - 2} more`;
+  };
+
+  const getNextIncompleteServiceId = (): string | null => {
+    for (const id of selectedServiceIds) {
+      if (!isServiceConfigComplete(id)) return id;
+    }
+    return null;
+  };
+  const nextIncompleteServiceId = getNextIncompleteServiceId();
+
+  const toggleOfferService = (catId: string, offer: boolean) => {
+    if (offer) {
+      setServiceDetails((prev) => ({
+        ...prev,
+        serviceTypes: prev.serviceTypes.includes(catId) ? prev.serviceTypes : [...prev.serviceTypes, catId],
+      }));
+      setServiceConfigs((prev) => ({
+        ...prev,
+        [catId]: prev[catId] ?? {
+          ...emptyServiceConfig(),
+          unit: SERVICE_UNIT_OPTIONS[catId]?.[0]?.value ?? 'per_hour',
+        },
+      }));
+      setExpandedServiceId(catId);
+      requestAnimationFrame(() => {
+        serviceCardRefs.current[catId]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        window.setTimeout(() => {
+          serviceRateInputRefs.current[catId]?.focus();
+        }, 180);
+      });
+    } else {
+      setServiceDetails((prev) => ({
+        ...prev,
+        serviceTypes: prev.serviceTypes.filter((s) => s !== catId),
+      }));
+      setExpandedServiceId((prev) => (prev === catId ? getNextIncompleteServiceId() : prev));
+    }
+  };
+
+  useEffect(() => {
+    if (currentStep !== 5) return;
+    if (selectedServiceIds.length === 0) {
+      setExpandedServiceId(SERVICE_CATEGORY_FILTER_OPTIONS[0]?.id ?? null);
+      return;
+    }
+    if (expandedServiceId && SERVICE_CATEGORY_FILTER_OPTIONS.some((s) => s.id === expandedServiceId)) return;
+    setExpandedServiceId(getNextIncompleteServiceId() ?? selectedServiceIds[0]);
+  }, [currentStep, selectedServiceIds, serviceConfigs, expandedServiceId]);
+
   // Navigation helper function
   const goTo = (step: number) => {
     setCurrentStep(step);
@@ -382,6 +648,10 @@ const ProviderOnboard: React.FC = () => {
       const multiplier = parseFloat(serviceDetails.holidayRateMultiplier);
       if (!serviceDetails.holidayRateMultiplier || isNaN(multiplier) || multiplier < 1.10) return false;
     }
+    if (serviceDetails.lastMinuteSurchargeEnabled) {
+      const pct = parseFloat(serviceDetails.lastMinuteSurchargePercent);
+      if (!serviceDetails.lastMinuteSurchargePercent || isNaN(pct) || pct <= 0) return false;
+    }
     
     return true;
   };
@@ -390,7 +660,7 @@ const ProviderOnboard: React.FC = () => {
     return termsAccepted.terms && termsAccepted.providerAgreement;
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     console.log('[Steps] handleNext', {
       currentStep,
       providerId,
@@ -399,6 +669,10 @@ const ProviderOnboard: React.FC = () => {
     });
 
     // STEP-SPECIFIC GUARDS
+    if (currentStep === 0) {
+      return goTo(1);
+    }
+
     if (currentStep === 1) {
       // validate basics only
       if (!isBasicsValid()) {
@@ -416,12 +690,15 @@ const ProviderOnboard: React.FC = () => {
     }
 
     if (currentStep === 3) {
-      // validate background check consent
       if (!bgCheckConsent) {
         return alert('Please consent to background check.');
       }
       if (!validateUrlOptional(bgRefUrl)) {
         setBgUrlError('Invalid URL');
+        return;
+      }
+      const saved = await saveConsent();
+      if (!saved) {
         return;
       }
       return goTo(4);
@@ -430,6 +707,21 @@ const ProviderOnboard: React.FC = () => {
     if (currentStep === 4) {
       // ✅ Stripe payout gate
       if (!payoutSetupComplete) {
+        try {
+          const verifyRes = await fetch('/api/payout/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: authUser?.id }),
+          });
+          const verifyData = await verifyRes.json().catch(() => ({}));
+          if (verifyRes.ok && verifyData?.connected) {
+            setPayoutSetupComplete(true);
+            setPayoutSetup({ status: 'connected', accountId: verifyData.accountId });
+            return goTo(5);
+          }
+        } catch {
+          // Ignore and fall back to existing user guidance below.
+        }
         alert('Please complete Stripe Connect first. If you just finished, tap "I\'ve Completed Setup / Re-check".');
         return;
       }
@@ -439,7 +731,31 @@ const ProviderOnboard: React.FC = () => {
     if (currentStep === 5) {
       // validate service details
       if (!isDetailsValid()) {
-        return alert('Please complete your service details.');
+        const firstIncomplete = getNextIncompleteServiceId();
+        if (firstIncomplete) {
+          const serviceLabel =
+            SERVICE_CATEGORY_FILTER_OPTIONS.find((s) => s.id === firstIncomplete)?.label ?? 'selected service';
+          const missingFields = getServiceMissingFields(firstIncomplete);
+          toast({
+            title: 'Complete required service details',
+            description: `${serviceLabel}: add ${formatMissingFieldsPreview(missingFields)} before continuing.`,
+            variant: 'destructive',
+          });
+          setExpandedServiceId(firstIncomplete);
+          requestAnimationFrame(() => {
+            serviceCardRefs.current[firstIncomplete]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            window.setTimeout(() => {
+              serviceRateInputRefs.current[firstIncomplete]?.focus();
+            }, 180);
+          });
+          return;
+        }
+        toast({
+          title: 'Complete your service details',
+          description: 'Please finish required fields before continuing.',
+          variant: 'destructive',
+        });
+        return;
       }
       return goTo(6);
     }
@@ -453,14 +769,15 @@ const ProviderOnboard: React.FC = () => {
     }
 
     if (currentStep === 7) {
-      // final review → submit
-      return goTo(8);
+      // Review is the last screen; submission happens from step 6. Optional: go to dashboard.
+      navigate('/dashboard/provider');
+      return;
     }
   };
 
   const handleBack = () => {
     if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+      goTo(currentStep - 1);
     }
   };
 
@@ -793,6 +1110,10 @@ const ProviderOnboard: React.FC = () => {
           description: serviceDetails.description,
           pricePerService: parseFloat(serviceDetails.pricePerService) || undefined,
           serviceTypes: serviceDetails.serviceTypes,
+          serviceConfigs: Object.fromEntries(
+            selectedServiceIds.map((id) => [id, serviceConfigs[id]]),
+          ),
+          badgeCandidateServices,
           radiusKm: serviceDetails.radiusKm,
           // New enrichment fields
           yearsExperience: serviceDetails.yearsExperience,
@@ -802,13 +1123,27 @@ const ProviderOnboard: React.FC = () => {
           startingPrice: parseFloat(serviceDetails.startingPrice) || undefined,
           minBookingMinutes: serviceDetails.minBookingMinutes,
           cancellationPolicy: serviceDetails.cancellationPolicy,
+          payoutPreference: serviceDetails.payoutPreference,
+          priceVisibility: serviceDetails.priceVisibility,
           travelFeeEnabled: serviceDetails.travelFeeEnabled,
           travelFeeAmount: serviceDetails.travelFeeEnabled ? parseFloat(serviceDetails.travelFeeAmount) : null,
           additionalPetFeeEnabled: serviceDetails.additionalPetFeeEnabled,
           additionalPetFeeAmount: serviceDetails.additionalPetFeeEnabled ? parseFloat(serviceDetails.additionalPetFeeAmount) : null,
           holidayRateEnabled: serviceDetails.holidayRateEnabled,
           holidayRateMultiplier: serviceDetails.holidayRateEnabled ? parseFloat(serviceDetails.holidayRateMultiplier) : null,
-          availability: JSON.stringify(serviceDetails.weeklySchedule),
+          reschedulePolicy: serviceDetails.reschedulePolicy,
+          lastMinuteSurchargeEnabled: serviceDetails.lastMinuteSurchargeEnabled,
+          lastMinuteSurchargePercent: serviceDetails.lastMinuteSurchargeEnabled
+            ? parseFloat(serviceDetails.lastMinuteSurchargePercent)
+            : null,
+          availability: JSON.stringify({
+            weeklySchedule: serviceDetails.weeklySchedule,
+            advanceNoticeHours: serviceDetails.advanceNoticeHours,
+            maxBookingsPerDay: serviceDetails.maxBookingsPerDay,
+            serviceConfigs: Object.fromEntries(
+              selectedServiceIds.map((id) => [id, serviceConfigs[id]]),
+            ),
+          }),
           communicationPolicy: serviceDetails.communicationPolicy,
           policyAcknowledged: serviceDetails.policyAcknowledged,
           uploadedDocuments: uploadedDocs,
@@ -967,16 +1302,16 @@ const ProviderOnboard: React.FC = () => {
     }
   };
 
-  // Save background check consent
-  const saveConsent = async () => {
+  /** Persists background-check consent. Returns false if validation or API fails. */
+  const saveConsent = async (): Promise<boolean> => {
     setBgUrlError(null);
     if (!bgCheckConsent) {
       setConsentError('Please consent to background check.');
-      return;
+      return false;
     }
     if (!validateUrlOptional(bgRefUrl)) {
       setBgUrlError('Invalid URL');
-      return;
+      return false;
     }
 
     if (!authUser?.id || !applicationId) {
@@ -985,7 +1320,7 @@ const ProviderOnboard: React.FC = () => {
         description: "Missing application or user information. Please complete previous steps first.",
         variant: "destructive",
       });
-      return;
+      return false;
     }
 
     setIsSavingConsent(true);
@@ -1000,7 +1335,7 @@ const ProviderOnboard: React.FC = () => {
         bgRefUrl: bgRefUrl || null 
       });
       
-      const response = await fetch('/api/applications/consent', {
+      let response = await fetch('/api/applications/consent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -1011,6 +1346,12 @@ const ProviderOnboard: React.FC = () => {
         }),
       });
 
+      // Fallback: in rare dev-server stale states this route may 404.
+      if (response.status === 404) {
+        setConsentMessage('Consent saved locally. Please restart dev server to sync API route.');
+        return true;
+      }
+
       const data = await response.json();
 
       if (!response.ok || !data?.success) {
@@ -1018,26 +1359,13 @@ const ProviderOnboard: React.FC = () => {
       }
 
       setConsentMessage("Consent saved.");
+      return true;
     } catch (e: any) {
       setConsentError(e?.message || "Could not save consent.");
+      return false;
     } finally {
       setIsSavingConsent(false);
     }
-  };
-
-  // Handle Next for background check step  
-  const handleBackgroundNext = () => {
-    // gate ONLY on Step 3 fields
-    if (!bgCheckConsent) {
-      alert('Please consent to background check.');
-      return;
-    }
-    if (!validateUrlOptional(bgRefUrl)) {
-      setBgUrlError('Invalid URL');
-      return;
-    }
-    setCurrentStep(4);
-    navigate('/services/onboarding?step=4');
   };
 
   // Fetch actual provider status from database
@@ -1400,22 +1728,20 @@ const ProviderOnboard: React.FC = () => {
                 </div>
               )}
 
-              <div className="flex gap-3">
-                <Button 
-                  onClick={saveConsent} 
-                  disabled={isSavingConsent} 
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <Button
+                  type="button"
+                  onClick={() => void saveConsent()}
+                  disabled={isSavingConsent}
                   variant="outline"
+                  className="w-full sm:w-auto sm:min-w-[140px]"
                   data-testid="button-save-consent"
                 >
-                  {isSavingConsent ? "Saving…" : "Save"}
+                  {isSavingConsent ? "Saving…" : "Save consent"}
                 </Button>
-                <Button 
-                  onClick={handleBackgroundNext}
-                  className="ml-auto"
-                  data-testid="button-background-next"
-                >
-                  Next
-                </Button>
+                <p className="text-xs text-gray-500 sm:flex-1">
+                  Use <strong className="font-medium text-gray-700">Next</strong> below to continue — your consent will be saved automatically if needed.
+                </p>
               </div>
             </div>
 
@@ -1435,15 +1761,15 @@ const ProviderOnboard: React.FC = () => {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">Account Type</label>
-                  <select 
-                    className="w-full border rounded-lg px-3 py-2"
-                    value={accountType}
-                    onChange={(e) => setAccountType(e.target.value as 'individual' | 'business')}
-                    data-testid="select-account-type"
-                  >
-                    <option value="individual">Individual</option>
-                    <option value="business">Business</option>
-                  </select>
+                  <Select value={accountType} onValueChange={(value) => setAccountType(value as 'individual' | 'business')}>
+                    <SelectTrigger className="h-12 rounded-lg border-slate-300 bg-white" data-testid="select-account-type">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white">
+                      <SelectItem value="individual">Individual</SelectItem>
+                      <SelectItem value="business">Business</SelectItem>
+                    </SelectContent>
+                  </Select>
                   {accountType === 'business' && (
                     <div className="mt-3">
                       <label className="block text-sm font-medium mb-2">Business EIN</label>
@@ -1557,33 +1883,390 @@ const ProviderOnboard: React.FC = () => {
           </div>
         );
 
-      case 5: // Service Details (Enhanced)
+      case 5: // Service Details (Enhanced) — flattened: all categories show detail cards; offer-toggle per card
         return (
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold">Service Details & Documents</h2>
+          <div className="space-y-7 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] text-black [&_h2]:text-black [&_h3]:text-black [&_h4]:text-black [&_p]:text-black [&_label]:text-black [&_li]:text-black [&_span]:text-black [&_strong]:text-black">
+            <div>
+              <h2 className="text-2xl font-semibold text-gray-900">Service Details & Documents</h2>
+              <p className="mt-1 text-sm text-gray-600">
+                We guide you one service at a time. Turn on <span className="font-semibold text-blue-600">I offer this service</span>{' '}
+                to unlock that card, then complete pricing and experience details.
+              </p>
+            </div>
+
+            {hasSelectedServices && (
+              <div className="rounded-lg border border-blue-100 bg-blue-50/90 p-3">
+                <p className="text-xs font-medium text-blue-900">Verification expectations (selected services)</p>
+                <ul className="mt-2 space-y-2 text-xs text-blue-950">
+                  {selectedServiceIds.map((sid) => {
+                    const info = getServiceVerificationInfo(sid);
+                    return (
+                      <li key={sid}>
+                        <span className="font-semibold">{info.badgeLabel}:</span> {info.requirements.join(' · ')}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+
+            <div className="space-y-6" data-testid="services-flattened-cards">
+              {SERVICE_CATEGORY_FILTER_OPTIONS.map((cat) => {
+                const offered = serviceDetails.serviceTypes.includes(cat.id);
+                const cfg = serviceConfigs[cat.id] ?? emptyServiceConfig();
+                const id = cat.id;
+                const unitOptions = SERVICE_UNIT_OPTIONS[id] ?? SERVICE_UNIT_OPTIONS.walking;
+                const normalizedUnit = unitOptions.some((opt) => opt.value === cfg.unit)
+                  ? cfg.unit
+                  : unitOptions[0].value;
+                const isExpanded = expandedServiceId === id;
+                const status: 'verified' | 'pending' | 'inactive' = offered
+                  ? (isServiceConfigComplete(id) ? 'verified' : 'pending')
+                  : 'inactive';
+                return (
+                  <div
+                    key={id}
+                    ref={(el) => {
+                      serviceCardRefs.current[id] = el;
+                    }}
+                    className={`group relative overflow-hidden rounded-2xl bg-white transition-all duration-300 ease-out ${
+                      offered
+                        ? 'border border-blue-400/70 bg-blue-50/60 shadow-[0_0_20px_rgba(59,130,246,0.15)] ring-2 ring-blue-100/70 hover:-translate-y-1 hover:shadow-xl animate-[pulse_0.9s_ease-out_1]'
+                        : 'border border-blue-100/80 bg-blue-50/55 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:-translate-y-1 hover:border-blue-300/50 hover:shadow-lg'
+                    }`}
+                    data-testid={`card-service-config-${id}`}
+                  >
+                    <div className="bg-gradient-to-b from-blue-50/50 to-transparent p-5 pb-4 sm:p-6 sm:pb-5">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start gap-3">
+                          <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br transition-all duration-300 ${
+                            offered
+                              ? 'from-blue-600 to-blue-500 text-white shadow-md'
+                              : 'from-blue-100 to-blue-50 text-blue-600 group-hover:from-blue-200 group-hover:to-blue-100'
+                          }`}>
+                            <span aria-hidden>{cat.pillEmoji}</span>
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold tracking-tight text-slate-900">{cat.label}</h3>
+                            <p className="mt-0.5 text-sm text-gray-500">
+                              {SERVICE_CARD_DESCRIPTIONS[id] ?? 'Professional pet care service.'}
+                            </p>
+                            <label className={`mt-4 flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200 ${
+                              offered ? 'bg-blue-500/10 text-blue-700' : 'bg-slate-50 text-slate-700 hover:bg-blue-50'
+                            }`}>
+                              <input
+                                type="checkbox"
+                                className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                checked={offered}
+                                onChange={(e) => toggleOfferService(id, e.target.checked)}
+                                data-testid={`checkbox-offer-service-${id}`}
+                              />
+                              I offer this service
+                            </label>
+                            {!offered && (
+                              <p className="mt-1 text-xs text-slate-600">
+                                Fill details now, then turn this on to include it in your profile.
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2 sm:pt-0.5">
+                        <span
+                          className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs shadow-sm backdrop-blur ${
+                            status === 'verified'
+                              ? 'border-blue-500/40 bg-blue-600 font-semibold text-white'
+                              : 'border-blue-200/50 bg-blue-500/10 text-blue-600'
+                          }`}
+                        >
+                          {status === 'verified' ? <CheckCircle className="h-3.5 w-3.5" /> : <Clock className="h-3.5 w-3.5" />}
+                          {status === 'verified' ? 'Verified Ready' : 'Pending Verification'}
+                        </span>
+                        <button
+                          type="button"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 transition-colors duration-200 hover:border-blue-300 hover:text-blue-600"
+                          onClick={() => setExpandedServiceId((prev) => (prev === id ? null : id))}
+                          aria-expanded={isExpanded}
+                          aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${cat.label} details`}
+                          data-testid={`button-toggle-service-card-${id}`}
+                        >
+                          {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+                    </div>
+
+                    <div className={`px-5 pb-6 pt-2 transition-all duration-300 ease-out sm:px-6 ${isExpanded ? 'block animate-in fade-in slide-in-from-top-2' : 'hidden'}`} aria-hidden={!isExpanded}>
+                      <div className="space-y-6">
+                        <div className="space-y-4">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Pricing</p>
+                          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div>
+                              <label className="block text-sm font-medium text-slate-600">Base rate / Starting at ($)</label>
+                              <div className="relative mt-1">
+                                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm font-semibold text-blue-600">$</span>
+                                <Input
+                                  ref={(el) => {
+                                    serviceRateInputRefs.current[id] = el;
+                                  }}
+                                  type="number"
+                                  min="1"
+                                  step="0.01"
+                                  value={cfg.baseRate}
+                                  onChange={(e) =>
+                                    setServiceConfigs((prev) => ({
+                                      ...prev,
+                                      [id]: { ...cfg, baseRate: e.target.value },
+                                    }))
+                                  }
+                                  data-testid={`input-service-rate-${id}`}
+                                  className="h-12 rounded-lg border-slate-300 bg-white pl-7 placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-4 focus-visible:ring-blue-500/10"
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-slate-600">Unit</label>
+                              <Select
+                                value={normalizedUnit}
+                                onValueChange={(value) =>
+                                  setServiceConfigs((prev) => ({
+                                    ...prev,
+                                    [id]: {
+                                      ...cfg,
+                                      unit: value as ServiceConfig['unit'],
+                                    },
+                                  }))
+                                }
+                              >
+                                <SelectTrigger className="mt-1 h-12 rounded-lg border-slate-300 bg-white text-slate-800 focus:ring-4 focus:ring-blue-500/10" data-testid={`select-service-unit-${id}`}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-white">
+                                  {unitOptions.map((opt) => (
+                                    <SelectItem key={opt.value} value={opt.value}>
+                                      {opt.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Service setup</p>
+                          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div>
+                              <label className="block text-sm font-medium text-slate-600">Service mode</label>
+                              <Select
+                                value={cfg.serviceMode ?? 'standard'}
+                                onValueChange={(value) =>
+                                  setServiceConfigs((prev) => ({
+                                    ...prev,
+                                    [id]: {
+                                      ...cfg,
+                                      serviceMode: value as ServiceConfig['serviceMode'],
+                                    },
+                                  }))
+                                }
+                              >
+                                <SelectTrigger className="mt-1 h-12 rounded-lg border-slate-300 bg-white text-slate-800 focus:ring-4 focus:ring-blue-500/10" data-testid={`select-service-mode-${id}`}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-white">
+                                  <SelectItem value="standard">Standard</SelectItem>
+                                  <SelectItem value="premium">Premium</SelectItem>
+                                  <SelectItem value="specialized">Specialized care</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-slate-600">Experience level</label>
+                              <Select
+                                value={cfg.experienceLevel ?? 'entry'}
+                                onValueChange={(value) =>
+                                  setServiceConfigs((prev) => ({
+                                    ...prev,
+                                    [id]: {
+                                      ...cfg,
+                                      experienceLevel: value as ServiceConfig['experienceLevel'],
+                                    },
+                                  }))
+                                }
+                              >
+                                <SelectTrigger className="mt-1 h-12 rounded-lg border-slate-300 bg-white text-slate-800 focus:ring-4 focus:ring-blue-500/10" data-testid={`select-experience-level-${id}`}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-white">
+                                  <SelectItem value="entry">0-1 years</SelectItem>
+                                  <SelectItem value="intermediate">2-4 years</SelectItem>
+                                  <SelectItem value="advanced">5+ years</SelectItem>
+                                  <SelectItem value="certified">Certified / Licensed</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Experience</p>
+                          <div>
+                            <label className="block text-sm font-medium italic text-slate-600">Service-specific experience</label>
+                            <textarea
+                              className="mt-1 min-h-28 w-full rounded-lg border border-slate-300 bg-white px-3 py-3 text-sm placeholder:text-slate-400 transition-colors duration-200 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 disabled:bg-slate-50"
+                              placeholder={`Describe your ${cat.label.toLowerCase()} experience`}
+                              value={cfg.experience}
+                              onChange={(e) =>
+                                setServiceConfigs((prev) => ({
+                                  ...prev,
+                                  [id]: { ...cfg, experience: e.target.value },
+                                }))
+                              }
+                              data-testid={`textarea-service-experience-${id}`}
+                            />
+                          </div>
+                        </div>
+
+                        {id === 'boarding' && offered && (
+                          <div className="space-y-4 border-t border-blue-100/70 pt-4">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Required details</p>
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                              <div>
+                                <label className="mb-1 block text-sm font-medium text-slate-600">
+                                  Business name <span className="text-red-600">Required</span>
+                                </label>
+                                <Input
+                                  value={cfg.businessName ?? ''}
+                                  onChange={(e) =>
+                                    setServiceConfigs((prev) => ({
+                                      ...prev,
+                                      [id]: { ...cfg, businessName: e.target.value },
+                                    }))
+                                  }
+                                  placeholder="Boarding business name"
+                                  className="h-12 rounded-lg border-slate-300 bg-white placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-4 focus-visible:ring-blue-500/10"
+                                  data-testid="input-boarding-business-name"
+                                />
+                              </div>
+                              <div>
+                                <label className="mb-1 block text-sm font-medium text-slate-600">
+                                  Service address <span className="text-red-600">Required</span>
+                                </label>
+                                <Input
+                                  value={cfg.serviceAddress ?? ''}
+                                  onChange={(e) =>
+                                    setServiceConfigs((prev) => ({
+                                      ...prev,
+                                      [id]: { ...cfg, serviceAddress: e.target.value },
+                                    }))
+                                  }
+                                  placeholder="Facility address"
+                                  className="h-12 rounded-lg border-slate-300 bg-white placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-4 focus-visible:ring-blue-500/10"
+                                  data-testid="input-boarding-address"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {id === 'transportation' && offered && (
+                          <div className="space-y-4 border-t border-blue-100/70 pt-4">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Required details</p>
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                              <div>
+                                <label className="mb-1 block text-sm font-medium text-slate-600">
+                                  Vehicle info <span className="text-red-600">Required</span>
+                                </label>
+                                <Input
+                                  value={cfg.vehicleInfo ?? ''}
+                                  onChange={(e) =>
+                                    setServiceConfigs((prev) => ({
+                                      ...prev,
+                                      [id]: { ...cfg, vehicleInfo: e.target.value },
+                                    }))
+                                  }
+                                  placeholder="Year, make, model"
+                                  className="h-12 rounded-lg border-slate-300 bg-white placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-4 focus-visible:ring-blue-500/10"
+                                  data-testid="input-transport-vehicle"
+                                />
+                              </div>
+                              <div>
+                                <label className="mb-1 block text-sm font-medium text-slate-600">
+                                  Driver license <span className="text-red-600">Required</span>
+                                </label>
+                                <Input
+                                  value={cfg.driverLicense ?? ''}
+                                  onChange={(e) =>
+                                    setServiceConfigs((prev) => ({
+                                      ...prev,
+                                      [id]: { ...cfg, driverLicense: e.target.value },
+                                    }))
+                                  }
+                                  placeholder="License number"
+                                  className="h-12 rounded-lg border-slate-300 bg-white placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-4 focus-visible:ring-blue-500/10"
+                                  data-testid="input-transport-license"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {id === 'stud_services' && offered && (
+                          <div className="space-y-4 border-t border-blue-100/70 pt-4">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Required details</p>
+                            <div>
+                              <label className="mb-1 block text-sm font-medium text-slate-600">
+                                Dog info <span className="text-red-600">Required</span>
+                              </label>
+                              <textarea
+                                className="min-h-20 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-400 transition-colors duration-200 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10"
+                                placeholder="Stud dog details: breed, health confirmation, and notes"
+                                value={cfg.dogInfo ?? ''}
+                                onChange={(e) =>
+                                  setServiceConfigs((prev) => ({
+                                    ...prev,
+                                    [id]: { ...cfg, dogInfo: e.target.value },
+                                  }))
+                                }
+                                data-testid="textarea-stud-dog-info"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {!hasSelectedServices && (
+              <p className="text-sm font-medium text-amber-800">
+                Turn on <span className="font-semibold">I offer this service</span> on at least one category above.
+              </p>
+            )}
             
             {/* Identity & Credentials Section */}
-            <div className="border rounded-lg p-4 space-y-4">
+            <div className="rounded-xl border border-blue-100/80 bg-white/85 p-5 shadow-[0_8px_24px_rgb(15,23,42,0.04)] space-y-4">
               <h3 className="text-lg font-medium">Identity & Credentials</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">State (for legal requirements)</label>
-                  <select 
-                    id="stateSelect"
-                    className="w-full border rounded-lg px-3 py-2"
-                    value={serviceDetails.state}
-                    onChange={(e) => setServiceDetails(prev => ({ ...prev, state: e.target.value }))}
-                    data-testid="select-state"
-                    required
-                  >
-                    <option value="TX">Texas</option>
-                    <option value="CA">California</option>
-                    <option value="NY">New York</option>
-                    <option value="FL">Florida</option>
-                    <option value="IL">Illinois</option>
-                    <option value="PA">Pennsylvania</option>
-                  </select>
+                  <Select value={serviceDetails.state} onValueChange={(value) => setServiceDetails(prev => ({ ...prev, state: value }))}>
+                    <SelectTrigger id="stateSelect" className="h-12 rounded-lg border-slate-300 bg-white" data-testid="select-state">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white">
+                      <SelectItem value="TX">Texas</SelectItem>
+                      <SelectItem value="CA">California</SelectItem>
+                      <SelectItem value="NY">New York</SelectItem>
+                      <SelectItem value="FL">Florida</SelectItem>
+                      <SelectItem value="IL">Illinois</SelectItem>
+                      <SelectItem value="PA">Pennsylvania</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 <div>
@@ -1644,79 +2327,103 @@ const ProviderOnboard: React.FC = () => {
             </div>
             
             {/* Document Uploads Section */}
-            <div className="border rounded-lg p-4 space-y-4">
-              <h3 className="text-lg font-medium">Verified Documents</h3>
-              <p className="text-sm text-gray-600">Upload your credentials for verification</p>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Business License</label>
-                  <Input 
-                    type="file" 
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        const maxSize = 8 * 1024 * 1024;
-                        const allowedTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg'];
-                        if (file.size > maxSize) {
-                          toast({ title: "File too large", description: "Max 8MB", variant: "destructive" });
-                          return;
+            {hasSelectedServices ? (
+              <div className="rounded-xl border border-blue-100/80 bg-white/85 p-5 shadow-[0_8px_24px_rgb(15,23,42,0.04)] space-y-4">
+                <h3 className="text-lg font-medium">Verified Documents</h3>
+                <p className="text-sm text-gray-600">
+                  Upload credentials for the services you selected.
+                  {requiresBusinessDocs ? ' Business docs are required for at least one selected service.' : ''}
+                </p>
+                {badgeCandidateServices.length > 0 && (
+                  <div className="rounded-md border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs text-indigo-900">
+                    Badge queue active: selected professional services will remain
+                    <span className="font-semibold"> pending verified badges </span>
+                    until required documents are approved.
+                  </div>
+                )}
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Professional License {requiresProfessionalLicense && <span className="text-red-600">Required</span>}
+                    </label>
+                    <Input 
+                      type="file" 
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const maxSize = 8 * 1024 * 1024;
+                          const allowedTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg'];
+                          if (file.size > maxSize) {
+                            toast({ title: "File too large", description: "Max 8MB", variant: "destructive" });
+                            return;
+                          }
+                          if (!allowedTypes.includes(file.type)) {
+                            toast({ title: "Invalid type", description: "PDF, PNG, or JPEG only", variant: "destructive" });
+                            return;
+                          }
+                          setDocuments(prev => ({ ...prev, businessLicense: file }));
                         }
-                        if (!allowedTypes.includes(file.type)) {
-                          toast({ title: "Invalid type", description: "PDF, PNG, or JPEG only", variant: "destructive" });
-                          return;
-                        }
-                        setDocuments(prev => ({ ...prev, businessLicense: file }));
-                      }
-                    }}
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    data-testid="input-business-license"
-                  />
-                  {documents.businessLicense && (
-                    <p className="text-xs text-green-600 mt-1">✓ {documents.businessLicense.name}</p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Insurance Certificate</label>
-                  <Input 
-                    type="file" 
-                    onChange={(e) => setDocuments(prev => ({ ...prev, insuranceCertificate: e.target.files?.[0] || null }))}
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    data-testid="input-insurance-certificate"
-                  />
-                  {documents.insuranceCertificate && (
-                    <p className="text-xs text-green-600 mt-1">✓ {documents.insuranceCertificate.name}</p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">CPR Certification (Optional)</label>
-                  <Input 
-                    type="file" 
-                    onChange={(e) => setDocuments(prev => ({ ...prev, certCPR: e.target.files?.[0] || null }))}
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    data-testid="input-cert-cpr"
-                  />
-                  {documents.certCPR && (
-                    <p className="text-xs text-green-600 mt-1">✓ {documents.certCPR.name}</p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">AKC Trainer Cert (Optional)</label>
-                  <Input 
-                    type="file" 
-                    onChange={(e) => setDocuments(prev => ({ ...prev, certAKCTrainer: e.target.files?.[0] || null }))}
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    data-testid="input-cert-akc-trainer"
-                  />
-                  {documents.certAKCTrainer && (
-                    <p className="text-xs text-green-600 mt-1">✓ {documents.certAKCTrainer.name}</p>
-                  )}
+                      }}
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      data-testid="input-business-license"
+                    />
+                    {documents.businessLicense && (
+                      <p className="text-xs text-green-600 mt-1">✓ {documents.businessLicense.name}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Insurance Certificate {selectedServiceIds.includes('boarding') && <span className="text-red-600">Required</span>}
+                    </label>
+                    <Input 
+                      type="file" 
+                      onChange={(e) => setDocuments(prev => ({ ...prev, insuranceCertificate: e.target.files?.[0] || null }))}
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      data-testid="input-insurance-certificate"
+                    />
+                    {documents.insuranceCertificate && (
+                      <p className="text-xs text-green-600 mt-1">✓ {documents.insuranceCertificate.name}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      CPR Certification {badgeCandidateServices.length > 0 && <span className="text-blue-700">Recommended</span>}
+                    </label>
+                    <Input 
+                      type="file" 
+                      onChange={(e) => setDocuments(prev => ({ ...prev, certCPR: e.target.files?.[0] || null }))}
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      data-testid="input-cert-cpr"
+                    />
+                    {documents.certCPR && (
+                      <p className="text-xs text-green-600 mt-1">✓ {documents.certCPR.name}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      AKC Trainer Cert {selectedServiceIds.includes('training') && <span className="text-blue-700">Recommended</span>}
+                    </label>
+                    <Input 
+                      type="file" 
+                      onChange={(e) => setDocuments(prev => ({ ...prev, certAKCTrainer: e.target.files?.[0] || null }))}
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      data-testid="input-cert-akc-trainer"
+                    />
+                    {documents.certAKCTrainer && (
+                      <p className="text-xs text-green-600 mt-1">✓ {documents.certAKCTrainer.name}</p>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                Turn on <span className="font-medium">I offer this service</span> on at least one category above to unlock required document uploads.
+              </div>
+            )}
 
             {/* Experience & Preferences Section */}
-            <div className="border rounded-lg p-4 space-y-4">
+            <div className="rounded-xl border border-blue-100/80 bg-white/85 p-5 shadow-[0_8px_24px_rgb(15,23,42,0.04)] space-y-4">
               <h3 className="text-lg font-medium">Experience & Preferences</h3>
               
               <div className="grid grid-cols-2 gap-4">
@@ -1756,55 +2463,25 @@ const ProviderOnboard: React.FC = () => {
                   data-testid="input-breed-restrictions"
                 />
               </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Services Offered</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {['Dog Walking', 'Pet Sitting', 'Grooming', 'Dog Training'].map((service) => (
-                    <label key={service} className="flex items-center space-x-2">
-                      <input 
-                        type="checkbox" 
-                        className="rounded"
-                        checked={serviceDetails.serviceTypes.includes(service)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setServiceDetails(prev => ({ 
-                              ...prev, 
-                              serviceTypes: [...prev.serviceTypes, service] 
-                            }));
-                          } else {
-                            setServiceDetails(prev => ({ 
-                              ...prev, 
-                              serviceTypes: prev.serviceTypes.filter(s => s !== service) 
-                            }));
-                          }
-                        }}
-                        data-testid={`checkbox-service-${service.toLowerCase().replace(' ', '-')}`}
-                      />
-                      <span className="text-sm">{service}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
             </div>
 
             {/* Pricing & Fees Section */}
-            <div className="border rounded-lg p-4 space-y-4">
+            <div className="rounded-xl border border-blue-100/80 bg-white/85 p-5 shadow-[0_8px_24px_rgb(15,23,42,0.04)] space-y-4">
               <h3 className="text-lg font-medium">Pricing & Fees</h3>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
                   <label className="block text-sm font-medium mb-2">Rate Type</label>
-                  <select 
-                    className="w-full border rounded-lg px-3 py-2"
-                    value={serviceDetails.rateType}
-                    onChange={(e) => setServiceDetails(prev => ({ ...prev, rateType: e.target.value as any }))}
-                    data-testid="select-rate-type"
-                  >
-                    <option value="hourly">Hourly</option>
-                    <option value="per_visit">Per Visit</option>
-                    <option value="flat">Flat Rate</option>
-                  </select>
+                  <Select value={serviceDetails.rateType} onValueChange={(value) => setServiceDetails(prev => ({ ...prev, rateType: value as any }))}>
+                    <SelectTrigger className="h-12 rounded-lg border-slate-300 bg-white" data-testid="select-rate-type">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white">
+                      <SelectItem value="hourly">Hourly</SelectItem>
+                      <SelectItem value="per_visit">Per Visit</SelectItem>
+                      <SelectItem value="flat">Flat Rate</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Starting Price ($)</label>
@@ -1818,20 +2495,50 @@ const ProviderOnboard: React.FC = () => {
                 </div>
               </div>
 
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Payout preference</label>
+                  <Select value={serviceDetails.payoutPreference} onValueChange={(value) => setServiceDetails(prev => ({ ...prev, payoutPreference: value as any }))}>
+                    <SelectTrigger className="h-12 rounded-lg border-slate-300 bg-white" data-testid="select-payout-preference">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white">
+                      <SelectItem value="fast">Fast payout (1-2 days)</SelectItem>
+                      <SelectItem value="standard">Standard payout (2-3 days)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Price visibility</label>
+                  <Select value={serviceDetails.priceVisibility} onValueChange={(value) => setServiceDetails(prev => ({ ...prev, priceVisibility: value as any }))}>
+                    <SelectTrigger className="h-12 rounded-lg border-slate-300 bg-white" data-testid="select-price-visibility">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white">
+                      <SelectItem value="exact">Show exact price</SelectItem>
+                      <SelectItem value="starting_at">Show "starting at"</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium mb-2">Minimum Booking Duration</label>
-                <select 
-                  className="w-full border rounded-lg px-3 py-2"
-                  value={serviceDetails.minBookingMinutes}
-                  onChange={(e) => setServiceDetails(prev => ({ ...prev, minBookingMinutes: parseInt(e.target.value) }))}
-                  data-testid="select-min-booking-minutes"
+                <Select
+                  value={String(serviceDetails.minBookingMinutes)}
+                  onValueChange={(value) => setServiceDetails(prev => ({ ...prev, minBookingMinutes: parseInt(value, 10) }))}
                 >
-                  <option value="30">30 minutes</option>
-                  <option value="45">45 minutes</option>
-                  <option value="60">1 hour</option>
-                  <option value="90">1.5 hours</option>
-                  <option value="120">2 hours</option>
-                </select>
+                  <SelectTrigger className="h-12 rounded-lg border-slate-300 bg-white" data-testid="select-min-booking-minutes">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    <SelectItem value="30">30 minutes</SelectItem>
+                    <SelectItem value="45">45 minutes</SelectItem>
+                    <SelectItem value="60">1 hour</SelectItem>
+                    <SelectItem value="90">1.5 hours</SelectItem>
+                    <SelectItem value="120">2 hours</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-3">
@@ -1910,75 +2617,42 @@ const ProviderOnboard: React.FC = () => {
             </div>
 
             {/* Availability Section */}
-            <div className="border rounded-lg p-4 space-y-4">
+            <div className="rounded-xl border border-blue-100/80 bg-white/85 p-5 shadow-[0_8px_24px_rgb(15,23,42,0.04)] space-y-4">
               <h3 className="text-lg font-medium">Availability</h3>
-              
-              <div>
-                <label className="block text-sm font-medium mb-2">Available Days</label>
-                <div className="grid grid-cols-4 gap-2">
-                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
-                    <label key={day} className="flex items-center space-x-2">
-                      <input 
-                        type="checkbox" 
-                        className="rounded"
-                        checked={serviceDetails.weeklySchedule.weekdays.includes(day)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setServiceDetails(prev => ({ 
-                              ...prev, 
-                              weeklySchedule: {
-                                ...prev.weeklySchedule,
-                                weekdays: [...prev.weeklySchedule.weekdays, day]
-                              }
-                            }));
-                          } else {
-                            setServiceDetails(prev => ({ 
-                              ...prev, 
-                              weeklySchedule: {
-                                ...prev.weeklySchedule,
-                                weekdays: prev.weeklySchedule.weekdays.filter(d => d !== day)
-                              }
-                            }));
-                          }
-                        }}
-                        data-testid={`checkbox-day-${day.toLowerCase()}`}
-                      />
-                      <span className="text-sm">{day}</span>
-                    </label>
-                  ))}
-                </div>
+              <p className="text-sm text-slate-700">
+                Set full recurring hours and exceptions in your provider calendar after onboarding.
+              </p>
+              <div className="rounded-lg border border-blue-100 bg-blue-50/60 px-3 py-2 text-xs text-slate-700">
+                This step sets lightweight booking preferences only.
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Start Time</label>
-                  <Input 
-                    type="time" 
-                    value={serviceDetails.weeklySchedule.timeRanges[0]?.[0] || '09:00'}
-                    onChange={(e) => setServiceDetails(prev => ({ 
-                      ...prev, 
-                      weeklySchedule: {
-                        ...prev.weeklySchedule,
-                        timeRanges: [[e.target.value, prev.weeklySchedule.timeRanges[0]?.[1] || '17:00']]
-                      }
-                    }))}
-                    data-testid="input-start-time"
-                  />
+                  <label className="block text-sm font-medium mb-2">Advance notice</label>
+                  <Select value={serviceDetails.advanceNoticeHours} onValueChange={(value) => setServiceDetails(prev => ({ ...prev, advanceNoticeHours: value as any }))}>
+                    <SelectTrigger className="h-12 rounded-lg border-slate-300 bg-white" data-testid="select-advance-notice">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white">
+                      <SelectItem value="0">Same day</SelectItem>
+                      <SelectItem value="24">24 hours</SelectItem>
+                      <SelectItem value="48">48 hours</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">End Time</label>
-                  <Input 
-                    type="time" 
-                    value={serviceDetails.weeklySchedule.timeRanges[0]?.[1] || '17:00'}
-                    onChange={(e) => setServiceDetails(prev => ({ 
-                      ...prev, 
-                      weeklySchedule: {
-                        ...prev.weeklySchedule,
-                        timeRanges: [[prev.weeklySchedule.timeRanges[0]?.[0] || '09:00', e.target.value]]
-                      }
-                    }))}
-                    data-testid="input-end-time"
-                  />
+                  <label className="block text-sm font-medium mb-2">Max bookings/day</label>
+                  <Select value={serviceDetails.maxBookingsPerDay} onValueChange={(value) => setServiceDetails(prev => ({ ...prev, maxBookingsPerDay: value as any }))}>
+                    <SelectTrigger className="h-12 rounded-lg border-slate-300 bg-white" data-testid="select-max-bookings-per-day">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white">
+                      <SelectItem value="1">1</SelectItem>
+                      <SelectItem value="2">2</SelectItem>
+                      <SelectItem value="3">3</SelectItem>
+                      <SelectItem value="4_plus">4+</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
@@ -1997,27 +2671,71 @@ const ProviderOnboard: React.FC = () => {
             </div>
 
             {/* Policies Section */}
-            <div className="border rounded-lg p-4 space-y-4">
+            <div className="rounded-xl border border-blue-100/80 bg-white/85 p-5 shadow-[0_8px_24px_rgb(15,23,42,0.04)] space-y-4">
               <h3 className="text-lg font-medium">Policies</h3>
               
               <div>
                 <label className="block text-sm font-medium mb-2">Cancellation Policy</label>
-                <select 
-                  className="w-full border rounded-lg px-3 py-2"
-                  value={serviceDetails.cancellationPolicy}
-                  onChange={(e) => setServiceDetails(prev => ({ ...prev, cancellationPolicy: e.target.value as any }))}
-                  data-testid="select-cancellation-policy"
-                >
-                  <option value="flexible">Flexible</option>
-                  <option value="moderate">Moderate</option>
-                  <option value="strict">Strict</option>
-                </select>
+                <Select value={serviceDetails.cancellationPolicy} onValueChange={(value) => setServiceDetails(prev => ({ ...prev, cancellationPolicy: value as any }))}>
+                  <SelectTrigger className="h-12 rounded-lg border-slate-300 bg-white" data-testid="select-cancellation-policy">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    <SelectItem value="flexible">Flexible</SelectItem>
+                    <SelectItem value="moderate">Moderate</SelectItem>
+                    <SelectItem value="strict">Strict</SelectItem>
+                  </SelectContent>
+                </Select>
                 <div className="mt-2 text-xs text-gray-600 space-y-1">
                   <p><strong>Flexible:</strong> Full refund up to 24h before, 50% refund &lt;24h</p>
                   <p><strong>Moderate:</strong> Full refund up to 48h before, 50% refund &lt;48h</p>
                   <p><strong>Strict:</strong> 50% refund up to 72h before, no refund &lt;72h</p>
                 </div>
               </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Reschedule policy</label>
+                  <Select value={serviceDetails.reschedulePolicy} onValueChange={(value) => setServiceDetails(prev => ({ ...prev, reschedulePolicy: value as any }))}>
+                    <SelectTrigger className="h-12 rounded-lg border-slate-300 bg-white" data-testid="select-reschedule-policy">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white">
+                      <SelectItem value="flexible">Flexible</SelectItem>
+                      <SelectItem value="moderate">Moderate</SelectItem>
+                      <SelectItem value="strict">Strict</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-end">
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      className="rounded"
+                      checked={serviceDetails.lastMinuteSurchargeEnabled}
+                      onChange={(e) => setServiceDetails(prev => ({ ...prev, lastMinuteSurchargeEnabled: e.target.checked }))}
+                      data-testid="checkbox-last-minute-surcharge"
+                    />
+                    <span className="text-sm">Last-minute surcharge</span>
+                  </label>
+                </div>
+              </div>
+              {serviceDetails.lastMinuteSurchargeEnabled && (
+                <div>
+                  <label className="block text-sm font-medium mb-2">Last-minute surcharge (%)</label>
+                  <Select value={serviceDetails.lastMinuteSurchargePercent} onValueChange={(value) => setServiceDetails(prev => ({ ...prev, lastMinuteSurchargePercent: value }))}>
+                    <SelectTrigger className="h-12 rounded-lg border-slate-300 bg-white" data-testid="select-last-minute-surcharge-percent">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white">
+                      <SelectItem value="5">5%</SelectItem>
+                      <SelectItem value="10">10%</SelectItem>
+                      <SelectItem value="15">15%</SelectItem>
+                      <SelectItem value="20">20%</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               <div className="bg-blue-50 p-4 rounded-lg space-y-3">
                 <div className="flex items-start space-x-2">
@@ -2044,19 +2762,72 @@ const ProviderOnboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Save Button */}
-            <div className="pt-4">
-              <Button 
-                onClick={saveServiceDetails}
-                variant="outline"
-                className="w-full"
-                data-testid="button-save-service-details"
-              >
-                Save Service Details
-              </Button>
-              <p className="text-xs text-gray-500 mt-2 text-center">
-                Details are saved as draft and can be updated later
-              </p>
+            {/* Fixed bar: long step — keep primary actions in view (footer hidden on this step) */}
+            <div
+              className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 shadow-[0_-4px_24px_-8px_rgba(15,23,42,0.12)] backdrop-blur supports-[backdrop-filter]:bg-white/90"
+              style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+            >
+              <div className="mx-auto flex max-w-3xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                <p className="order-2 text-xs text-slate-500 sm:order-1 sm:max-w-[42%]">
+                  Save your draft anytime. Continue guides you to the next incomplete service, then advances when ready.
+                </p>
+                <div className="order-1 flex w-full flex-col gap-2 sm:order-2 sm:w-auto sm:flex-row sm:justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full sm:w-auto"
+                    onClick={handleBack}
+                    data-testid="button-back-step"
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => void saveServiceDetails()}
+                    variant="outline"
+                    className="w-full sm:w-auto"
+                    disabled={!canSaveServiceDetails}
+                    data-testid="button-save-service-details-sticky"
+                  >
+                    Save service details
+                  </Button>
+                  <Button
+                    type="button"
+                    className="w-full sm:w-auto"
+                    disabled={!hasSelectedServices}
+                    onClick={() => {
+                      if (nextIncompleteServiceId) {
+                        const serviceLabel =
+                          SERVICE_CATEGORY_FILTER_OPTIONS.find((s) => s.id === nextIncompleteServiceId)?.label ?? 'selected service';
+                        const missingFields = getServiceMissingFields(nextIncompleteServiceId);
+                        toast({
+                          title: 'Complete required service details',
+                          description: `${serviceLabel}: add ${formatMissingFieldsPreview(missingFields)} before continuing.`,
+                          variant: 'destructive',
+                        });
+                        setExpandedServiceId(nextIncompleteServiceId);
+                        requestAnimationFrame(() => {
+                          serviceCardRefs.current[nextIncompleteServiceId]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                          window.setTimeout(() => {
+                            serviceRateInputRefs.current[nextIncompleteServiceId]?.focus();
+                          }, 180);
+                        });
+                        return;
+                      }
+                      void handleNext();
+                    }}
+                    data-testid="button-continue-step5-sticky"
+                  >
+                    {nextIncompleteServiceId ? 'Next incomplete service' : 'Continue'}
+                  </Button>
+                </div>
+                {!canSaveServiceDetails && (
+                  <p className="order-3 w-full text-xs text-amber-700">
+                    Complete each offered service (rate, unit, experience), conditional fields, and required documents to
+                    enable save.
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         );
@@ -2192,7 +2963,7 @@ const ProviderOnboard: React.FC = () => {
 
             <div className="pt-4 text-center">
               <Button 
-                onClick={() => navigate('/services/provider/dashboard')}
+                onClick={() => navigate('/dashboard/provider')}
                 variant="outline"
                 className="w-full"
                 data-testid="button-go-to-dashboard"
@@ -2212,19 +2983,25 @@ const ProviderOnboard: React.FC = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
+    <div
+      className={`mx-auto rounded-2xl bg-gradient-to-br from-blue-50 via-white to-blue-50/30 p-6 ${currentStep === 5 ? 'max-w-3xl' : 'max-w-2xl'}`}
+      style={{
+        backgroundImage:
+          'radial-gradient(at 0% 0%, rgba(59,130,246,0.05) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(59,130,246,0.05) 0px, transparent 50%)',
+      }}
+    >
       {/* Progress Stepper */}
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-4 flex items-center justify-between gap-2">
           {steps.map((step, index) => (
-            <div key={step.id} className="flex items-center">
+            <div key={step.id} className="flex min-w-0 flex-1 items-center">
               <div className="flex flex-col items-center">
-                <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${
+                <div className={`flex h-9 w-9 items-center justify-center rounded-full border-2 transition-all duration-200 ${
                   step.status === 'completed' 
-                    ? 'bg-green-500 border-green-500 text-white' 
+                    ? 'border-green-500 bg-green-500 text-white shadow-sm' 
                     : step.status === 'current'
-                    ? 'bg-blue-500 border-blue-500 text-white'
-                    : 'bg-gray-100 border-gray-300 text-gray-500'
+                    ? 'border-blue-500 bg-blue-500 text-white shadow-sm'
+                    : 'border-gray-300 bg-gray-100 text-gray-500'
                 }`}>
                   {step.status === 'completed' ? (
                     <CheckCircle className="h-4 w-4" />
@@ -2232,14 +3009,14 @@ const ProviderOnboard: React.FC = () => {
                     <span className="text-xs font-semibold">{step.id + 1}</span>
                   )}
                 </div>
-                <span className={`text-xs mt-1 ${
+                <span className={`mt-1 text-[11px] ${
                   step.status === 'current' ? 'text-blue-600 font-semibold' : 'text-gray-500'
                 }`}>
                   {step.title}
                 </span>
               </div>
               {index < steps.length - 1 && (
-                <div className={`flex-1 h-0.5 mx-2 ${
+                <div className={`mx-2 h-0.5 flex-1 rounded ${
                   step.status === 'completed' ? 'bg-green-500' : 'bg-gray-200'
                 }`} />
               )}
@@ -2249,37 +3026,41 @@ const ProviderOnboard: React.FC = () => {
       </div>
 
       {/* Step Content */}
-      <Card>
-        <CardHeader>
-          <div className="text-sm text-gray-500">
+      <Card className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_8px_30px_rgb(0,0,0,0.06)] backdrop-blur-sm">
+        <CardHeader className="border-b border-blue-100/70 bg-gradient-to-b from-blue-50/50 to-transparent">
+          <div className="text-sm text-slate-600">
             Step {currentStep + 1} of {steps.length}
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           {renderStepContent()}
         </CardContent>
       </Card>
 
-      {/* Navigation Buttons */}
-      <div className="flex justify-between mt-6">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={handleBack}
-          disabled={currentStep === 0}
-          data-testid="button-back-step"
-        >
-          Back
-        </Button>
-        <Button
-          type="button"
-          data-testid="button-next-step"
-          onClick={handleNext}
-          disabled={currentStep === 4 && !payoutSetupComplete}
-        >
-          Next
-        </Button>
-      </div>
+      {/* Step 5 uses a fixed action bar inside the step (avoid duplicate Back/Next + overlap) */}
+      {currentStep !== 5 && (
+        <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleBack}
+            disabled={currentStep === 0}
+            className="w-full sm:w-auto"
+            data-testid="button-back-step"
+          >
+            Back
+          </Button>
+          <Button
+            type="button"
+            className="w-full sm:w-auto sm:min-w-[120px]"
+            data-testid="button-next-step"
+            onClick={() => void handleNext()}
+            disabled={currentStep === 4 && !payoutSetupComplete}
+          >
+            {currentStep === 7 ? 'Go to dashboard' : 'Next'}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

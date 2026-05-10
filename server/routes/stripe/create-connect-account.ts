@@ -35,8 +35,13 @@ export async function createConnectAccount(req: Request, res: Response) {
 
     console.log('[STRIPE CONNECT] Saved stripe_account_id to profiles table for user:', userId);
 
-    // Get origin for redirect URLs
-    const origin = process.env.PUBLIC_APP_URL || process.env.BASE_URL || '';
+    // Get origin for redirect URLs (prefer local host when running local preview).
+    const configuredOrigin = process.env.PUBLIC_APP_URL || process.env.BASE_URL || '';
+    const requestHost = req.get('x-forwarded-host') || req.get('host') || '';
+    const requestProto = req.get('x-forwarded-proto') || req.protocol || 'http';
+    const requestOrigin = requestHost ? `${requestProto}://${requestHost}` : '';
+    const isLocalPreview = /^(127\.0\.0\.1|localhost)(:\d+)?$/i.test(requestHost);
+    const origin = isLocalPreview ? requestOrigin : configuredOrigin || requestOrigin;
     
     if (!origin || !/^https?:\/\//i.test(origin)) {
       throw new Error('Missing or invalid PUBLIC_APP_URL/BASE_URL');

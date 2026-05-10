@@ -1,3 +1,4 @@
+import { debugApiLog, debugApiWarn } from './/debugApi';
 import { db } from "../db";
 import { notifications } from "@shared/schema";
 import { emitToUser } from "../socket";
@@ -11,6 +12,7 @@ interface NotificationInput {
   postId?: string;
   commentId?: string;
   relatedId?: string;
+  targetUrl?: string;
 }
 
 export async function createNotification(input: NotificationInput): Promise<void> {
@@ -29,6 +31,7 @@ export async function createNotification(input: NotificationInput): Promise<void
         postId: input.postId || null,
         commentId: input.commentId || null,
         relatedId: input.relatedId || null,
+        targetUrl: input.targetUrl || null,
         isRead: false,
         read: false,
       })
@@ -38,13 +41,13 @@ export async function createNotification(input: NotificationInput): Promise<void
       emitToUser(input.toUserId, 'notification:new', notification);
     }
 
-    console.log('[PROOF:NOTIF:CREATE]', JSON.stringify({
+    debugApiLog('[PROOF:NOTIF:CREATE]', JSON.stringify({
       toUserId: input.toUserId,
       fromUserId: input.fromUserId,
       type: input.type,
       ts: Date.now()
     }));
   } catch (error: any) {
-    console.error('[PROOF:NOTIF:CREATE:ERR]', JSON.stringify({ type: input.type, error: error?.message, ts: Date.now() }));
+    debugApiLog('[PROOF:NOTIF:CREATE:ERR]', JSON.stringify({ type: input.type, error: error?.message, ts: Date.now() }));
   }
 }

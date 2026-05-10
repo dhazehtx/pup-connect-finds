@@ -25,6 +25,11 @@ export interface NotificationSettingsData {
   sound_enabled: boolean;
   desktop_notifications: boolean;
   notification_frequency: string;
+
+  /** Profile settings hub — persisted in user_preferences.matching_criteria.notification_settings */
+  notify_bookings: boolean;
+  notify_reviews: boolean;
+  notify_promotions: boolean;
 }
 
 export interface NotificationSectionProps {

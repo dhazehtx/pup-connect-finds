@@ -112,11 +112,11 @@ class CacheService {
     const now = Date.now();
     
     // Clean memory cache
-    for (const [key, item] of this.memoryCache.entries()) {
+    this.memoryCache.forEach((item, key) => {
       if (now - item.timestamp > item.ttl) {
         this.memoryCache.delete(key);
       }
-    }
+    });
 
     // Clean localStorage cache
     try {

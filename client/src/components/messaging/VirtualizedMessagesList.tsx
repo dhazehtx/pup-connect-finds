@@ -84,7 +84,7 @@ const VirtualizedMessagesList = ({
   otherUserAvatar, 
   currentUserAvatar 
 }: VirtualizedMessagesListProps) => {
-  const listRef = useRef<List>(null);
+  const listRef = useRef<any>(null);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {

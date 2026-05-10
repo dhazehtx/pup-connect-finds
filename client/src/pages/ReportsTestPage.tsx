@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import ReportButton from '@/components/common/ReportButton';
 import { Button } from '@/components/ui/button';
-import { Link } from 'wouter';
+import { Link } from 'react-router-dom';
 import { User, Package, Shield, Flag } from 'lucide-react';
 
 const ReportsTestPage = () => {

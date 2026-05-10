@@ -111,7 +111,7 @@ const PupStore = () => {
     ];
   })();
 
-  const filteredProducts = products.filter(product => {
+  const filteredProducts = products.filter((product: Product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
     return matchesSearch && matchesCategory;
@@ -129,9 +129,8 @@ const PupStore = () => {
                 active={selectedCategory === category}
                 onClick={() => setSelectedCategory(category)}
                 className="text-sm"
-              >
-                {category}
-              </FilterPill>
+                label={category}
+              />
             ))}
           </div>
         </div>
@@ -156,7 +155,7 @@ const PupStore = () => {
         {/* Products Grid */}
         {!isLoading && !error && (
           <div className="grid grid-cols-2 gap-4">
-            {filteredProducts.map((product) => (
+            {filteredProducts.map((product: Product) => (
               <div key={product.id} className="bg-white rounded-3xl border border-gray-200 shadow-sm p-4">
                 <div className="relative mb-3">
                   <img

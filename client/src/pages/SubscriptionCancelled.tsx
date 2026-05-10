@@ -1,18 +1,18 @@
 import React from 'react';
-import { useLocation } from 'wouter';
+import { useNavigate } from 'react-router-dom';
 import { XCircle, ArrowLeft } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 const SubscriptionCancelled = () => {
-  const [location, setLocation] = useLocation();
+  const navigate = useNavigate();
 
   const handleGoBack = () => {
-    setLocation('/marketplace');
+    navigate('/marketplace?tab=box');
   };
 
   const handleTryAgain = () => {
-    setLocation('/marketplace');
+    navigate('/marketplace?tab=box');
   };
 
   return (

@@ -15,7 +15,7 @@ import {
 import PostCard from './PostCard';
 import CreatePostModal from './CreatePostModal';
 import { useToast } from '@/hooks/use-toast';
-import { useLocation } from 'wouter';
+import { useNavigate } from 'react-router-dom';
 
 interface Post {
   id: string;
@@ -46,7 +46,7 @@ const EnhancedFeed = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const { toast } = useToast();
 
   // Mock data for demonstration
@@ -202,7 +202,7 @@ const EnhancedFeed = () => {
   };
 
   const handleOpenReels = (postId?: string) => {
-    setLocation('/reels');
+    navigate('/reels');
   };
 
   const filteredPosts = posts.filter(post => 

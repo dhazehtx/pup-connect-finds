@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { useLocation } from "wouter";
+import React, { useState, useEffect, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Gift,
   Truck,
@@ -7,38 +8,75 @@ import {
   RotateCcw,
   Check,
   ShoppingCart,
+  ListOrdered,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { useCart } from "@/hooks/use-cart";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 
-// Pup Box Product Configuration
-// TODO: Replace these with your actual Stripe Product IDs from your Stripe dashboard
-const PUP_BOX_PRODUCTS = {
-  small: {
-    subscription: "STRIPE_PRODUCT_ID_SMALL_SUBSCRIPTION", // Replace with actual Stripe product ID
-    oneTime: "STRIPE_PRODUCT_ID_SMALL_ONETIME", // Replace with actual Stripe product ID
-  },
-  medium: {
-    subscription: "STRIPE_PRODUCT_ID_MEDIUM_SUBSCRIPTION",
-    oneTime: "STRIPE_PRODUCT_ID_MEDIUM_ONETIME",
-  },
-  large: {
-    subscription: "STRIPE_PRODUCT_ID_LARGE_SUBSCRIPTION",
-    oneTime: "STRIPE_PRODUCT_ID_LARGE_ONETIME",
-  },
+type PupboxApiPlan = {
+  key: string;
+  id: string;
+  amount: string;
+  recurring: boolean;
+  name: string;
+  inDatabase: boolean;
 };
+
+/** Must match rows in server `PUPBOX_CATALOG_JSON` (keys) e.g. small_subscription, small_one_time */
+function catalogKey(
+  planId: "small" | "medium" | "large",
+  billing: "subscription" | "oneTime",
+): string {
+  const suffix = billing === "subscription" ? "subscription" : "one_time";
+  return `${planId}_${suffix}`;
+}
 
 // SOL:PUPBOX:START
 const PupBoxSubscription = () => {
+  useEffect(() => {
+    document.title = "Pup Box — PAWS";
+  }, []);
+
   const { user } = useAuth();
   const { toast } = useToast();
   const { addToCart, getItemCount } = useCart();
   const { requireAuth } = useRequireAuth();
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
+
+  const { data: pupboxRes, isLoading: pupboxPlansLoading } = useQuery({
+    queryKey: ["/api/pupbox/plans"],
+    queryFn: async () => {
+      const res = await fetch("/api/pupbox/plans", { credentials: "include" });
+      if (!res.ok) throw new Error("Could not load Pup Box catalog");
+      return res.json() as Promise<{
+        configured: boolean;
+        message?: string;
+        plans: PupboxApiPlan[];
+      }>;
+    },
+    staleTime: 60_000,
+  });
+
+  const catalogByKey = useMemo(() => {
+    const m = new Map<string, PupboxApiPlan>();
+    for (const p of pupboxRes?.plans ?? []) {
+      m.set(p.key, p);
+    }
+    return m;
+  }, [pupboxRes]);
+
+  const pupboxConfigured = pupboxRes?.configured === true;
 
   // Track billing type selection for each plan
   const [billingType, setBillingType] = useState<{
@@ -102,29 +140,57 @@ const PupBoxSubscription = () => {
     },
   ];
 
+  const resolvePrice = (
+    planId: "small" | "medium" | "large",
+    billing: "subscription" | "oneTime",
+  ): number => {
+    const row = catalogByKey.get(catalogKey(planId, billing));
+    if (row) return parseFloat(row.amount);
+    const plan = plans.find((p) => p.id === planId);
+    if (!plan) return 0;
+    return billing === "subscription" ? plan.subscriptionPrice : plan.oneTimePrice;
+  };
+
   const handleAddToCart = (planId: "small" | "medium" | "large") => {
     const plan = plans.find((p) => p.id === planId);
     if (!plan) return;
 
     const selectedBillingType = billingType[planId];
     const isSubscription = selectedBillingType === "subscription";
-    const price = isSubscription ? plan.subscriptionPrice : plan.oneTimePrice;
-    const stripePriceId = PUP_BOX_PRODUCTS[planId][selectedBillingType];
 
-    // Create a unique cart item ID that includes billing type
-    const cartItemId = `pupbox-${planId}-${selectedBillingType}`;
+    const key = catalogKey(planId, selectedBillingType);
+    const catalogRow = catalogByKey.get(key);
 
-    // Create display name
+    if (!pupboxConfigured || !catalogRow) {
+      toast({
+        variant: "destructive",
+        title: "Pup Box not configured",
+        description:
+          "Set PUPBOX_CATALOG_JSON on the server, run npm run store:sync-catalog, then restart the API.",
+      });
+      return;
+    }
+
+    if (!catalogRow.inDatabase) {
+      toast({
+        variant: "destructive",
+        title: "Sync Pup Box catalog",
+        description: "Run npm run store:sync-catalog after setting PUPBOX_CATALOG_JSON so products exist in the database.",
+      });
+      return;
+    }
+
+    const price = resolvePrice(planId, selectedBillingType);
     const billingLabel = isSubscription ? "Subscription" : "One-Time";
     const displayName = `${plan.name} Pup Box (${billingLabel})`;
 
     addToCart({
-      id: cartItemId,
+      id: catalogRow.id,
       name: displayName,
       unit_price: price.toFixed(2),
-      image_url: null, // Pup Box uses Gift icon
+      image_url: null,
       is_subscription: isSubscription,
-      stripe_price_id: stripePriceId,
+      stripe_price_id: undefined,
     });
 
     const count = getItemCount() + 1;
@@ -132,7 +198,7 @@ const PupBoxSubscription = () => {
       title: "Added to cart",
       description: `Added to cart (${count} ${count === 1 ? 'item' : 'items'})`,
       action: (
-        <ToastAction altText="View cart" onClick={() => setLocation('/cart')}>
+        <ToastAction altText="View cart" onClick={() => navigate('/cart')}>
           View cart
         </ToastAction>
       ),
@@ -198,6 +264,16 @@ const PupBoxSubscription = () => {
         <div className="max-w-6xl mx-auto px-4 md:px-6">
           {/* Helper Text */}
           <div className="text-center mb-8">
+            {!pupboxPlansLoading && !pupboxConfigured && (
+              <div
+                role="status"
+                className="mb-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-left text-sm text-amber-950 max-w-xl mx-auto"
+              >
+                Pup Box checkout is disabled until the server has{" "}
+                <code className="rounded bg-amber-100 px-1">PUPBOX_CATALOG_JSON</code> set and{" "}
+                <code className="rounded bg-amber-100 px-1">npm run store:sync-catalog</code> has been run.
+              </div>
+            )}
             <p 
               style={{ 
                 color: "#111111", 
@@ -364,7 +440,8 @@ const PupBoxSubscription = () => {
                         <>
                           <div>
                             <span className="text-3xl font-bold text-primary-600">
-                              ${plan.subscriptionPrice.toFixed(2)}
+                              $
+                              {resolvePrice(plan.id, "subscription").toFixed(2)}
                             </span>
                             <span
                               className="text-base font-medium"
@@ -387,7 +464,8 @@ const PupBoxSubscription = () => {
                         <>
                           <div>
                             <span className="text-3xl font-bold text-primary-600">
-                              ${plan.oneTimePrice.toFixed(2)}
+                              $
+                              {resolvePrice(plan.id, "oneTime").toFixed(2)}
                             </span>
                             <span
                               className="text-base font-medium"
@@ -443,6 +521,7 @@ const PupBoxSubscription = () => {
                     <Button
                       onClick={() => requireAuth(() => handleAddToCart(plan.id))}
                       className="w-full"
+                      disabled={pupboxPlansLoading}
                       data-testid={`button-add-to-cart-${plan.id}`}
                     >
                       <ShoppingCart className="w-4 h-4 mr-2" />
@@ -503,6 +582,135 @@ const PupBoxSubscription = () => {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* How it works */}
+          <div className="mt-12 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+            <div className="mb-6 flex items-center gap-2">
+              <ListOrdered className="h-6 w-6 text-primary-600" />
+              <h2 className="text-xl font-bold text-slate-900">How Pup Box works</h2>
+            </div>
+            <ol className="grid gap-4 md:grid-cols-2">
+              {[
+                {
+                  step: '1',
+                  title: 'Pick a size',
+                  body: 'Small, medium, or large—matched to your dog’s weight range so toys and treats fit their needs.',
+                },
+                {
+                  step: '2',
+                  title: 'Subscribe or try once',
+                  body: 'Choose monthly delivery for recurring joy, or a one-time box to sample the experience.',
+                },
+                {
+                  step: '3',
+                  title: 'We curate & ship',
+                  body: 'Each cycle blends toys, treats, and essentials with seasonal variety—see plan details above.',
+                },
+                {
+                  step: '4',
+                  title: 'Checkout securely',
+                  body: 'Add to cart and complete checkout with Stripe. Manage subscriptions from your account when available.',
+                },
+              ].map((row) => (
+                <li
+                  key={row.step}
+                  className="flex gap-3 rounded-xl border border-slate-100 bg-slate-50/80 p-4"
+                >
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-600 text-sm font-bold text-white">
+                    {row.step}
+                  </span>
+                  <div>
+                    <h3 className="font-semibold text-slate-900">{row.title}</h3>
+                    <p className="mt-1 text-sm text-slate-600">{row.body}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          {/* Rotating value */}
+          <div className="mt-8 flex flex-col items-center gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/60 px-5 py-6 text-center md:flex-row md:text-left">
+            <Sparkles className="mx-auto h-8 w-8 shrink-0 text-indigo-600 md:mx-0" />
+            <div>
+              <h3 className="font-semibold text-indigo-950">Fresh picks every cycle</h3>
+              <p className="mt-1 text-sm text-indigo-900/90">
+                Themes and product mix can rotate by month so your pup stays engaged. Exact SKUs may vary; we
+                prioritize safe, high-quality items suited to your selected size tier.
+              </p>
+            </div>
+          </div>
+
+          {/* Policies */}
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm text-slate-600">
+            <span className="font-medium text-slate-700">Peace of mind:</span>
+            <Link to="/legal/shipping" className="text-primary-600 underline-offset-2 hover:underline">
+              Shipping
+            </Link>
+            <span aria-hidden className="text-slate-300">
+              ·
+            </span>
+            <Link to="/legal/returns" className="text-primary-600 underline-offset-2 hover:underline">
+              Returns &amp; refunds
+            </Link>
+            <span aria-hidden className="text-slate-300">
+              ·
+            </span>
+            <Link to="/contact" className="text-primary-600 underline-offset-2 hover:underline">
+              Contact support
+            </Link>
+          </div>
+
+          {/* FAQ */}
+          <div className="mt-10 max-w-3xl mx-auto">
+            <h2 className="mb-4 text-center text-xl font-bold text-slate-900">Pup Box FAQ</h2>
+            <Accordion type="single" collapsible className="w-full rounded-xl border border-slate-200 bg-white px-2">
+              <AccordionItem value="billing">
+                <AccordionTrigger className="text-left text-slate-900">
+                  When am I charged for a subscription?
+                </AccordionTrigger>
+                <AccordionContent className="text-slate-600">
+                  Subscription billing follows the schedule shown at checkout (typically monthly from your first
+                  successful charge). You can cancel or adjust according to the options we expose in your account
+                  and our returns policy.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="skip">
+                <AccordionTrigger className="text-left text-slate-900">Can I skip a month?</AccordionTrigger>
+                <AccordionContent className="text-slate-600">
+                  Skip/pause availability depends on your plan and Stripe configuration. If the app offers skip
+                  controls, use those; otherwise contact support before your next ship date.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="allergies">
+                <AccordionTrigger className="text-left text-slate-900">
+                  What if my dog has allergies or dietary needs?
+                </AccordionTrigger>
+                <AccordionContent className="text-slate-600">
+                  Review treat ingredients on the packaging when your box arrives. For strict dietary needs, Pup
+                  Box may not be suitable—consult your veterinarian and reach out to support for guidance.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="stripe">
+                <AccordionTrigger className="text-left text-slate-900">
+                  Why does checkout say Stripe?
+                </AccordionTrigger>
+                <AccordionContent className="text-slate-600">
+                  PAWS uses Stripe for secure payments. You will see Stripe branding during checkout; your order
+                  still ships as a PAWS Pup Box.
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
+
+          {/* CTA */}
+          <div className="mt-10 text-center">
+            <p className="text-sm text-slate-600">
+              Ready to browse the full storefront?{' '}
+              <Link to="/marketplace?tab=store" className="font-semibold text-primary-600 underline-offset-2 hover:underline">
+                Visit the PAWS store
+              </Link>
+            </p>
           </div>
         </div>
       </div>

@@ -9,14 +9,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { SERVICE_CATEGORY_FILTER_OPTIONS } from '@shared/serviceCategories';
 
 interface CreateServiceDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onServiceCreated: () => void;
 }
-
-type ServiceType = 'grooming' | 'walking' | 'training' | 'veterinary' | 'boarding' | 'sitting';
 
 const CreateServiceDialog = ({ isOpen, onOpenChange, onServiceCreated }: CreateServiceDialogProps) => {
   const { user } = useAuth();
@@ -26,19 +25,15 @@ const CreateServiceDialog = ({ isOpen, onOpenChange, onServiceCreated }: CreateS
     business_name: '',
     description: '',
     location: '',
-    service_types: [] as ServiceType[],
+    service_types: [] as string[],
     hourly_rate: '',
     session_rate: ''
   });
 
-  const serviceOptions: { value: ServiceType; label: string }[] = [
-    { value: 'grooming', label: 'Pet Grooming' },
-    { value: 'walking', label: 'Dog Walking' },
-    { value: 'training', label: 'Training' },
-    { value: 'veterinary', label: 'Veterinary Care' },
-    { value: 'boarding', label: 'Pet Boarding' },
-    { value: 'sitting', label: 'Pet Sitting' }
-  ];
+  const serviceOptions = SERVICE_CATEGORY_FILTER_OPTIONS.map((c) => ({
+    value: c.id,
+    label: c.label,
+  }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,16 +46,14 @@ const CreateServiceDialog = ({ isOpen, onOpenChange, onServiceCreated }: CreateS
         session: parseFloat(formData.session_rate) || 0
       };
 
-      const { error } = await supabase
-        .from('service_providers')
-        .insert({
-          user_id: user.id,
-          business_name: formData.business_name,
-          description: formData.description,
-          location: formData.location,
-          service_types: formData.service_types,
-          pricing: pricing
-        });
+      const { error } = await supabase.from('service_providers').insert({
+        user_id: user.id,
+        business_name: formData.business_name,
+        description: formData.description,
+        location: formData.location,
+        service_types: formData.service_types,
+        pricing,
+      } as any);
 
       if (error) throw error;
 
@@ -93,7 +86,7 @@ const CreateServiceDialog = ({ isOpen, onOpenChange, onServiceCreated }: CreateS
     }
   };
 
-  const handleServiceTypeChange = (serviceType: ServiceType, checked: boolean) => {
+  const handleServiceTypeChange = (serviceType: string, checked: boolean) => {
     setFormData(prev => ({
       ...prev,
       service_types: checked 
@@ -143,7 +136,7 @@ const CreateServiceDialog = ({ isOpen, onOpenChange, onServiceCreated }: CreateS
 
           <div>
             <Label>Service Types</Label>
-            <div className="grid grid-cols-2 gap-3 mt-2">
+            <div className="grid grid-cols-2 gap-3 mt-2 max-h-56 overflow-y-auto pr-1">
               {serviceOptions.map((option) => (
                 <div key={option.value} className="flex items-center space-x-2">
                   <Checkbox

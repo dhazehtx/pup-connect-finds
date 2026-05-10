@@ -34,17 +34,17 @@ const HeaderSupportMenu = () => {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link to="/terms" className="w-full cursor-pointer">
+          <Link to="/legal/terms" className="w-full cursor-pointer">
             Terms of Service
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link to="/privacy-policy" className="w-full cursor-pointer">
+          <Link to="/legal/privacy" className="w-full cursor-pointer">
             Privacy Policy
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link to="/terms" className="w-full cursor-pointer">
+          <Link to="/legal/terms" className="w-full cursor-pointer">
             Terms of Use
           </Link>
         </DropdownMenuItem>
@@ -57,7 +57,7 @@ const HeaderSupportMenu = () => {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link to="/trust-safety" className="w-full cursor-pointer">
+          <Link to="/legal/guidelines" className="w-full cursor-pointer">
             Trust & Safety
           </Link>
         </DropdownMenuItem>

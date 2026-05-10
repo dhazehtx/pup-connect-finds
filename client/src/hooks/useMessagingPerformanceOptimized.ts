@@ -32,10 +32,10 @@ export const useMessagingPerformanceOptimized = () => {
   });
 
   const [isOptimizing, setIsOptimizing] = useState(false);
-  const [performanceCache, setPerformanceCache] = useState(new Map());
+  const [performanceCache, setPerformanceCache] = useState<Map<string, { data: any; timestamp: number }>>(new Map());
 
   // Enhanced performance measurement
-  const measurePerformance = useCallback((operation: string, fn: () => Promise<any>) => {
+  const measurePerformance = useCallback((operation: string, fn: (...args: any[]) => Promise<any>) => {
     return async (...args: any[]) => {
       const startTime = performance.now();
       const startMemory = (performance as any).memory?.usedJSHeapSize || 0;

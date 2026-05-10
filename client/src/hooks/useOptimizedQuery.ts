@@ -1,7 +1,7 @@
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
 import { CacheManager, CACHE_KEYS } from '@/utils/cacheManager';
 
-interface OptimizedQueryOptions<T> extends Omit<UseQueryOptions<T>, 'queryFn'> {
+interface OptimizedQueryOptions<T> extends Omit<UseQueryOptions<T>, 'queryFn' | 'queryKey'> {
   queryFn: () => Promise<T>;
   cacheKey?: string;
   cacheTTL?: number;

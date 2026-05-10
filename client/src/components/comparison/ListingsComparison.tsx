@@ -4,25 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { X, Heart, MessageCircle } from 'lucide-react';
-
-interface Listing {
-  id: string;
-  dog_name: string;
-  breed: string;
-  price: number;
-  age: number;
-  location: string;
-  image_url?: string;
-  description?: string;
-  user_id: string;
-  created_at: string;
-}
+import { MarketplaceListing } from '@/types/marketplace';
 
 interface ListingsComparisonProps {
-  listings: Listing[];
+  listings: MarketplaceListing[];
   onRemoveListing: (listingId: string) => void;
-  onContactSeller: (listing: Listing) => void;
-  onAddToFavorites: (listing: Listing) => void;
+  onContactSeller: (listing: MarketplaceListing) => void;
+  onAddToFavorites: (listing: MarketplaceListing) => void;
 }
 
 const ListingsComparison = ({ 

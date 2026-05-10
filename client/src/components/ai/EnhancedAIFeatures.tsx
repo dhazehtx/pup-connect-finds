@@ -21,6 +21,7 @@ import {
 const EnhancedAIFeatures = () => {
   const [generatedContent, setGeneratedContent] = useState('');
   const [loading, setLoading] = useState(false);
+  type ContentType = 'description' | 'response' | 'pricing';
 
   const aiFeatures = [
     {
@@ -53,16 +54,16 @@ const EnhancedAIFeatures = () => {
     }
   ];
 
-  const generateContent = async (type: string) => {
+  const generateContent = async (type: ContentType) => {
     setLoading(true);
     // Simulate AI content generation
     setTimeout(() => {
-      const sampleContent = {
+      const sampleContent: Record<ContentType, string> = {
         description: "Meet Luna, a beautiful 8-week-old Golden Retriever puppy with a gentle temperament and stunning golden coat. Luna has been health-tested, vaccinated, and comes from champion bloodlines. She's perfect for families and shows great promise as both a companion and show dog.",
         response: "Thank you for your interest in Luna! She's a wonderful puppy with excellent temperament. I'd be happy to schedule a meet-and-greet at your convenience. Luna has been health-tested and comes with all necessary documentation. Would this weekend work for you?",
         pricing: "Based on current market analysis for Golden Retrievers in your area, the optimal price range is $2,800 - $3,200. Factors considered: bloodline quality, health testing, vaccinations, and local demand."
       };
-      setGeneratedContent(sampleContent[type] || 'Generated content will appear here...');
+      setGeneratedContent(sampleContent[type]);
       setLoading(false);
     }, 2000);
   };

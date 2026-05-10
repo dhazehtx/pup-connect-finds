@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLocation } from 'wouter';
+import { useNavigate } from 'react-router-dom';
 
 interface HashtagParserProps {
   text: string;
@@ -12,14 +12,13 @@ export const HashtagParser: React.FC<HashtagParserProps> = ({
   className = '',
   onHashtagClick
 }) => {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
 
   const handleHashtagClick = (hashtag: string) => {
     if (onHashtagClick) {
       onHashtagClick(hashtag);
     } else {
-      // Navigate to filtered feed page
-      setLocation(`/explore?tag=${encodeURIComponent(hashtag)}`);
+      navigate(`/explore?tag=${encodeURIComponent(hashtag)}`);
     }
   };
 

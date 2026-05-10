@@ -27,12 +27,12 @@ import {
   Image,
   FileText
 } from 'lucide-react';
-import { useLocation } from 'wouter';
+import { useNavigate } from 'react-router-dom';
 
 const BookmarksPage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'posts' | 'listings'>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
@@ -60,7 +60,7 @@ const BookmarksPage = () => {
           </CardHeader>
           <CardContent>
             <Button 
-              onClick={() => setLocation('/login')} 
+              onClick={() => navigate('/auth')} 
               className="w-full"
             >
               Go to Login
@@ -157,7 +157,7 @@ const BookmarksPage = () => {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => setLocation('/profile')}
+                onClick={() => navigate('/profile')}
               >
                 <ArrowLeft className="w-4 h-4 mr-1" />
                 Back to Profile
@@ -293,7 +293,7 @@ const BookmarksPage = () => {
                 </Button>
               )}
               {(!bookmarks?.total || bookmarks.total === 0) && (
-                <Button onClick={() => setLocation('/explore')}>
+                <Button onClick={() => navigate('/explore')}>
                   Explore Content
                 </Button>
               )}

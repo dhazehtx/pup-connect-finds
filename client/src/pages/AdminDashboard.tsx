@@ -1,16 +1,27 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { useLocation } from 'wouter';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdminPageTracking } from '@/hooks/useAdminPageTracking';
 import { Shield, FileText, Users, BarChart3, Settings, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+
+type WhelpingWaitlistAdminRow = {
+  id: string;
+  provider_name: string | null;
+  buyer_name: string | null;
+  deposit_status: string;
+  status: string;
+  risk_flag: number;
+  created_at: string | null;
+};
 
 const AdminDashboard = () => {
   const { user, loading, profile } = useAuth();
-  const [, setLocation] = useLocation();
-  
+  const navigate = useNavigate();
+
   // Track admin page navigation and time spent
   useAdminPageTracking('Admin Dashboard');
 
@@ -18,9 +29,9 @@ const AdminDashboard = () => {
   React.useEffect(() => {
     if (!loading && (!user || !profile?.is_admin)) {
       console.log('Unauthorized access attempt to admin dashboard');
-      setLocation('/');
+      navigate('/');
     }
-  }, [user, loading, profile, setLocation]);
+  }, [user, loading, profile, navigate]);
 
   // Show loading while checking auth
   if (loading) {
@@ -103,8 +114,34 @@ const AdminDashboard = () => {
       icon: <Shield className="w-8 h-8 text-emerald-600" />,
       path: '/admin/service-applications',
       color: 'border-emerald-200 hover:border-emerald-400 bg-emerald-50 hover:bg-emerald-100'
+    },
+    {
+      title: 'Service Verification Queue',
+      description: 'List pending providers, approve/reject, and assign service badges',
+      icon: <Shield className="w-8 h-8 text-sky-600" />,
+      path: '/admin/service-verification',
+      color: 'border-sky-200 hover:border-sky-400 bg-sky-50 hover:bg-sky-100'
+    },
+    {
+      title: 'Whelping Waitlist Queue',
+      description: 'Review high-risk waitlist entries with filter/sort/action controls',
+      icon: <AlertTriangle className="w-8 h-8 text-rose-600" />,
+      path: '/admin/whelping-waitlist',
+      color: 'border-rose-200 hover:border-rose-400 bg-rose-50 hover:bg-rose-100'
     }
   ];
+
+  const whelpingQueueQuery = useQuery({
+    queryKey: ['admin', 'whelping-waitlist'],
+    queryFn: async () => {
+      const res = await apiRequest('/api/admin/whelping-waitlist');
+      return (res as { success?: boolean; data?: WhelpingWaitlistAdminRow[] }).data ?? [];
+    },
+    enabled: Boolean(user && profile?.is_admin),
+    refetchInterval: 30000,
+  });
+
+  const riskRows = (whelpingQueueQuery.data ?? []).filter((row) => Number(row.risk_flag) === 1).slice(0, 5);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
@@ -172,6 +209,48 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Whelping risk queue */}
+        <Card className="mb-8 border-rose-200 bg-rose-50/40">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-rose-900">
+              <AlertTriangle className="w-5 h-5 text-rose-700" />
+              Whelping Risk Queue
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {whelpingQueueQuery.isLoading && (
+              <p className="text-sm text-rose-800">Loading high-risk waitlist entries...</p>
+            )}
+            {whelpingQueueQuery.isError && (
+              <p className="text-sm text-rose-800">
+                Could not load risk queue right now. Retry from dashboard refresh.
+              </p>
+            )}
+            {!whelpingQueueQuery.isLoading && !whelpingQueueQuery.isError && riskRows.length === 0 && (
+              <p className="text-sm text-emerald-700">No risk-flagged whelping waitlist entries.</p>
+            )}
+            {riskRows.map((row) => (
+              <div
+                key={row.id}
+                className="rounded-md border border-rose-200 bg-white px-3 py-2 text-sm flex flex-col md:flex-row md:items-center md:justify-between gap-2"
+              >
+                <div className="min-w-0">
+                  <p className="font-medium text-slate-900 truncate">
+                    Buyer: {row.buyer_name || 'Unknown'} · Provider: {row.provider_name || 'Unknown'}
+                  </p>
+                  <p className="text-xs text-slate-600 truncate">Entry ID: {row.id}</p>
+                </div>
+                <div className="text-xs md:text-sm text-rose-900 font-medium">
+                  Deposit: {row.deposit_status} · Status: {row.status}
+                </div>
+              </div>
+            ))}
+            <p className="text-xs text-rose-800">
+              Source: <code>/api/admin/whelping-waitlist</code> (risk-flagged entries prioritized).
+            </p>
+          </CardContent>
+        </Card>
 
         {/* Admin Modules */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

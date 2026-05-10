@@ -18,6 +18,24 @@ interface PaymentMethod {
   stripe_payment_method_id: string;
 }
 
+type DbPaymentMethod = {
+  id: string;
+  type: string;
+  last_four: string | null;
+  brand: string | null;
+  is_default: boolean | null;
+  stripe_payment_method_id: string;
+};
+
+const normalizePaymentMethod = (method: DbPaymentMethod): PaymentMethod => ({
+  id: method.id,
+  type: method.type,
+  last_four: method.last_four ?? '0000',
+  brand: method.brand ?? 'card',
+  is_default: method.is_default ?? false,
+  stripe_payment_method_id: method.stripe_payment_method_id,
+});
+
 interface PaymentMethodManagerProps {
   onMethodSelected?: (method: PaymentMethod) => void;
   showAddNew?: boolean;
@@ -46,15 +64,17 @@ const PaymentMethodManager: React.FC<PaymentMethodManagerProps> = ({
   }, [user]);
 
   const fetchPaymentMethods = async () => {
+    if (!user) return;
+
     try {
       const { data, error } = await supabase
         .from('payment_methods')
         .select('*')
-        .eq('user_id', user?.id)
+        .eq('user_id', user.id)
         .order('is_default', { ascending: false });
 
       if (error) throw error;
-      setPaymentMethods(data || []);
+      setPaymentMethods((data || []).map((method) => normalizePaymentMethod(method as DbPaymentMethod)));
     } catch (error: any) {
       console.error('Error fetching payment methods:', error);
     }
@@ -103,12 +123,14 @@ const PaymentMethodManager: React.FC<PaymentMethodManagerProps> = ({
   };
 
   const setDefaultMethod = async (methodId: string) => {
+    if (!user) return;
+
     try {
       // Remove default from all methods
       await supabase
         .from('payment_methods')
         .update({ is_default: false })
-        .eq('user_id', user?.id);
+        .eq('user_id', user.id);
 
       // Set new default
       const { error } = await supabase

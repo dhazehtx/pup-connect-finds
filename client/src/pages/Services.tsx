@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Shield, CreditCard, MessageCircle, Search, Star, Truck, Users, Heart } from 'lucide-react';
@@ -90,6 +91,15 @@ const Services = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="mb-10 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+          <p className="text-sm text-slate-700">
+            Ready to book now? The live provider marketplace is under{' '}
+            <Link to="/marketplace" className="font-semibold text-blue-600 underline underline-offset-2">
+              Marketplace
+            </Link>
+            . This page explains services and trust standards.
+          </p>
+        </div>
         
         {/* Core Services */}
         <section className="mb-16">
@@ -124,7 +134,9 @@ const Services = () => {
                     <div className="border-t pt-4">
                       <div className="flex justify-between items-center">
                         <span className="font-semibold text-lg">{service.price}</span>
-                        <Button variant="outline" size="sm">Learn More</Button>
+                        <Button variant="outline" size="sm" asChild>
+                          <Link to="/marketplace">Browse providers</Link>
+                        </Button>
                       </div>
                     </div>
                   </CardContent>

@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useCallback } from 'react';
-import ReactCrop, { Crop, PixelCrop, centerCrop, makeAspectCrop } from 'react-image-crop';
+import ReactCrop, { centerCrop, makeAspectCrop } from 'react-image-crop';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import 'react-image-crop/dist/ReactCrop.css';
@@ -33,8 +33,8 @@ function centerAspectCrop(
 }
 
 const ImageCropper = ({ src, isOpen, onClose, onCropComplete }: ImageCropperProps) => {
-  const [crop, setCrop] = useState<Crop>();
-  const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
+  const [crop, setCrop] = useState<any>();
+  const [completedCrop, setCompletedCrop] = useState<any>();
   const imgRef = useRef<HTMLImageElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -105,8 +105,8 @@ const ImageCropper = ({ src, isOpen, onClose, onCropComplete }: ImageCropperProp
         <div className="flex flex-col items-center space-y-4">
           <ReactCrop
             crop={crop}
-            onChange={(_, percentCrop) => setCrop(percentCrop)}
-            onComplete={(c) => setCompletedCrop(c)}
+            onChange={(_crop: any, percentCrop: any) => setCrop(percentCrop)}
+            onComplete={(c: any) => setCompletedCrop(c)}
             aspect={1}
             circularCrop
           >

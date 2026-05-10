@@ -197,6 +197,105 @@ protectedRoutes.get('/stripe-events', async (req, res) => {
   }
 });
 
+// GET /api/admin/whelping-waitlist - Admin visibility for high-risk waitlist/deposit state
+protectedRoutes.get('/whelping-waitlist', async (_req, res) => {
+  try {
+    const query = `
+      SELECT
+        w.id,
+        w.provider_id,
+        w.user_id,
+        w.expected_litter_date,
+        w.puppy_preference,
+        w.notes,
+        w.deposit_amount,
+        w.deposit_status,
+        w.status,
+        w.stripe_checkout_session_id,
+        w.stripe_payment_intent_id,
+        w.policy_acknowledged,
+        w.created_at,
+        w.updated_at,
+        psp.service_type,
+        psp.verification_status AS provider_verification_status,
+        provider_profile.full_name AS provider_name,
+        buyer_profile.full_name AS buyer_name,
+        (
+          CASE
+            WHEN w.deposit_status <> 'paid' THEN 1
+            WHEN w.policy_acknowledged IS NOT TRUE THEN 1
+            WHEN psp.verification_status <> 'verified' OR psp.is_verified IS NOT TRUE THEN 1
+            ELSE 0
+          END
+        ) AS risk_flag
+      FROM whelping_waitlist_entries w
+      INNER JOIN pet_service_providers psp ON psp.id = w.provider_id
+      LEFT JOIN profiles provider_profile ON provider_profile.id = psp.user_id
+      LEFT JOIN profiles buyer_profile ON buyer_profile.id = w.user_id
+      ORDER BY risk_flag DESC, w.created_at DESC
+      LIMIT 250
+    `;
+
+    const result = await pool.query(query);
+    res.json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error('[ADMIN] Error fetching whelping waitlist queue:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch whelping waitlist queue' });
+  }
+});
+
+const updateWhelpingWaitlistSchema = z.object({
+  status: z.enum(['pending', 'approved', 'rejected', 'withdrew']).optional(),
+  deposit_status: z.enum(['pending', 'paid', 'refunded']).optional(),
+});
+
+// PATCH /api/admin/whelping-waitlist/:id - admin controls for waitlist state
+protectedRoutes.patch('/whelping-waitlist/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const payload = updateWhelpingWaitlistSchema.parse(req.body);
+
+    if (!payload.status && !payload.deposit_status) {
+      return res.status(400).json({ success: false, error: 'No update fields provided' });
+    }
+
+    const fields: string[] = [];
+    const values: any[] = [];
+    let idx = 1;
+
+    if (payload.status) {
+      fields.push(`status = $${idx++}`);
+      values.push(payload.status);
+    }
+    if (payload.deposit_status) {
+      fields.push(`deposit_status = $${idx++}`);
+      values.push(payload.deposit_status);
+    }
+    fields.push(`updated_at = NOW()`);
+    values.push(id);
+
+    const query = `
+      UPDATE whelping_waitlist_entries
+      SET ${fields.join(', ')}
+      WHERE id = $${idx}
+      RETURNING id, status, deposit_status, updated_at
+    `;
+
+    const result = await pool.query(query, values);
+    if (!result.rows.length) {
+      return res.status(404).json({ success: false, error: 'Waitlist entry not found' });
+    }
+
+    return res.json({ success: true, data: result.rows[0] });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ success: false, error: 'Validation failed', details: error.errors });
+    }
+    console.error('[ADMIN] Error updating whelping waitlist entry:', error);
+    return res.status(500).json({ success: false, error: 'Failed to update whelping waitlist entry' });
+  }
+});
+
 // Mount protected routes
 router.use('/', protectedRoutes);
 

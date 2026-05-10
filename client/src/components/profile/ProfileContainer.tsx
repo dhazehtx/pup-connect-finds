@@ -12,6 +12,7 @@ import ProfileErrorBoundary from '@/components/profile/ProfileErrorBoundary';
 import ProfileContent from '@/components/profile/ProfileContent';
 import ProfileAuthScreen from '@/components/profile/ProfileAuthScreen';
 import { createDisplayProfile } from '@/utils/profileUtils';
+import { UserProfile } from '@/types/profile';
 
 const ProfileContainer = () => {
   const { userId } = useParams();
@@ -39,7 +40,7 @@ const ProfileContainer = () => {
   }
   
   // Check if this is the current user's profile or another user's profile
-  const isOwnProfile = !userId || (user && userId === user?.id);
+  const isOwnProfile = !userId || userId === user?.id;
   const isGuestUser = !user && !loading;
   
   console.log('ProfileContainer render:', {
@@ -80,7 +81,7 @@ const ProfileContainer = () => {
   // Create display profile using utility function
   // For guest users or viewing specific profiles, show enhanced demo profile
   // For logged in users viewing their own profile, use their actual data
-  let displayProfile;
+  let displayProfile: UserProfile | null = null;
   
   try {
     displayProfile = createDisplayProfile({
@@ -109,18 +110,33 @@ const ProfileContainer = () => {
         user_type: 'breeder',
         verified: true,
         trust_score: 0.95,
-        verification_level: 3,
-        profile_completion_percentage: 85,
         breeding_program_name: 'Golden Paws Breeding Program',
         specializations: ['Golden Retrievers', 'Labradors', 'Puppy Training'],
         certifications: ['AKC Registered Breeder', 'USDA Licensed'],
         verification_badges: [
-          { type: 'identity', name: 'ID Verified' },
-          { type: 'breeder_license', name: 'Licensed Breeder' }
+          { type: 'ID Verified', verified_at: new Date().toISOString() },
+          { type: 'Licensed Breeder', verified_at: new Date().toISOString() }
         ],
         years_experience: 15,
         rating: 4.9,
         total_reviews: 156,
+        social_links: {},
+        privacy_settings: {
+          show_bio: true,
+          show_email: false,
+          show_phone: false,
+          show_location: true,
+          show_social_links: true,
+        },
+        stats: {
+          followers: 0,
+          following: 0,
+          posts: 0,
+          totalListings: 0,
+          activeListings: 0,
+          totalViews: 0,
+          totalInquiries: 0,
+        },
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };

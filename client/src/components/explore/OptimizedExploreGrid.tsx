@@ -191,15 +191,15 @@ export const OptimizedExploreGrid: React.FC<ExploreGridProps> = ({
             >
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {visibleItems.map((listing, index) => (
-                  <OptimizedListingCard
-                    key={listing.id}
-                    listing={listing}
-                    index={visibleRange.start + index}
-                    onFavorite={handleFavorite}
-                    isFavorited={favorites.has(listing.id)}
-                    className="cursor-pointer"
-                    onClick={() => handleListingClick(listing)}
-                  />
+                  <div key={listing.id} onClick={() => handleListingClick(listing)} className="cursor-pointer">
+                    <OptimizedListingCard
+                      listing={listing}
+                      index={visibleRange.start + index}
+                      onFavorite={handleFavorite}
+                      isFavorited={favorites.has(listing.id)}
+                      className="cursor-pointer"
+                    />
+                  </div>
                 ))}
               </div>
             </div>
@@ -212,15 +212,15 @@ export const OptimizedExploreGrid: React.FC<ExploreGridProps> = ({
           className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
         >
           {filteredData.map((listing, index) => (
-            <OptimizedListingCard
-              key={listing.id}
-              listing={listing}
-              index={index}
-              onFavorite={handleFavorite}
-              isFavorited={favorites.has(listing.id)}
-              className="cursor-pointer"
-              onClick={() => handleListingClick(listing)}
-            />
+            <div key={listing.id} onClick={() => handleListingClick(listing)} className="cursor-pointer">
+              <OptimizedListingCard
+                listing={listing}
+                index={index}
+                onFavorite={handleFavorite}
+                isFavorited={favorites.has(listing.id)}
+                className="cursor-pointer"
+              />
+            </div>
           ))}
         </StaggeredList>
       )}

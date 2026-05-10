@@ -11,8 +11,6 @@ export const initializeSentry = () => {
         // BrowserTracing and Replay integrations removed for compatibility
       ],
       tracesSampleRate: import.meta.env.MODE === 'production' ? 0.1 : 1.0,
-      replaysSessionSampleRate: 0.1,
-      replaysOnErrorSampleRate: 1.0,
       beforeSend(event) {
         // Filter out sensitive data
         if (event.request?.headers) {
@@ -36,7 +34,7 @@ export const captureError = (error: Error, context?: Record<string, any>) => {
       }
       Sentry.captureException(error);
     });
-  } else {
+  } else if (import.meta.env.DEV) {
     console.error('Error captured:', error, context);
   }
 };
@@ -44,7 +42,7 @@ export const captureError = (error: Error, context?: Record<string, any>) => {
 export const captureMessage = (message: string, level: 'info' | 'warning' | 'error' = 'info') => {
   if (import.meta.env.VITE_SENTRY_DSN) {
     Sentry.captureMessage(message, level);
-  } else {
+  } else if (import.meta.env.DEV) {
     console.log(`[${level.toUpperCase()}] ${message}`);
   }
 };

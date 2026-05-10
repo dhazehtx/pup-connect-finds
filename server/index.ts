@@ -1,8 +1,18 @@
+import { debugApiLog, debugApiWarn } from './lib/debugApi';
+import "./env/loadEnvEntry";
+import type { Server } from "http";
 import express, { type Request, Response, NextFunction } from "express";
+import { randomUUID } from "node:crypto";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { initializeSentry, Sentry, captureError } from "./utils/sentry";
 import { ensureProviderIdBucket } from "./lib/ensureStorageBucket";
+import {
+  runStartupSupabaseHealthCheck,
+  startSupabaseHealthMonitor,
+  getSupabaseHealthSnapshot,
+} from "./lib/supabaseResilience";
+import { validateStartupConfig } from "./lib/startupConfig";
 
 // Initialize Sentry as early as possible
 initializeSentry();
@@ -34,6 +44,10 @@ app.use((req, res, next) => {
 });
 
 app.use((req, res, next) => {
+  const requestId = req.header("x-request-id") || randomUUID();
+  res.locals.requestId = requestId;
+  res.setHeader("x-request-id", requestId);
+
   const start = Date.now();
   const path = req.path;
   let capturedJsonResponse: Record<string, any> | undefined = undefined;
@@ -47,7 +61,7 @@ app.use((req, res, next) => {
   res.on("finish", () => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+      let logLine = `[req:${requestId}] ${req.method} ${path} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
@@ -59,7 +73,7 @@ app.use((req, res, next) => {
       log(logLine);
 
       if (duration > 800) {
-        console.log('[PROOF:SLOW]', JSON.stringify({ route: `${req.method} ${path}`, ms: duration, ts: Date.now() }));
+        debugApiLog('[PROOF:SLOW]', JSON.stringify({ route: `${req.method} ${path}`, ms: duration, ts: Date.now() }));
       }
     }
   });
@@ -70,13 +84,42 @@ app.use((req, res, next) => {
 (async () => {
   const nodeEnv = process.env.NODE_ENV || 'development';
   const seedsEnabled = nodeEnv !== 'production';
-  console.log('[PROOF:ENV]', JSON.stringify({ nodeEnv, seedsEnabled, ts: Date.now() }));
+  if (nodeEnv !== 'production') {
+    debugApiLog('[PROOF:ENV]', JSON.stringify({ nodeEnv, seedsEnabled, ts: Date.now() }));
+  }
+
+  const startupConfig = validateStartupConfig();
+  if (!startupConfig.ok) {
+    console.error(
+      `[StartupConfig] Missing required env keys: ${startupConfig.missingRequired.join(", ")}. Server may fail.`,
+    );
+  }
+  if (startupConfig.missingRecommended.length > 0) {
+    console.warn(
+      `[StartupConfig] Missing recommended env keys: ${startupConfig.missingRecommended.join(", ")}.`,
+    );
+  }
+
+  // Supabase guardrail: detect paused/unhealthy state early, but never block boot.
+  await runStartupSupabaseHealthCheck();
+  startSupabaseHealthMonitor(60000);
 
   // Ensure storage bucket exists for provider ID documents
   try {
-    await ensureProviderIdBucket();
+    const supabaseState = getSupabaseHealthSnapshot();
+    if (supabaseState.mode === "degraded") {
+      console.warn(
+        `[Startup] Skipping storage bucket ensure because Supabase is degraded. reason="${supabaseState.lastError || "unknown"}"`,
+      );
+    } else {
+      await ensureProviderIdBucket();
+    }
   } catch (error) {
-    console.error('[Startup] Failed to ensure storage bucket:', error);
+    const supabaseState = getSupabaseHealthSnapshot();
+    console.error(
+      `[Startup] Failed to ensure storage bucket (mode=${supabaseState.mode}). Continuing in degraded mode:`,
+      error,
+    );
   }
 
   const server = await registerRoutes(app);
@@ -90,7 +133,7 @@ app.use((req, res, next) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
     
-    console.error('[PROOF:ERR]', JSON.stringify({
+    debugApiLog('[PROOF:ERR]', JSON.stringify({
       route: `${_req.method} ${_req.url}`,
       code: err.code || status,
       stack: (err.stack || '').split('\n').slice(0, 3).join(' | '),
@@ -115,15 +158,87 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-  });
+  // Default 3000 (local); set PORT=5000 on Replit. If the port is busy, try the next candidate.
+  const host = process.env.HOST || "0.0.0.0";
+  const fromEnv = Number(process.env.PORT);
+  const preferred =
+    Number.isFinite(fromEnv) && fromEnv > 0 ? fromEnv : 3000;
+  /** Uncommon port first when PUP_DEV_PORT set — avoids fighting stale node on 3000–5001 */
+  const altFirst =
+    Number(process.env.PUP_DEV_PORT) > 0 ? Number(process.env.PUP_DEV_PORT) : null;
+  const extraFallbacks = [
+    3003, 3004, 3005, 3006, 3007, 3008, 3009, 3010, 3011, 3012, 3013, 3014, 3015,
+    4000, 4040, 8080, 8765, 8888, 9000,
+  ];
+  const candidates = [
+    ...(altFirst != null ? [altFirst] : []),
+    preferred,
+    3000, 3001, 3002, 5000, 5001,
+    ...extraFallbacks,
+  ].filter((p, i, a) => a.indexOf(p) === i);
+
+  function listenOnce(httpServer: Server, port: number, listenHost: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const onError = (err: NodeJS.ErrnoException) => {
+        cleanup();
+        reject(err);
+      };
+      const onListening = () => {
+        cleanup();
+        resolve();
+      };
+      const cleanup = () => {
+        httpServer.removeListener("error", onError);
+        httpServer.removeListener("listening", onListening);
+      };
+      httpServer.once("error", onError);
+      httpServer.once("listening", onListening);
+      httpServer.listen(port, listenHost);
+    });
+  }
+
+  let bound = false;
+  for (const port of candidates) {
+    try {
+      await listenOnce(server, port, host);
+      bound = true;
+      const displayHost = host === "0.0.0.0" ? "127.0.0.1" : host;
+      const url = `http://${displayHost}:${port}`;
+      if (port !== preferred) {
+        console.warn(
+          `[server] Port ${preferred} was busy or skipped; using ${port}. Paste this into Cursor Simple Browser: ${url}`,
+        );
+      }
+      log(`serving on ${url}`);
+      console.log(
+        `\n  ▶ Open app: ${url}\n  (Cursor: Simple Browser → paste URL above)\n`,
+      );
+      if (process.env.DEV_OPEN === "1" && process.platform === "darwin") {
+        try {
+          const { execFileSync } = await import("child_process");
+          execFileSync("open", [url], { stdio: "ignore" });
+        } catch {
+          /* ignore */
+        }
+      }
+      break;
+    } catch (err: unknown) {
+      const code = (err as NodeJS.ErrnoException)?.code;
+      if (code === "EADDRINUSE") {
+        console.warn(`[server] port ${port} in use, trying next…`);
+        continue;
+      }
+      console.error("[server] listen failed:", code, (err as Error)?.message);
+      process.exit(1);
+    }
+  }
+
+  if (!bound) {
+    console.error("[server] No free port in candidate list — dev server did not start.");
+    console.error(
+      `[server] Cursor's browser will stay blank until a server is listening. Free ports or run: PUP_DEV_PORT=8765 npm run dev`,
+    );
+    console.error(`[server] See what's listening (macOS):  lsof -nP -iTCP:${preferred} -sTCP:LISTEN`);
+    process.exit(1);
+  }
 })();

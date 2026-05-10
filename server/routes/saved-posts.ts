@@ -13,6 +13,7 @@ router.post('/', async (req, res) => {
   }
 
   try {
+    const userId = req.user!.id;
     const { post_id } = req.body;
     
     if (!post_id) {
@@ -34,7 +35,7 @@ router.post('/', async (req, res) => {
       .select()
       .from(savedPosts)
       .where(and(
-        eq(savedPosts.user_id, req.user.id),
+        eq(savedPosts.user_id, userId),
         eq(savedPosts.post_id, post_id)
       ));
 
@@ -46,7 +47,7 @@ router.post('/', async (req, res) => {
     const [savedPost] = await db
       .insert(savedPosts)
       .values({
-        user_id: req.user.id,
+        user_id: userId,
         post_id: post_id
       })
       .returning();
@@ -69,12 +70,13 @@ router.delete('/:postId', async (req, res) => {
   }
 
   try {
+    const userId = req.user!.id;
     const { postId } = req.params;
 
     const deletedRows = await db
       .delete(savedPosts)
       .where(and(
-        eq(savedPosts.user_id, req.user.id),
+        eq(savedPosts.user_id, userId),
         eq(savedPosts.post_id, postId)
       ));
 
@@ -97,13 +99,14 @@ router.get('/check/:postId', async (req, res) => {
   }
 
   try {
+    const userId = req.user!.id;
     const { postId } = req.params;
 
     const [savedPost] = await db
       .select()
       .from(savedPosts)
       .where(and(
-        eq(savedPosts.user_id, req.user.id),
+        eq(savedPosts.user_id, userId),
         eq(savedPosts.post_id, postId)
       ));
 
@@ -122,6 +125,7 @@ router.get('/', async (req, res) => {
   }
 
   try {
+    const userId = req.user!.id;
     const { 
       page = '1', 
       limit = '20', 
@@ -191,7 +195,7 @@ router.get('/', async (req, res) => {
       .innerJoin(posts, eq(savedPosts.post_id, posts.id))
       .leftJoin(profiles, eq(posts.user_id, profiles.id))
       .where(and(
-        eq(savedPosts.user_id, req.user.id),
+        eq(savedPosts.user_id, userId),
         postTypeFilter
       ))
       .orderBy(orderBy)
@@ -206,7 +210,7 @@ router.get('/', async (req, res) => {
       .from(savedPosts)
       .innerJoin(posts, eq(savedPosts.post_id, posts.id))
       .where(and(
-        eq(savedPosts.user_id, req.user.id),
+        eq(savedPosts.user_id, userId),
         postTypeFilter
       ));
 
@@ -219,7 +223,7 @@ router.get('/', async (req, res) => {
       })
       .from(savedPosts)
       .innerJoin(posts, eq(savedPosts.post_id, posts.id))
-      .where(eq(savedPosts.user_id, req.user.id));
+      .where(eq(savedPosts.user_id, userId));
 
     res.json({
       posts: savedPostsResults,

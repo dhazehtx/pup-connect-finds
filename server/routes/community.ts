@@ -120,6 +120,7 @@ router.post('/', async (req, res) => {
   }
 
   try {
+    const userId = req.user!.id;
     const {
       name,
       description,
@@ -154,7 +155,7 @@ router.post('/', async (req, res) => {
         privacy,
         cover_image,
         group_icon,
-        creator_id: req.user.id,
+        creator_id: userId,
         rules,
         tags
       })
@@ -165,7 +166,7 @@ router.post('/', async (req, res) => {
       .insert(groupMemberships)
       .values({
         group_id: newGroup.id,
-        user_id: req.user.id,
+        user_id: userId,
         role: 'admin',
         status: 'active'
       });
@@ -220,12 +221,13 @@ router.get('/:groupId', async (req, res) => {
     // Check user membership if authenticated
     let userMembership = null;
     if (req.isAuthenticated()) {
+      const userId = req.user!.id;
       const [membership] = await db
         .select()
         .from(groupMemberships)
         .where(and(
           eq(groupMemberships.group_id, groupId),
-          eq(groupMemberships.user_id, req.user.id)
+          eq(groupMemberships.user_id, userId)
         ))
         .limit(1);
       
@@ -250,6 +252,7 @@ router.post('/:groupId/join', async (req, res) => {
   }
 
   try {
+    const userId = req.user!.id;
     const { groupId } = req.params;
 
     // Check if group exists
@@ -269,7 +272,7 @@ router.post('/:groupId/join', async (req, res) => {
       .from(groupMemberships)
       .where(and(
         eq(groupMemberships.group_id, groupId),
-        eq(groupMemberships.user_id, req.user.id)
+        eq(groupMemberships.user_id, userId)
       ))
       .limit(1);
 
@@ -282,7 +285,7 @@ router.post('/:groupId/join', async (req, res) => {
       .insert(groupMemberships)
       .values({
         group_id: groupId,
-        user_id: req.user.id,
+        user_id: userId,
         role: 'member',
         status: group.privacy === 'private' ? 'pending' : 'active'
       })
@@ -317,6 +320,7 @@ router.post('/:groupId/leave', async (req, res) => {
   }
 
   try {
+    const userId = req.user!.id;
     const { groupId } = req.params;
 
     // Check if user is a member
@@ -325,7 +329,7 @@ router.post('/:groupId/leave', async (req, res) => {
       .from(groupMemberships)
       .where(and(
         eq(groupMemberships.group_id, groupId),
-        eq(groupMemberships.user_id, req.user.id)
+        eq(groupMemberships.user_id, userId)
       ))
       .limit(1);
 
@@ -356,7 +360,7 @@ router.post('/:groupId/leave', async (req, res) => {
       .delete(groupMemberships)
       .where(and(
         eq(groupMemberships.group_id, groupId),
-        eq(groupMemberships.user_id, req.user.id)
+        eq(groupMemberships.user_id, userId)
       ));
 
     // Update group member count (only for active memberships)
@@ -385,6 +389,7 @@ router.get('/user/joined', async (req, res) => {
   }
 
   try {
+    const userId = req.user!.id;
     const userGroups = await db
       .select({
         id: communityGroups.id,
@@ -403,7 +408,7 @@ router.get('/user/joined', async (req, res) => {
       .from(groupMemberships)
       .innerJoin(communityGroups, eq(groupMemberships.group_id, communityGroups.id))
       .where(and(
-        eq(groupMemberships.user_id, req.user.id),
+        eq(groupMemberships.user_id, userId),
         eq(groupMemberships.status, 'active')
       ))
       .orderBy(desc(groupMemberships.joined_at));

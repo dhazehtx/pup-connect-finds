@@ -17,6 +17,32 @@ interface BackgroundCheck {
   expires_at?: string;
 }
 
+type DbBackgroundCheck = {
+  id: string;
+  user_id: string;
+  provider: string;
+  check_type: string;
+  status: string;
+  external_id: string | null;
+  results: any;
+  created_at: string;
+  updated_at: string;
+  expires_at: string | null;
+};
+
+const normalizeBackgroundCheck = (check: DbBackgroundCheck): BackgroundCheck => ({
+  id: check.id,
+  user_id: check.user_id,
+  provider: check.provider,
+  check_type: check.check_type,
+  status: check.status,
+  external_id: check.external_id ?? undefined,
+  results: check.results,
+  created_at: check.created_at,
+  updated_at: check.updated_at,
+  expires_at: check.expires_at ?? undefined,
+});
+
 export const useBackgroundChecks = (userId?: string) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -40,7 +66,7 @@ export const useBackgroundChecks = (userId?: string) => {
       // If specific user ID provided, filter by it
       if (userId) {
         query = query.eq('user_id', userId);
-      } else if (user?.email !== 'admin@example.com') {
+      } else if (user && user.email !== 'admin@example.com') {
         // If not admin and no specific user, show only own checks
         query = query.eq('user_id', user.id);
       }
@@ -49,7 +75,7 @@ export const useBackgroundChecks = (userId?: string) => {
 
       if (fetchError) throw fetchError;
 
-      setChecks(data || []);
+      setChecks((data || []).map((item) => normalizeBackgroundCheck(item as DbBackgroundCheck)));
     } catch (err: any) {
       setError(err.message);
       toast({

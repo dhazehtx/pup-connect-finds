@@ -1,7 +1,10 @@
+import { debugApiLog, debugApiWarn } from '../lib/debugApi';
 import { Router, Request, Response } from "express";
 import Stripe from "stripe";
 import { Pool } from "@neondatabase/serverless";
-import { STRIPE_SECRET_KEY, CONNECT_APP_FEE_BPS } from "../lib/config";
+import { STRIPE_SECRET_KEY } from "../lib/config";
+import { getConnectAppFeeBps } from "../lib/platformFees";
+import { getOrCreateStripeCustomer } from "../lib/stripeCustomer";
 import crypto from "crypto";
 
 const router = Router();
@@ -12,31 +15,10 @@ const stripe = STRIPE_SECRET_KEY
   : null;
 
 const DEPOSIT_PERCENT = 20;
-const PLATFORM_FEE_BPS = CONNECT_APP_FEE_BPS || 1000;
+/** Platform fee (basis points) recorded on deal; payout transfer is net of this. Fees default to 0 at launch via env. */
+const PLATFORM_FEE_BPS = getConnectAppFeeBps();
 const DISPUTE_WINDOW_HOURS = 48;
 const RESERVATION_HOURS = 72;
-
-async function getOrCreateStripeCustomer(userId: string, email?: string): Promise<string> {
-  if (!stripe) throw new Error("Stripe not configured");
-
-  const { rows } = await pool.query<{ stripe_customer_id: string }>(
-    "SELECT stripe_customer_id FROM stripe_customers WHERE user_id = $1",
-    [userId]
-  );
-  if (rows[0]) return rows[0].stripe_customer_id;
-
-  const customer = await stripe.customers.create({
-    metadata: { user_id: userId },
-    ...(email ? { email } : {}),
-  });
-
-  await pool.query(
-    "INSERT INTO stripe_customers (user_id, stripe_customer_id) VALUES ($1, $2) ON CONFLICT (user_id) DO NOTHING",
-    [userId, customer.id]
-  );
-  console.log(`[PROOF:DEAL:CUSTOMER_CREATED] user=${userId} stripe=${customer.id}`);
-  return customer.id;
-}
 
 // POST /api/deals/:listingId/deposit
 router.post("/:listingId/deposit", async (req: Request, res: Response) => {
@@ -86,14 +68,9 @@ router.post("/:listingId/deposit", async (req: Request, res: Response) => {
     );
     const dealId = dealRows[0].id;
 
-    const customerId = await getOrCreateStripeCustomer(userId, req.user?.email);
+    const customerId = await getOrCreateStripeCustomer(userId, req.user?.email ?? undefined);
 
-    const sellerStripe = await pool.query<{ stripe_account_id: string }>(
-      "SELECT stripe_account_id FROM profiles WHERE id = $1 AND stripe_account_id IS NOT NULL",
-      [listing.user_id]
-    );
-    const sellerAccountId = sellerStripe.rows[0]?.stripe_account_id;
-
+    // Funds stay on the platform account until POST /release creates a Connect transfer (escrow).
     const piParams: Stripe.PaymentIntentCreateParams = {
       amount: depositCents,
       currency: "usd",
@@ -107,13 +84,6 @@ router.post("/:listingId/deposit", async (req: Request, res: Response) => {
       automatic_payment_methods: { enabled: true },
     };
 
-    if (sellerAccountId) {
-      const appFee = Math.round(depositCents * (PLATFORM_FEE_BPS / 10000));
-      piParams.application_fee_amount = appFee;
-      piParams.transfer_data = { destination: sellerAccountId };
-      piParams.on_behalf_of = sellerAccountId;
-    }
-
     const paymentIntent = await stripe.paymentIntents.create(piParams);
 
     await pool.query(
@@ -122,7 +92,7 @@ router.post("/:listingId/deposit", async (req: Request, res: Response) => {
       [dealId, paymentIntent.id, depositCents]
     );
 
-    console.log(`[PROOF:DEAL:DEPOSIT_INITIATED] deal=${dealId} pi=${paymentIntent.id} amount=${depositCents}`);
+    debugApiLog(`[PROOF:DEAL:DEPOSIT_INITIATED] deal=${dealId} pi=${paymentIntent.id} amount=${depositCents}`);
 
     return res.json({
       dealId,
@@ -161,13 +131,7 @@ router.post("/:dealId/balance", async (req: Request, res: Response) => {
       return res.status(400).json({ error: `Cannot pay balance in status ${deal.status}` });
     }
 
-    const customerId = await getOrCreateStripeCustomer(userId, req.user?.email);
-
-    const sellerStripe = await pool.query<{ stripe_account_id: string }>(
-      "SELECT stripe_account_id FROM profiles WHERE id = $1 AND stripe_account_id IS NOT NULL",
-      [deal.seller_id]
-    );
-    const sellerAccountId = sellerStripe.rows[0]?.stripe_account_id;
+    const customerId = await getOrCreateStripeCustomer(userId, req.user?.email ?? undefined);
 
     const piParams: Stripe.PaymentIntentCreateParams = {
       amount: deal.balance_cents,
@@ -182,13 +146,6 @@ router.post("/:dealId/balance", async (req: Request, res: Response) => {
       automatic_payment_methods: { enabled: true },
     };
 
-    if (sellerAccountId) {
-      const appFee = Math.round(deal.balance_cents * (PLATFORM_FEE_BPS / 10000));
-      piParams.application_fee_amount = appFee;
-      piParams.transfer_data = { destination: sellerAccountId };
-      piParams.on_behalf_of = sellerAccountId;
-    }
-
     const paymentIntent = await stripe.paymentIntents.create(piParams);
 
     await pool.query(
@@ -197,7 +154,7 @@ router.post("/:dealId/balance", async (req: Request, res: Response) => {
       [dealId, paymentIntent.id, deal.balance_cents]
     );
 
-    console.log(`[PROOF:DEAL:BALANCE_INITIATED] deal=${dealId} pi=${paymentIntent.id} amount=${deal.balance_cents}`);
+    debugApiLog(`[PROOF:DEAL:BALANCE_INITIATED] deal=${dealId} pi=${paymentIntent.id} amount=${deal.balance_cents}`);
 
     return res.json({
       clientSecret: paymentIntent.client_secret,
@@ -231,7 +188,7 @@ router.post("/:dealId/handoff-code", async (req: Request, res: Response) => {
       [code, dealId]
     );
 
-    console.log(`[PROOF:DEAL:HANDOFF_CODE] deal=${dealId}`);
+    debugApiLog(`[PROOF:DEAL:HANDOFF_CODE] deal=${dealId}`);
     return res.json({ handoffCode: code });
   } catch (error: any) {
     console.error("[DEAL:HANDOFF] Error:", error);
@@ -266,7 +223,7 @@ router.post("/:dealId/mark-delivered", async (req: Request, res: Response) => {
       [dealId]
     );
 
-    console.log(`[PROOF:DEAL:DELIVERED] deal=${dealId}`);
+    debugApiLog(`[PROOF:DEAL:DELIVERED] deal=${dealId}`);
     return res.json({ status: "DELIVERED_PENDING_CONFIRM" });
   } catch (error: any) {
     console.error("[DEAL:DELIVERED] Error:", error);
@@ -298,7 +255,7 @@ router.post("/:dealId/confirm-received", async (req: Request, res: Response) => 
       [disputeWindowEnds, dealId]
     );
 
-    console.log(`[PROOF:DEAL:CONFIRMED] deal=${dealId} disputeWindowEnds=${disputeWindowEnds.toISOString()}`);
+    debugApiLog(`[PROOF:DEAL:CONFIRMED] deal=${dealId} disputeWindowEnds=${disputeWindowEnds.toISOString()}`);
     return res.json({ status: "DELIVERED_CONFIRMED", disputeWindowEnds: disputeWindowEnds.toISOString() });
   } catch (error: any) {
     console.error("[DEAL:CONFIRM] Error:", error);
@@ -316,6 +273,13 @@ router.post("/:dealId/release", async (req: Request, res: Response) => {
     if (!rows[0]) return res.status(404).json({ error: "Deal not found" });
 
     const deal = rows[0];
+    if (deal.status === "RELEASED") {
+      return res.status(400).json({ error: "Deal payout already released" });
+    }
+    if (deal.status === "DISPUTED") {
+      return res.status(400).json({ error: "Resolve dispute before releasing funds" });
+    }
+
     const isAdmin = req.user?.role === "admin";
     const isAutoRelease = deal.status === "DELIVERED_CONFIRMED" && deal.dispute_window_ends && new Date(deal.dispute_window_ends) < new Date();
 
@@ -356,7 +320,7 @@ router.post("/:dealId/release", async (req: Request, res: Response) => {
       [deal.listing_id]
     );
 
-    console.log(`[PROOF:PAYOUT:RELEASED] deal=${dealId} transfer=${transfer.id} amount=${payoutAmount}`);
+    debugApiLog(`[PROOF:PAYOUT:RELEASED] deal=${dealId} transfer=${transfer.id} amount=${payoutAmount}`);
     return res.json({ status: "RELEASED", transferId: transfer.id, payoutAmount });
   } catch (error: any) {
     console.error("[DEAL:RELEASE] Error:", error);
@@ -394,7 +358,7 @@ router.post("/:dealId/dispute", async (req: Request, res: Response) => {
       [dealId]
     );
 
-    console.log(`[PROOF:DEAL:DISPUTED] deal=${dealId} by=${userId} reason=${reason}`);
+    debugApiLog(`[PROOF:DEAL:DISPUTED] deal=${dealId} by=${userId} reason=${reason}`);
     return res.json({ status: "DISPUTED" });
   } catch (error: any) {
     console.error("[DEAL:DISPUTE] Error:", error);
@@ -450,7 +414,7 @@ router.post("/:dealId/refund", async (req: Request, res: Response) => {
       [deal.listing_id]
     );
 
-    console.log(`[PROOF:DEAL:REFUNDED] deal=${dealId} refunded=${refunded.join(",")}`);
+    debugApiLog(`[PROOF:DEAL:REFUNDED] deal=${dealId} refunded=${refunded.join(",")}`);
     return res.json({ status: "REFUNDED", refunded });
   } catch (error: any) {
     console.error("[DEAL:REFUND] Error:", error);
@@ -486,7 +450,7 @@ router.post("/:dealId/cancel", async (req: Request, res: Response) => {
       [deal.listing_id]
     );
 
-    console.log(`[PROOF:DEAL:CANCELED] deal=${dealId} by=${userId}`);
+    debugApiLog(`[PROOF:DEAL:CANCELED] deal=${dealId} by=${userId}`);
     return res.json({ status: "CANCELED" });
   } catch (error: any) {
     console.error("[DEAL:CANCEL] Error:", error);
@@ -534,7 +498,7 @@ router.post("/:dealId/resolve", async (req: Request, res: Response) => {
       [newStatus, dealId]
     );
 
-    console.log(`[PROOF:DEAL:RESOLVED] deal=${dealId} action=${action} resolution=${resolution}`);
+    debugApiLog(`[PROOF:DEAL:RESOLVED] deal=${dealId} action=${action} resolution=${resolution}`);
     return res.json({ status: newStatus });
   } catch (error: any) {
     console.error("[DEAL:RESOLVE] Error:", error);
@@ -679,7 +643,7 @@ router.post("/admin/:dealId/extend", async (req: Request, res: Response) => {
       [newDeadline, dealId]
     );
 
-    console.log(`[PROOF:DEAL:EXTENDED] deal=${dealId} hours=${hours}`);
+    debugApiLog(`[PROOF:DEAL:EXTENDED] deal=${dealId} hours=${hours}`);
     return res.json({ reservedUntil: newDeadline.toISOString() });
   } catch (error: any) {
     console.error("[DEAL:EXTEND] Error:", error);

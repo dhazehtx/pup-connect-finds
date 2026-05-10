@@ -23,7 +23,7 @@ export const useMessagingPerformance = () => {
   const [isOptimizing, setIsOptimizing] = useState(false);
 
   // Performance measurement utilities
-  const measurePerformance = useCallback((operation: string, fn: () => Promise<any>) => {
+  const measurePerformance = useCallback((operation: string, fn: (...args: any[]) => Promise<any>) => {
     return async (...args: any[]) => {
       const startTime = performance.now();
       try {

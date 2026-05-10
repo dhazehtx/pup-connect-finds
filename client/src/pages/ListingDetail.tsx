@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Share, Heart, MapPin, Calendar, Ruler, Award } from 'lucide-react';
+import { ArrowLeft, Share, Heart, MapPin, Calendar, Ruler, Award, PawPrint, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -8,6 +8,27 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/api';
+import { WhyTrustProviderPanel } from '@/components/trust/WhyTrustProviderPanel';
+import { Link } from 'react-router-dom';
+
+type ListingDetailData = {
+  id: string;
+  user_id: string;
+  dog_name: string;
+  breed: string;
+  price: number;
+  age?: number;
+  location?: string;
+  size?: string;
+  image_url?: string;
+  images?: string[];
+  description?: string;
+  vaccinated?: boolean;
+  neutered_spayed?: boolean;
+  good_with_kids?: boolean;
+  good_with_dogs?: boolean;
+  profiles?: Record<string, any>;
+};
 
 const ListingDetail = () => {
   const { id } = useParams();
@@ -15,11 +36,17 @@ const ListingDetail = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   
-  const [listing, setListing] = useState(null);
+  const [listing, setListing] = useState<ListingDetailData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isFavorited, setIsFavorited] = useState(false);
   const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [imageBroken, setImageBroken] = useState(false);
+
+  useEffect(() => {
+    setImageBroken(false);
+    setCurrentImageIndex(0);
+  }, [id]);
 
   useEffect(() => {
     const fetchListing = async () => {
@@ -29,7 +56,7 @@ const ListingDetail = () => {
           description: "No listing ID provided",
           variant: "destructive",
         });
-        navigate('/marketplace');
+        navigate('/explore');
         return;
       }
       
@@ -43,11 +70,14 @@ const ListingDetail = () => {
             description: "This listing could not be found",
             variant: "destructive",
           });
-          navigate('/marketplace');
+          navigate('/explore');
           return;
         }
 
         setListing(listingData);
+        if (listingData?.dog_name) {
+          document.title = `${listingData.dog_name} — PAWS`;
+        }
 
         if (user) {
           try {
@@ -64,7 +94,7 @@ const ListingDetail = () => {
           description: "An unexpected error occurred",
           variant: "destructive",
         });
-        navigate('/marketplace');
+        navigate('/explore');
       } finally {
         setLoading(false);
       }
@@ -195,25 +225,29 @@ const ListingDetail = () => {
   };
 
   const nextImage = () => {
-    if (!listing?.images?.length) return;
-    setCurrentImageIndex((prev) => (prev + 1) % listing.images.length);
+    const listingImages = listing?.images;
+    if (!listingImages?.length) return;
+    setCurrentImageIndex((prev) => (prev + 1) % listingImages.length);
   };
 
   const prevImage = () => {
-    if (!listing?.images?.length) return;
-    setCurrentImageIndex((prev) => (prev - 1 + listing.images.length) % listing.images.length);
+    const listingImages = listing?.images;
+    if (!listingImages?.length) return;
+    setCurrentImageIndex((prev) => (prev - 1 + listingImages.length) % listingImages.length);
   };
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto p-4 space-y-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded mb-4"></div>
-          <div className="aspect-video bg-gray-200 rounded-lg mb-6"></div>
-          <div className="space-y-4">
-            <div className="h-6 bg-gray-200 rounded w-1/3"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-            <div className="h-12 bg-gray-200 rounded"></div>
+      <div className="min-h-screen bg-slate-50/90 pb-24">
+        <div className="mx-auto max-w-4xl space-y-6 p-4">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 rounded bg-slate-200" />
+            <div className="aspect-video rounded-2xl bg-slate-200" />
+            <div className="space-y-3">
+              <div className="h-6 w-1/3 rounded bg-slate-200" />
+              <div className="h-4 w-1/4 rounded bg-slate-200" />
+              <div className="h-12 rounded bg-slate-200" />
+            </div>
           </div>
         </div>
       </div>
@@ -222,11 +256,10 @@ const ListingDetail = () => {
 
   if (!listing) {
     return (
-      <div className="max-w-4xl mx-auto p-4 text-center">
-        <h1 className="text-2xl font-bold mb-4">Listing not found</h1>
-        <Button onClick={() => navigate('/marketplace')}>
-          Back to Marketplace
-        </Button>
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-4 pb-24 text-center">
+        <h1 className="text-2xl font-bold text-slate-900">Listing not found</h1>
+        <p className="max-w-md text-slate-600">It may have been removed or the link is incorrect.</p>
+        <Button onClick={() => navigate('/explore')}>Browse Explore</Button>
       </div>
     );
   }
@@ -238,12 +271,13 @@ const ListingDetail = () => {
   const seller = listing.profiles || {};
 
   return (
-    <div className="max-w-4xl mx-auto p-4 space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50/90 to-white pb-24">
+      <div className="mx-auto max-w-4xl space-y-6 p-4 sm:p-6">
+      <div className="flex items-center gap-3">
         <Button
           variant="ghost"
           size="icon"
+          className="shrink-0"
           onClick={() => {
             if (window.history.length > 1) {
               navigate(-1);
@@ -254,64 +288,66 @@ const ListingDetail = () => {
         >
           <ArrowLeft size={20} />
         </Button>
-        <h1 className="text-xl font-semibold">Listing Details</h1>
+        <div>
+          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Listing</p>
+          <h1 className="text-xl font-semibold text-slate-900">Meet {listing.dog_name}</h1>
+        </div>
       </div>
 
-      {/* Image Gallery */}
-      <div className="relative">
-        <div className="aspect-video rounded-lg overflow-hidden bg-gray-100">
-          {images.length > 0 ? (
+      <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+        <div className="aspect-[4/3] bg-slate-100 sm:aspect-video">
+          {images.length > 0 && !imageBroken ? (
             <img
               src={images[currentImageIndex]}
-              alt={`${listing.dog_name} - Image ${currentImageIndex + 1}`}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                console.error('Image failed to load:', images[currentImageIndex]);
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-              }}
+              alt={`${listing.dog_name} — photo ${currentImageIndex + 1}`}
+              className="h-full w-full object-cover"
+              onError={() => setImageBroken(true)}
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-400">
-              No image available
+            <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-slate-400">
+              <PawPrint className="h-14 w-14 opacity-40" aria-hidden />
+              <span className="text-sm font-medium">Photo unavailable</span>
             </div>
           )}
         </div>
         
-        {images.length > 1 && (
+        {images.length > 1 && !imageBroken && (
           <>
             <Button
               variant="outline"
               size="icon"
-              className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white"
+              className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 shadow-sm hover:bg-white"
               onClick={prevImage}
+              type="button"
+              aria-label="Previous photo"
             >
               <ArrowLeft size={16} />
             </Button>
             <Button
               variant="outline"
               size="icon"
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white"
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 shadow-sm hover:bg-white"
               onClick={nextImage}
+              type="button"
+              aria-label="Next photo"
             >
               <ArrowLeft size={16} className="rotate-180" />
             </Button>
-            <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-2 py-1 rounded text-sm">
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-black/55 px-3 py-1 text-xs font-medium text-white">
               {currentImageIndex + 1} / {images.length}
             </div>
           </>
         )}
       </div>
 
-      {/* Listing Info */}
       <div className="space-y-4">
         <div>
-          <h2 className="text-2xl font-bold">{listing.dog_name}</h2>
-          <p className="text-lg text-gray-600">{listing.breed}</p>
-          <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+          <h2 className="text-2xl font-bold text-slate-900">{listing.dog_name}</h2>
+          <p className="text-lg text-slate-600">{listing.breed}</p>
+          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500">
             <div className="flex items-center gap-1">
-              <Calendar size={16} />
-              {listing.age} weeks old
+              <Calendar size={16} aria-hidden />
+              {listing.age != null ? `${listing.age} weeks old` : 'Age on request'}
             </div>
             {listing.location && (
               <div className="flex items-center gap-1">
@@ -332,8 +368,7 @@ const ListingDetail = () => {
           ${listing.price?.toLocaleString()}
         </div>
 
-        {/* Action Buttons - Enhanced debugging */}
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
@@ -350,7 +385,7 @@ const ListingDetail = () => {
               e.stopPropagation();
               handleContactSeller();
             }}
-            className="flex-1 bg-royal-blue hover:bg-royal-blue/90"
+            className="min-h-[44px] flex-1 bg-royal-blue hover:bg-royal-blue/90"
             disabled={!listing || !listing.user_id}
           >
             Contact Seller
@@ -404,7 +439,7 @@ const ListingDetail = () => {
       </div>
 
       {/* Seller Card */}
-      <Card>
+      <Card className="border-slate-200 shadow-sm">
         <CardContent className="p-6">
           <div className="flex items-start gap-4">
             <Avatar className="h-16 w-16">
@@ -412,13 +447,23 @@ const ListingDetail = () => {
               <AvatarFallback>{seller.full_name?.charAt(0) || seller.username?.charAt(0) || 'U'}</AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <h3 className="font-semibold text-lg">{seller.full_name || seller.username || 'Unknown User'}</h3>
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="font-semibold text-lg">{seller.full_name || seller.username || 'Unknown User'}</h3>
+                {seller.verified && (
+                  <Badge variant="default" className="bg-blue-600 text-white hover:bg-blue-600">
+                    Verified
+                  </Badge>
+                )}
+              </div>
               <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                {seller.rating && (
+                {seller.rating != null && (
                   <span>★ {seller.rating} ({seller.total_reviews || 0} reviews)</span>
                 )}
                 {seller.location && (
-                  <span>📍 {seller.location}</span>
+                  <span className="inline-flex items-center gap-1">
+                    <MapPin className="h-3.5 w-3.5" aria-hidden />
+                    {seller.location}
+                  </span>
                 )}
                 {seller.created_at && (
                   <span>📅 Joined {new Date(seller.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
@@ -435,15 +480,48 @@ const ListingDetail = () => {
         </CardContent>
       </Card>
 
+      {seller.id && (
+        <WhyTrustProviderPanel
+          seller={{
+            id: seller.id,
+            full_name: seller.full_name,
+            username: seller.username,
+            avatar_url: seller.avatar_url,
+            verified: seller.verified,
+            rating: seller.rating,
+            total_reviews: seller.total_reviews,
+            user_type: seller.user_type,
+          }}
+        />
+      )}
+
       {/* About Section */}
       {listing.description && (
-        <Card>
+        <Card className="border-slate-200 shadow-sm">
           <CardContent className="p-6">
-            <h3 className="font-semibold text-lg mb-3">About {listing.dog_name}</h3>
-            <p className="text-gray-700 leading-relaxed">{listing.description}</p>
+            <h3 className="mb-3 text-lg font-semibold text-slate-900">About {listing.dog_name}</h3>
+            <p className="leading-relaxed text-slate-700">{listing.description}</p>
           </CardContent>
         </Card>
       )}
+
+      <Card className="border-blue-100 bg-gradient-to-br from-blue-50/80 to-white shadow-sm">
+        <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="font-semibold text-slate-900">Continue browsing</h3>
+            <p className="mt-1 text-sm text-slate-600">
+              Explore more puppies and connect with verified sellers on PAWS.
+            </p>
+          </div>
+          <Button variant="default" className="min-h-[44px] shrink-0 bg-royal-blue hover:bg-royal-blue/90" asChild>
+            <Link to="/explore" className="inline-flex items-center gap-1">
+              Go to Explore
+              <ChevronRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
+      </div>
     </div>
   );
 };

@@ -1,3 +1,5 @@
+import { debugApiLog, debugApiWarn } from '../lib/debugApi';
+import type { AuthUser } from '../types/authUser';
 import type { Express, Request, Response } from "express";
 import { db } from "../db";
 import { EmailService } from '../utils/emailService';
@@ -5,10 +7,9 @@ import { profiles, dogListings, posts, comments, messages, conversations, favori
 import { eq, or } from "drizzle-orm";
 import rateLimit from "express-rate-limit";
 
-// Extend Request type
 interface AuthenticatedRequest extends Request {
   isAuthenticated(): boolean;
-  user?: { id: string };
+  user?: AuthUser;
   logout(callback: (err: any) => void): void;
 }
 
@@ -125,7 +126,7 @@ export function registerGDPRRoutes(app: Express) {
   });
 
   // Delete account endpoint
-  app.delete("/api/delete-account", async (req: AuthenticatedRequest, res: Response) => {
+  app.delete("/api/delete-account", (async (req: AuthenticatedRequest, res: Response) => {
     try {
       if (!req.isAuthenticated()) {
         return res.status(401).json({ error: "Authentication required" });
@@ -147,7 +148,7 @@ export function registerGDPRRoutes(app: Express) {
         await tx.delete(reviews).where(or(
           eq(reviews.reviewer_id, userId),
           eq(reviews.reviewee_id, userId)
-        ));
+        ) as any);
         
         // Delete favorites
         await tx.delete(favorites).where(eq(favorites.user_id, userId));
@@ -198,7 +199,7 @@ export function registerGDPRRoutes(app: Express) {
       console.error('Account deletion error:', error);
       res.status(500).json({ error: "Failed to delete account" });
     }
-  });
+  }) as any);
 
   app.post("/api/gdpr/recover-account", async (req: Request, res: Response) => {
     try {
@@ -207,14 +208,14 @@ export function registerGDPRRoutes(app: Express) {
         return res.status(400).json({ error: 'Recovery token required' });
       }
 
-      console.log('[PROOF:GDPR:RECOVER]', { tokenProvided: true });
+      debugApiLog('[PROOF:GDPR:RECOVER]', { tokenProvided: true });
       res.json({
         ok: true,
         success: true,
         message: 'Account recovery is not yet fully implemented. Please contact support.',
       });
     } catch (error) {
-      console.error('[PROOF:GDPR:RECOVER:ERR]', error);
+      debugApiLog('[PROOF:GDPR:RECOVER:ERR]', error);
       res.status(500).json({ error: 'Failed to recover account' });
     }
   });

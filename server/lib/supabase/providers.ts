@@ -164,20 +164,103 @@ export async function getProviderPayout(providerId: string) {
   return payout;
 }
 
-// Update provider details
-export async function updateProviderDetails(providerId: string, updates: {
-  description?: string;
-  pricePerService?: number;
-  availability?: string;
-  serviceTypes?: string[];
-  radiusKm?: number;
-}) {
+/** Payload from POST /api/providers/save (camelCase). Maps to `providers` columns. */
+export async function updateProviderDetails(
+  providerId: string,
+  updates: {
+    description?: string;
+    pricePerService?: number;
+    availability?: string;
+    serviceTypes?: string[];
+    radiusKm?: number;
+    yearsExperience?: number;
+    offersCats?: boolean;
+    breedRestrictions?: string | null;
+    rateType?: 'hourly' | 'per_visit' | 'flat';
+    startingPrice?: number;
+    minBookingMinutes?: number;
+    cancellationPolicy?: 'flexible' | 'moderate' | 'strict';
+    travelFeeEnabled?: boolean;
+    travelFeeAmount?: number | null;
+    additionalPetFeeEnabled?: boolean;
+    additionalPetFeeAmount?: number | null;
+    holidayRateEnabled?: boolean;
+    holidayRateMultiplier?: number | null;
+    communicationPolicy?: string;
+    policyAcknowledged?: boolean;
+    uploadedDocuments?: Record<string, string>;
+  },
+) {
+  const patch: Record<string, unknown> = {
+    updated_at: new Date(),
+  };
+
+  if (updates.serviceTypes !== undefined) {
+    patch.service_types = updates.serviceTypes;
+  }
+  if (updates.radiusKm !== undefined) {
+    patch.radius_km = updates.radiusKm;
+  }
+  if (updates.yearsExperience !== undefined) {
+    patch.years_experience = updates.yearsExperience;
+  }
+  if (updates.offersCats !== undefined) {
+    patch.offers_cats = updates.offersCats;
+  }
+  if (updates.breedRestrictions !== undefined) {
+    patch.breed_restrictions = updates.breedRestrictions;
+  }
+  if (updates.rateType !== undefined) {
+    patch.rate_type = updates.rateType;
+  }
+  if (updates.startingPrice !== undefined) {
+    patch.starting_price = String(updates.startingPrice);
+  }
+  if (updates.minBookingMinutes !== undefined) {
+    patch.min_booking_minutes = updates.minBookingMinutes;
+  }
+  if (updates.cancellationPolicy !== undefined) {
+    patch.cancellation_policy = updates.cancellationPolicy;
+  }
+  if (updates.travelFeeEnabled !== undefined) {
+    patch.travel_fee_enabled = updates.travelFeeEnabled;
+  }
+  if (updates.travelFeeAmount !== undefined) {
+    patch.travel_fee_amount =
+      updates.travelFeeAmount != null ? String(updates.travelFeeAmount) : null;
+  }
+  if (updates.additionalPetFeeEnabled !== undefined) {
+    patch.additional_pet_fee_enabled = updates.additionalPetFeeEnabled;
+  }
+  if (updates.additionalPetFeeAmount !== undefined) {
+    patch.additional_pet_fee_amount =
+      updates.additionalPetFeeAmount != null ? String(updates.additionalPetFeeAmount) : null;
+  }
+  if (updates.holidayRateEnabled !== undefined) {
+    patch.holiday_rate_enabled = updates.holidayRateEnabled;
+  }
+  if (updates.holidayRateMultiplier !== undefined) {
+    patch.holiday_rate_multiplier =
+      updates.holidayRateMultiplier != null ? String(updates.holidayRateMultiplier) : null;
+  }
+  if (updates.communicationPolicy !== undefined) {
+    patch.communication_policy = updates.communicationPolicy;
+  }
+  if (updates.policyAcknowledged !== undefined) {
+    patch.policy_acknowledged = updates.policyAcknowledged;
+  }
+
+  if (updates.availability !== undefined) {
+    try {
+      patch.availability = JSON.parse(updates.availability);
+    } catch {
+      patch.availability = { raw: updates.availability };
+    }
+  }
+
   const [provider] = await db
     .update(providers)
-    .set({ 
-      ...updates,
-      updated_at: new Date(),
-    })
+    .set(patch as any)
     .where(eq(providers.id, providerId))
     .returning();
   return provider;

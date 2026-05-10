@@ -13,12 +13,23 @@ import SavedSearchesPanel from './SavedSearchesPanel';
 import SaveSearchDialog from './SaveSearchDialog';
 import { useToast } from '@/hooks/use-toast';
 
+type SearchFiltersState = {
+  breeds: string[];
+  priceRange: [number, number];
+  ageRange: [number, number];
+  location: string;
+  radius: number;
+  verifiedOnly: boolean;
+  availableOnly: boolean;
+  sortBy: string;
+};
+
 const AISearchInterface = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [activeTab, setActiveTab] = useState<'search' | 'recommendations' | 'trending'>('search');
-  const [searchFilters, setSearchFilters] = useState({
+  const [searchFilters, setSearchFilters] = useState<SearchFiltersState>({
     breeds: [],
     priceRange: [0, 5000] as [number, number],
     ageRange: [0, 156] as [number, number],
@@ -63,7 +74,8 @@ const AISearchInterface = () => {
 
     const filters = {
       query: searchQuery,
-      ...searchFilters
+      ...searchFilters,
+      sortBy: searchFilters.sortBy as 'relevance' | 'price' | 'age' | 'distance' | 'newest',
     };
 
     await performAISearch(filters);
@@ -73,7 +85,8 @@ const AISearchInterface = () => {
   const handleSaveSearch = async (name: string, notifyOnNewMatches: boolean) => {
     const filters = {
       query: searchQuery,
-      ...searchFilters
+      ...searchFilters,
+      sortBy: searchFilters.sortBy as 'relevance' | 'price' | 'age' | 'distance' | 'newest',
     };
 
     const result = await saveSearch(name, filters, notifyOnNewMatches);

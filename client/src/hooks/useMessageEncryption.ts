@@ -40,7 +40,7 @@ export const useMessageEncryption = () => {
         encrypted[i] = data[i] ^ keyData[i % keyData.length];
       }
       
-      const encryptedContent = btoa(String.fromCharCode(...encrypted));
+      const encryptedContent = btoa(String.fromCharCode(...Array.from(encrypted)));
       
       return {
         encryptedContent,

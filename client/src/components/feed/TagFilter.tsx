@@ -58,7 +58,7 @@ export const TagFilter: React.FC<TagFilterProps> = ({
         baseTags = allTrendingTags;
         break;
       default:
-        baseTags = [...new Set([...allPopularTags, ...allTrendingTags])];
+        baseTags = Array.from(new Set([...allPopularTags, ...allTrendingTags]));
     }
 
     if (searchValue.trim()) {

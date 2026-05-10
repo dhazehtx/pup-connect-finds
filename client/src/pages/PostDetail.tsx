@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import AnimatedHeart from '@/components/ui/animated-heart';
 import CommentsSection from '@/components/post/CommentsSection';
+import type { Comment } from '@/components/post/CommentsSection';
 import ShareDialog from '@/components/post/ShareDialog';
 import LikesModal from '@/components/post/LikesModal';
 import PostPrivacySettings from '@/components/post/PostPrivacySettings';
@@ -54,7 +55,7 @@ const PostDetail = () => {
     timestamp: '2 hours ago'
   };
 
-  const [comments, setComments] = useState([
+  const [comments, setComments] = useState<Comment[]>([
     {
       id: 1,
       user: { 
@@ -193,7 +194,8 @@ const PostDetail = () => {
       text: newComment,
       timestamp: 'now',
       likes: 0,
-      isLiked: false
+      isLiked: false,
+      replies: [],
     };
 
     setComments([...comments, comment]);

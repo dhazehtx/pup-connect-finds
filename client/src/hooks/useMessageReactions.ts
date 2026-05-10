@@ -10,6 +10,17 @@ interface MessageReaction {
   created_at: string;
 }
 
+const normalizeReaction = (reaction: {
+  id: string;
+  message_id: string;
+  user_id: string;
+  emoji: string;
+  created_at: string | null;
+}): MessageReaction => ({
+  ...reaction,
+  created_at: reaction.created_at ?? new Date().toISOString(),
+});
+
 export const useMessageReactions = () => {
   const [reactions, setReactions] = useState<Record<string, MessageReaction[]>>({});
 
@@ -27,10 +38,11 @@ export const useMessageReactions = () => {
     }
 
     const reactionsByMessage = data.reduce((acc, reaction) => {
+      const normalizedReaction = normalizeReaction(reaction);
       if (!acc[reaction.message_id]) {
         acc[reaction.message_id] = [];
       }
-      acc[reaction.message_id].push(reaction);
+      acc[reaction.message_id].push(normalizedReaction);
       return acc;
     }, {} as Record<string, MessageReaction[]>);
 
@@ -58,7 +70,7 @@ export const useMessageReactions = () => {
 
     setReactions(prev => ({
       ...prev,
-      [messageId]: [...(prev[messageId] || []), data]
+      [messageId]: [...(prev[messageId] || []), normalizeReaction(data)]
     }));
   };
 

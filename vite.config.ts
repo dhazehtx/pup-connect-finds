@@ -1,14 +1,16 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
 export default defineConfig({
   plugins: [
     react(),
-    runtimeErrorOverlay(),
-    ...(process.env.NODE_ENV !== "production" &&
-    process.env.REPL_ID !== undefined
+    /** Replit runtime overlay is opt-in — Cursor/local preview often sets REPL_ID and would block the whole UI on any error. */
+    ...(process.env.VITE_REPLIT_RUNTIME_OVERLAY === "1"
+      ? [(await import("@replit/vite-plugin-runtime-error-modal")).default()]
+      : []),
+    /** Only enable on real Replit — Cursor/local often sets REPL_ID and breaks Vite middleware preview. */
+    ...(process.env.VITE_REPLIT_CARTOGRAPHER === "1"
       ? [
           await import("@replit/vite-plugin-cartographer").then((m) =>
             m.cartographer(),
@@ -24,8 +26,68 @@ export default defineConfig({
     },
   },
   root: path.resolve(import.meta.dirname, "client"),
+  /** Load `.env` from the repo root so one file serves Vite (`VITE_*`) and the server. */
+  envDir: path.resolve(import.meta.dirname),
+  /** Used by `npm run dev:client` (Vite only). Unified app uses Express + `setupVite` on PORT (default 3000). */
+  server: {
+    host: "127.0.0.1",
+    port: 5173,
+    strictPort: false,
+  },
+  preview: {
+    host: "127.0.0.1",
+    port: 4173,
+    strictPort: true,
+  },
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    cssMinify: "esbuild",
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return;
+
+          if (
+            id.includes("/react/") ||
+            id.includes("/react-dom/") ||
+            id.includes("/react-router") ||
+            id.includes("/scheduler/")
+          ) {
+            return "vendor-react";
+          }
+
+          if (id.includes("/@radix-ui/")) return "vendor-radix";
+          if (id.includes("/@tanstack/")) return "vendor-query";
+          if (id.includes("/@supabase/")) return "vendor-supabase";
+          if (id.includes("/framer-motion/")) return "vendor-motion";
+          if (id.includes("/lucide-react/")) return "vendor-icons";
+          if (id.includes("/recharts/")) return "vendor-charts";
+          if (id.includes("/socket.io-client/")) return "vendor-realtime";
+          if (id.includes("/@stripe/") || id.includes("/stripe/")) return "vendor-stripe";
+          if (id.includes("/date-fns/")) return "vendor-date-fns";
+          if (id.includes("/zod/")) return "vendor-zod";
+          if (id.includes("/embla-carousel")) return "vendor-embla";
+          if (id.includes("/react-spring/")) return "vendor-react-spring";
+          if (id.includes("/heic2any/")) return "vendor-heic";
+          if (id.includes("/uuid/")) return "vendor-uuid";
+          if (id.includes("/jspdf/")) return "vendor-jspdf";
+          if (id.includes("/html-to-image/")) return "vendor-html-to-image";
+          if (id.includes("/react-hook-form/")) return "vendor-rhf";
+          if (id.includes("/@hookform/resolvers/")) return "vendor-rhf-resolvers";
+          if (id.includes("/cmdk/")) return "vendor-cmdk";
+          if (id.includes("/zustand/")) return "vendor-zustand";
+          if (id.includes("/react-day-picker/")) return "vendor-day-picker";
+          if (id.includes("/vaul/")) return "vendor-vaul";
+          if (id.includes("/@use-gesture/")) return "vendor-gesture";
+          if (id.includes("/react-icons/")) return "vendor-react-icons";
+          if (id.includes("/input-otp/")) return "vendor-input-otp";
+          if (id.includes("/react-resizable-panels/")) return "vendor-panels";
+          if (id.includes("/next-themes/")) return "vendor-themes";
+
+          return "vendor-misc";
+        },
+      },
+    },
   },
 });

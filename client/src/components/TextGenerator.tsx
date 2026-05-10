@@ -62,7 +62,7 @@ const TextGenerator = ({
       <CardContent className="space-y-4">
         <div>
           <label className="text-sm font-medium mb-2 block">Content Type</label>
-          <Select value={type} onValueChange={(value: TextGenerationOptions['type']) => setType(value)}>
+          <Select value={type} onValueChange={(value) => setType(value as TextGenerationOptions['type'])}>
             <SelectTrigger>
               <SelectValue placeholder="Select content type" />
             </SelectTrigger>

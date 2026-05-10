@@ -1,3 +1,4 @@
+import { debugApiLog, debugApiWarn } from '../../lib/debugApi';
 import { Router } from "express";
 import { supabase } from "../../lib/supabase";
 import { requireAuth } from "../../middleware/auth";
@@ -17,7 +18,7 @@ r.post("/signed-url", async (req, res) => {
   const key = `${userId}/${Date.now()}-${fileName}`;
   const { data, error } = await supabase.storage.from("provider-docs").createSignedUploadUrl(key);
   if (error) return res.status(500).json({ error: error.message });
-  console.log('[PROOF:PROVIDER_DOCS] signed-url created', JSON.stringify({ userId, key, ts: Date.now() }));
+  debugApiLog('[PROOF:PROVIDER_DOCS] signed-url created', JSON.stringify({ userId, key, ts: Date.now() }));
   res.json({ key, uploadUrl: data.signedUrl });
 });
 
@@ -34,10 +35,10 @@ r.post("/record", async (req, res) => {
       file_name: fileName,
       mime_type: mime,
     }).returning();
-    console.log('[PROOF:PROVIDER_DOCS] record inserted via Drizzle', JSON.stringify({ userId, docId: doc.id, ts: Date.now() }));
+    debugApiLog('[PROOF:PROVIDER_DOCS] record inserted via Drizzle', JSON.stringify({ userId, docId: doc.id, ts: Date.now() }));
     res.json({ ok: true, doc });
   } catch (error: any) {
-    console.error('[PROOF:PROVIDER_DOCS:ERR]', JSON.stringify({ userId, code: 'INSERT_FAILED', error: error?.message, ts: Date.now() }));
+    debugApiLog('[PROOF:PROVIDER_DOCS:ERR]', JSON.stringify({ userId, code: 'INSERT_FAILED', error: error?.message, ts: Date.now() }));
     res.status(500).json({ error: error?.message || 'Failed to record document' });
   }
 });
@@ -51,10 +52,10 @@ r.post("/policy-ack", async (req, res) => {
       sql`UPDATE service_providers SET policy_acknowledged = ${!!acknowledged} WHERE user_id = ${userId}`
     );
     await ensureVerifiedBadge(userId);
-    console.log('[PROOF:PROVIDER_DOCS] policy-ack updated via Drizzle', JSON.stringify({ userId, acknowledged: !!acknowledged, ts: Date.now() }));
+    debugApiLog('[PROOF:PROVIDER_DOCS] policy-ack updated via Drizzle', JSON.stringify({ userId, acknowledged: !!acknowledged, ts: Date.now() }));
     res.json({ ok: true });
   } catch (error: any) {
-    console.error('[PROOF:PROVIDER_DOCS:ERR] policy-ack', JSON.stringify({ userId, error: error?.message, ts: Date.now() }));
+    debugApiLog('[PROOF:PROVIDER_DOCS:ERR] policy-ack', JSON.stringify({ userId, error: error?.message, ts: Date.now() }));
     res.status(500).json({ error: error?.message || 'Failed to update policy acknowledgment' });
   }
 });

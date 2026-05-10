@@ -7,8 +7,11 @@ export function useBlockStatus(userId: string | undefined) {
     queryKey: ['/api/blocks/status', userId],
     queryFn: async () => {
       if (!userId) return { blocked: false, blockedByMe: false, blockedByThem: false };
-      const res = await apiRequest(`/api/blocks/status/${userId}`);
-      return res.json();
+      return apiRequest(`/api/blocks/status/${userId}`) as Promise<{
+        blocked: boolean;
+        blockedByMe: boolean;
+        blockedByThem: boolean;
+      }>;
     },
     enabled: !!userId,
   });
@@ -20,8 +23,11 @@ export function useToggleBlock() {
 
   return useMutation({
     mutationFn: async (blockedId: string) => {
-      const res = await apiRequest(`/api/blocks/${blockedId}`, { method: 'POST' });
-      return res.json();
+      return apiRequest(`/api/blocks/${blockedId}`, { method: 'POST' }) as Promise<{
+        ok: boolean;
+        blocked: boolean;
+        action: string;
+      }>;
     },
     onSuccess: (data, blockedId) => {
       queryClient.invalidateQueries({ queryKey: ['/api/blocks/status', blockedId] });
@@ -47,8 +53,7 @@ export function useBlockedUsers() {
   return useQuery({
     queryKey: ['/api/blocks/list'],
     queryFn: async () => {
-      const res = await apiRequest('/api/blocks/list');
-      return res.json();
+      return apiRequest('/api/blocks/list');
     },
   });
 }

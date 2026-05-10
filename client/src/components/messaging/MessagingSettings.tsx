@@ -45,8 +45,15 @@ const MessagingSettings = () => {
       requireAuth: false,
     }
   });
+  type SettingsShape = typeof settings;
+  type SettingsCategory = keyof SettingsShape;
+  type SettingsKey<C extends SettingsCategory> = keyof SettingsShape[C];
 
-  const updateSetting = (category: string, key: string, value: any) => {
+  const updateSetting = <C extends SettingsCategory>(
+    category: C,
+    key: SettingsKey<C>,
+    value: SettingsShape[C][SettingsKey<C>]
+  ) => {
     setSettings(prev => ({
       ...prev,
       [category]: {

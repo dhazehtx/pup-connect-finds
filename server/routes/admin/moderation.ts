@@ -1,3 +1,4 @@
+import { debugApiLog, debugApiWarn } from '../../lib/debugApi';
 import { Router } from 'express';
 import { db } from '../../db';
 import { reports, profiles, posts, comments, dogListings, mediaAssets, blocks } from '@shared/schema';
@@ -51,11 +52,11 @@ router.get('/reports', async (req, res) => {
 
     const nextCursor = rows.length === limit ? rows[rows.length - 1].created_at?.toISOString() : null;
 
-    console.log('[PROOF:ADMIN:REPORTS:LIST]', JSON.stringify({ status, count: rows.length, ts: Date.now() }));
+    debugApiLog('[PROOF:ADMIN:REPORTS:LIST]', JSON.stringify({ status, count: rows.length, ts: Date.now() }));
 
     res.json({ ok: true, reports: rows, nextCursor });
   } catch (error) {
-    console.error('[PROOF:ADMIN:REPORTS:ERR]', error);
+    debugApiLog('[PROOF:ADMIN:REPORTS:ERR]', error);
     res.status(500).json({ ok: false, error: 'Failed to fetch reports' });
   }
 });
@@ -103,7 +104,7 @@ router.get('/reports/:id', async (req, res) => {
 
     res.json({ ok: true, report, targetPreview });
   } catch (error) {
-    console.error('[PROOF:ADMIN:REPORTS:ERR]', error);
+    debugApiLog('[PROOF:ADMIN:REPORTS:ERR]', error);
     res.status(500).json({ ok: false, error: 'Failed to fetch report' });
   }
 });
@@ -136,11 +137,11 @@ router.patch('/reports/:id', async (req, res) => {
       return res.status(404).json({ ok: false, error: 'Report not found' });
     }
 
-    console.log('[PROOF:ADMIN:REPORTS:UPDATE]', JSON.stringify({ reportId: req.params.id, status, adminId, ts: Date.now() }));
+    debugApiLog('[PROOF:ADMIN:REPORTS:UPDATE]', JSON.stringify({ reportId: req.params.id, status, adminId, ts: Date.now() }));
 
     res.json({ ok: true, report: updated });
   } catch (error) {
-    console.error('[PROOF:ADMIN:REPORTS:ERR]', error);
+    debugApiLog('[PROOF:ADMIN:REPORTS:ERR]', error);
     res.status(500).json({ ok: false, error: 'Failed to update report' });
   }
 });
@@ -182,9 +183,9 @@ router.post('/reports/:id/resolve', async (req, res) => {
         suspended_reason: note || 'Banned via report resolution',
         suspended_at: new Date(),
       }).where(eq(profiles.id, report.target_id));
-      console.log('[PROOF:SUSPEND]', JSON.stringify({ userId: report.target_id, suspended: true, via: 'report_resolve', ts: Date.now() }));
+      debugApiLog('[PROOF:SUSPEND]', JSON.stringify({ userId: report.target_id, suspended: true, via: 'report_resolve', ts: Date.now() }));
     } else if (action === 'warn') {
-      console.log('[PROOF:ADMIN:WARN]', JSON.stringify({ reportId, targetType: report.target_type, targetId: report.target_id, adminId, note, ts: Date.now() }));
+      debugApiLog('[PROOF:ADMIN:WARN]', JSON.stringify({ reportId, targetType: report.target_type, targetId: report.target_id, adminId, note, ts: Date.now() }));
     }
 
     const resolvedStatus = action === 'dismiss' ? 'dismissed' : 'resolved';
@@ -195,11 +196,11 @@ router.post('/reports/:id/resolve', async (req, res) => {
       resolution_note: note || `Action: ${action}`,
     }).where(eq(reports.id, reportId)).returning();
 
-    console.log('[PROOF:ADMIN:REPORTS:RESOLVE]', JSON.stringify({ reportId, action, adminId, ts: Date.now() }));
+    debugApiLog('[PROOF:ADMIN:REPORTS:RESOLVE]', JSON.stringify({ reportId, action, adminId, ts: Date.now() }));
 
     res.json({ ok: true, report: updated });
   } catch (error) {
-    console.error('[PROOF:ADMIN:REPORTS:ERR]', error);
+    debugApiLog('[PROOF:ADMIN:REPORTS:ERR]', error);
     res.status(500).json({ ok: false, error: 'Failed to resolve report' });
   }
 });
@@ -228,11 +229,11 @@ router.post('/actions/remove', async (req, res) => {
       return res.status(400).json({ ok: false, error: 'Invalid target_type' });
     }
 
-    console.log('[PROOF:ADMIN:ACTION]', JSON.stringify({ adminId, action: 'remove', targetType: target_type, targetId: target_id, reason, ts: Date.now() }));
+    debugApiLog('[PROOF:ADMIN:ACTION]', JSON.stringify({ adminId, action: 'remove', targetType: target_type, targetId: target_id, reason, ts: Date.now() }));
 
     res.json({ ok: true, message: `${target_type} removed successfully` });
   } catch (error) {
-    console.error('[PROOF:ADMIN:ACTION:ERR]', error);
+    debugApiLog('[PROOF:ADMIN:ACTION:ERR]', error);
     res.status(500).json({ ok: false, error: 'Failed to remove content' });
   }
 });
@@ -260,12 +261,12 @@ router.post('/actions/suspend-user', async (req, res) => {
       return res.status(404).json({ ok: false, error: 'User not found' });
     }
 
-    console.log('[PROOF:ADMIN:ACTION]', JSON.stringify({ adminId, action: 'suspend', targetType: 'user', targetId: user_id, reason, ts: Date.now() }));
-    console.log('[PROOF:SUSPEND]', JSON.stringify({ userId: user_id, suspended: true, ts: Date.now() }));
+    debugApiLog('[PROOF:ADMIN:ACTION]', JSON.stringify({ adminId, action: 'suspend', targetType: 'user', targetId: user_id, reason, ts: Date.now() }));
+    debugApiLog('[PROOF:SUSPEND]', JSON.stringify({ userId: user_id, suspended: true, ts: Date.now() }));
 
     res.json({ ok: true, message: 'User suspended' });
   } catch (error) {
-    console.error('[PROOF:ADMIN:ACTION:ERR]', error);
+    debugApiLog('[PROOF:ADMIN:ACTION:ERR]', error);
     res.status(500).json({ ok: false, error: 'Failed to suspend user' });
   }
 });
@@ -293,12 +294,12 @@ router.post('/actions/unsuspend-user', async (req, res) => {
       return res.status(404).json({ ok: false, error: 'User not found' });
     }
 
-    console.log('[PROOF:ADMIN:ACTION]', JSON.stringify({ adminId, action: 'unsuspend', targetType: 'user', targetId: user_id, ts: Date.now() }));
-    console.log('[PROOF:SUSPEND]', JSON.stringify({ userId: user_id, suspended: false, ts: Date.now() }));
+    debugApiLog('[PROOF:ADMIN:ACTION]', JSON.stringify({ adminId, action: 'unsuspend', targetType: 'user', targetId: user_id, ts: Date.now() }));
+    debugApiLog('[PROOF:SUSPEND]', JSON.stringify({ userId: user_id, suspended: false, ts: Date.now() }));
 
     res.json({ ok: true, message: 'User unsuspended' });
   } catch (error) {
-    console.error('[PROOF:ADMIN:ACTION:ERR]', error);
+    debugApiLog('[PROOF:ADMIN:ACTION:ERR]', error);
     res.status(500).json({ ok: false, error: 'Failed to unsuspend user' });
   }
 });
@@ -359,7 +360,7 @@ router.get('/blocks', async (req, res) => {
         .offset(offset);
     }
 
-    console.log('[PROOF:ADMIN:BLOCKS]', JSON.stringify({
+    debugApiLog('[PROOF:ADMIN:BLOCKS]', JSON.stringify({
       action: 'list',
       userId: userId || 'all',
       blockedByUserCount: blockedByUser.length,
@@ -369,7 +370,7 @@ router.get('/blocks', async (req, res) => {
 
     res.json({ ok: true, blockedByUser, blockedByOthers });
   } catch (error) {
-    console.error('[PROOF:ADMIN:BLOCKS:ERR]', error);
+    debugApiLog('[PROOF:ADMIN:BLOCKS:ERR]', error);
     res.status(500).json({ ok: false, error: 'Failed to fetch blocks' });
   }
 });
@@ -392,7 +393,7 @@ router.post('/blocks/unblock', async (req, res) => {
       return res.status(404).json({ ok: false, error: 'Block relationship not found' });
     }
 
-    console.log('[PROOF:ADMIN:BLOCKS]', JSON.stringify({
+    debugApiLog('[PROOF:ADMIN:BLOCKS]', JSON.stringify({
       action: 'unblock',
       blockerId,
       blockedId,
@@ -402,7 +403,7 @@ router.post('/blocks/unblock', async (req, res) => {
 
     res.json({ ok: true, message: 'Block removed' });
   } catch (error) {
-    console.error('[PROOF:ADMIN:BLOCKS:ERR]', error);
+    debugApiLog('[PROOF:ADMIN:BLOCKS:ERR]', error);
     res.status(500).json({ ok: false, error: 'Failed to unblock' });
   }
 });
@@ -412,11 +413,11 @@ router.get('/rate-limits', async (_req, res) => {
     const stats = getRateLimitStats();
     const keys = Object.keys(stats);
 
-    console.log('[PROOF:ADMIN:RATE_LIMITS]', JSON.stringify({ keys, ts: Date.now() }));
+    debugApiLog('[PROOF:ADMIN:RATE_LIMITS]', JSON.stringify({ keys, ts: Date.now() }));
 
     res.json({ ok: true, rateLimits: stats });
   } catch (error) {
-    console.error('[PROOF:ADMIN:RATE_LIMITS:ERR]', error);
+    debugApiLog('[PROOF:ADMIN:RATE_LIMITS:ERR]', error);
     res.status(500).json({ ok: false, error: 'Failed to fetch rate limits' });
   }
 });
@@ -480,11 +481,11 @@ router.get('/media/orphans', async (req, res) => {
       }
     }
 
-    console.log('[PROOF:ADMIN:MEDIA:ORPHANS]', JSON.stringify({ found: orphans.length, scanned: allMedia.length, ts: Date.now() }));
+    debugApiLog('[PROOF:ADMIN:MEDIA:ORPHANS]', JSON.stringify({ found: orphans.length, scanned: allMedia.length, ts: Date.now() }));
 
     res.json({ ok: true, orphans, scanned: allMedia.length });
   } catch (error) {
-    console.error('[PROOF:ADMIN:MEDIA:ERR]', error);
+    debugApiLog('[PROOF:ADMIN:MEDIA:ERR]', error);
     res.status(500).json({ ok: false, error: 'Failed to scan for orphans' });
   }
 });
@@ -554,11 +555,11 @@ router.post('/media/sweep-orphans', async (req, res) => {
       }
     }
 
-    console.log('[PROOF:ADMIN:MEDIA:SWEEP]', JSON.stringify({ deletedDb, deletedStorage, ts: Date.now() }));
+    debugApiLog('[PROOF:ADMIN:MEDIA:SWEEP]', JSON.stringify({ deletedDb, deletedStorage, ts: Date.now() }));
 
     res.json({ ok: true, deletedDb, deletedStorage });
   } catch (error) {
-    console.error('[PROOF:ADMIN:MEDIA:ERR]', error);
+    debugApiLog('[PROOF:ADMIN:MEDIA:ERR]', error);
     res.status(500).json({ ok: false, error: 'Failed to sweep orphans' });
   }
 });
@@ -624,7 +625,7 @@ router.get('/trash', async (req, res) => {
         .limit(limit);
     }
 
-    console.log('[PROOF:ADMIN:TRASH:LIST]', JSON.stringify({ type, postCount: trashedPosts.length, listingCount: trashedListings.length, mediaCount: trashedMedia.length, ts: Date.now() }));
+    debugApiLog('[PROOF:ADMIN:TRASH:LIST]', JSON.stringify({ type, postCount: trashedPosts.length, listingCount: trashedListings.length, mediaCount: trashedMedia.length, ts: Date.now() }));
 
     res.json({
       posts: trashedPosts,
@@ -632,7 +633,7 @@ router.get('/trash', async (req, res) => {
       media: trashedMedia,
     });
   } catch (error) {
-    console.error('[PROOF:ADMIN:TRASH:ERR]', error);
+    debugApiLog('[PROOF:ADMIN:TRASH:ERR]', error);
     res.status(500).json({ ok: false, error: 'Failed to fetch trash' });
   }
 });
@@ -655,7 +656,7 @@ router.get('/trash/stats', async (req, res) => {
       expiredMedia: Number(expiredMedia?.count || 0),
     });
   } catch (error) {
-    console.error('[PROOF:ADMIN:TRASH:ERR]', error);
+    debugApiLog('[PROOF:ADMIN:TRASH:ERR]', error);
     res.status(500).json({ ok: false, error: 'Failed to fetch trash stats' });
   }
 });
@@ -717,10 +718,10 @@ router.post('/trash/purge', async (req, res) => {
       }
     }
 
-    console.log('[PROOF:ADMIN:TRASH:PURGE]', JSON.stringify({ adminId, type, purgedPosts, purgedListings, purgedMedia, ts: Date.now() }));
+    debugApiLog('[PROOF:ADMIN:TRASH:PURGE]', JSON.stringify({ adminId, type, purgedPosts, purgedListings, purgedMedia, ts: Date.now() }));
     res.json({ ok: true, purgedPosts, purgedListings, purgedMedia });
   } catch (error) {
-    console.error('[PROOF:ADMIN:TRASH:ERR]', error);
+    debugApiLog('[PROOF:ADMIN:TRASH:ERR]', error);
     res.status(500).json({ ok: false, error: 'Failed to purge trash' });
   }
 });
@@ -751,10 +752,10 @@ router.post('/trash/restore', async (req, res) => {
       ));
     }
 
-    console.log('[PROOF:ADMIN:TRASH:RESTORE]', JSON.stringify({ adminId, type, ids, restoredCount, ts: Date.now() }));
+    debugApiLog('[PROOF:ADMIN:TRASH:RESTORE]', JSON.stringify({ adminId, type, ids, restoredCount, ts: Date.now() }));
     res.json({ ok: true, restoredCount });
   } catch (error) {
-    console.error('[PROOF:ADMIN:TRASH:ERR]', error);
+    debugApiLog('[PROOF:ADMIN:TRASH:ERR]', error);
     res.status(500).json({ ok: false, error: 'Failed to restore from trash' });
   }
 });

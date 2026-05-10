@@ -34,7 +34,7 @@ const NotificationTestPage: React.FC = () => {
   // Create test notification
   const createNotificationMutation = useMutation({
     mutationFn: async (notificationData: any) => {
-      return apiRequest('POST', '/api/notifications', notificationData);
+      return apiRequest('/api/notifications', { method: 'POST', body: notificationData });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });

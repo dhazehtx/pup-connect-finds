@@ -22,10 +22,10 @@ const AvatarUpload = ({ currentAvatar, onAvatarChange, userName }: AvatarUploadP
   const { toast } = useToast();
 
   const validateFile = (file: File): boolean => {
-    if (file.size > 10 * 1024 * 1024) {
+    if (file.size > 5 * 1024 * 1024) {
       toast({
         title: "File too large",
-        description: "File size must be less than 10MB",
+        description: "File size must be less than 5MB",
         variant: "destructive",
       });
       return false;
@@ -167,7 +167,7 @@ const AvatarUpload = ({ currentAvatar, onAvatarChange, userName }: AvatarUploadP
                     />
                   </label>
                 </p>
-                <p className="text-xs text-gray-400">PNG, JPG, WebP up to 10MB</p>
+                <p className="text-xs text-gray-400">PNG, JPG, WebP up to 5MB</p>
               </>
             )}
           </div>

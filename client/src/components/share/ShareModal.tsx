@@ -197,7 +197,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
           </div>
 
           {/* Native Mobile Share */}
-          {navigator.share && (
+          {'share' in navigator && typeof navigator.share === 'function' && (
             <div className="space-y-2">
               <label className="text-sm font-medium">Mobile Share</label>
               <Button

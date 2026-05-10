@@ -1,9 +1,11 @@
+import { debugApiLog, debugApiWarn } from '../lib/debugApi';
 import { Router } from "express";
 import { db } from "../db";
 import { mediaAssets, profiles, posts, dogListings } from "@shared/schema";
 import { eq, and, isNull, notInArray, sql } from "drizzle-orm";
 import { supabase } from "../lib/supabase";
 import { validateMediaUpload, ALL_ALLOWED_TYPES } from "../lib/mediaHelpers";
+import { isSupabaseDegraded, runSupabaseWithRetry } from "../lib/supabaseResilience";
 
 const router = Router();
 
@@ -15,6 +17,13 @@ router.post("/sign", async (req, res) => {
   }
 
   try {
+    if (isSupabaseDegraded()) {
+      return res.status(503).json({
+        error: "Media upload temporarily unavailable",
+        code: "SUPABASE_DEGRADED",
+        message: "Storage/auth service is degraded. Please retry shortly.",
+      });
+    }
     const { bucket, fileName, mimeType, kind, sizeBytes, parentId } = req.body;
     const userId = req.user!.id;
 
@@ -36,7 +45,7 @@ router.post("/sign", async (req, res) => {
 
     const validation = validateMediaUpload(mimeType, sizeBytes, kind, existingCount);
     if (!validation.valid) {
-      console.log('[PROOF:MEDIA:VALIDATION]', JSON.stringify({ actorUserId: userId, code: validation.code, kind, mimeType, sizeBytes, ts: Date.now() }));
+      debugApiLog('[PROOF:MEDIA:VALIDATION]', JSON.stringify({ actorUserId: userId, code: validation.code, kind, mimeType, sizeBytes, ts: Date.now() }));
       return res.status(400).json({ error: validation.message, code: validation.code });
     }
 
@@ -44,16 +53,17 @@ router.post("/sign", async (req, res) => {
     const uniqueName = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
     const path = `${kind}/${uniqueName}`;
 
-    const { data, error } = await supabase.storage
-      .from(bucket)
-      .createSignedUploadUrl(path);
+    const { data, error } = await runSupabaseWithRetry(
+      () => supabase.storage.from(bucket).createSignedUploadUrl(path),
+      { opName: "media.sign.createSignedUploadUrl" },
+    );
 
     if (error) {
-      console.error('[PROOF:MEDIA:SIGN:ERR]', JSON.stringify({ userId, bucket, error: error.message, ts: Date.now() }));
+      debugApiLog('[PROOF:MEDIA:SIGN:ERR]', JSON.stringify({ userId, bucket, error: error.message, ts: Date.now() }));
       return res.status(500).json({ error: "Failed to create upload URL" });
     }
 
-    console.log('[PROOF:MEDIA:SIGN]', JSON.stringify({ actorUserId: userId, bucket, path, kind, ts: Date.now() }));
+    debugApiLog('[PROOF:MEDIA:SIGN]', JSON.stringify({ actorUserId: userId, bucket, path, kind, ts: Date.now() }));
 
     res.json({
       ok: true,
@@ -63,7 +73,7 @@ router.post("/sign", async (req, res) => {
       bucket
     });
   } catch (error: any) {
-    console.error('[PROOF:MEDIA:SIGN:ERR]', JSON.stringify({ error: error?.message, ts: Date.now() }));
+    debugApiLog('[PROOF:MEDIA:SIGN:ERR]', JSON.stringify({ error: error?.message, ts: Date.now() }));
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -74,6 +84,13 @@ router.post("/commit", async (req, res) => {
   }
 
   try {
+    if (isSupabaseDegraded()) {
+      return res.status(503).json({
+        error: "Media commit temporarily unavailable",
+        code: "SUPABASE_DEGRADED",
+        message: "Storage service is degraded. Please retry shortly.",
+      });
+    }
     const { bucket, path, mimeType, sizeBytes, width, height, durationSeconds, kind, parentId } = req.body;
     const userId = req.user!.id;
 
@@ -129,7 +146,7 @@ router.post("/commit", async (req, res) => {
         })
         .returning();
 
-      console.log('[PROOF:MEDIA:THUMB]', JSON.stringify({ parentType: parentType, parentId: parentId || null, originalPath: path, thumbPath: thumbPath, originalId: asset.id, thumbId: thumbAsset.id, ts: Date.now() }));
+      debugApiLog('[PROOF:MEDIA:THUMB]', JSON.stringify({ parentType: parentType, parentId: parentId || null, originalPath: path, thumbPath: thumbPath, originalId: asset.id, thumbId: thumbAsset.id, ts: Date.now() }));
     }
 
     if (kind === 'avatar' && publicUrl) {
@@ -149,7 +166,7 @@ router.post("/commit", async (req, res) => {
         }
         const oldIds = oldAvatarAssets.map(a => a.id);
         await db.delete(mediaAssets).where(sql`${mediaAssets.id} = ANY(${oldIds})`);
-        console.log('[PROOF:MEDIA:DELETE]', JSON.stringify({ parentType: 'avatar', parentId: userId, deletedCount: oldAvatarAssets.length, ts: Date.now() }));
+        debugApiLog('[PROOF:MEDIA:DELETE]', JSON.stringify({ parentType: 'avatar', parentId: userId, deletedCount: oldAvatarAssets.length, ts: Date.now() }));
       }
       await db.update(profiles).set({ avatar_url: publicUrl }).where(eq(profiles.id, userId));
     }
@@ -176,7 +193,7 @@ router.post("/commit", async (req, res) => {
       }
     }
 
-    console.log('[PROOF:MEDIA:COMMIT]', JSON.stringify({
+    debugApiLog('[PROOF:MEDIA:COMMIT]', JSON.stringify({
       actorUserId: userId,
       assetId: asset.id,
       kind,
@@ -204,7 +221,7 @@ router.post("/commit", async (req, res) => {
       bucket
     });
   } catch (error: any) {
-    console.error('[PROOF:MEDIA:COMMIT:ERR]', JSON.stringify({ error: error?.message, ts: Date.now() }));
+    debugApiLog('[PROOF:MEDIA:COMMIT:ERR]', JSON.stringify({ error: error?.message, ts: Date.now() }));
     res.status(500).json({ error: "Failed to commit media" });
   }
 });
@@ -215,6 +232,13 @@ router.delete("/:assetId", async (req, res) => {
   }
 
   try {
+    if (isSupabaseDegraded()) {
+      return res.status(503).json({
+        error: "Media delete temporarily unavailable",
+        code: "SUPABASE_DEGRADED",
+        message: "Storage service is degraded. Please retry shortly.",
+      });
+    }
     const { assetId } = req.params;
     const userId = req.user!.id;
 
@@ -231,10 +255,13 @@ router.delete("/:assetId", async (req, res) => {
     const thumbs = await db.select().from(mediaAssets).where(eq(mediaAssets.parent_asset_id, assetId));
     const pathsToDelete = [asset.path, ...thumbs.map(t => t.path)];
 
-    const { error: storageError } = await supabase.storage.from(asset.bucket).remove(pathsToDelete);
+    const { error: storageError } = await runSupabaseWithRetry(
+      () => supabase.storage.from(asset.bucket).remove(pathsToDelete),
+      { opName: "media.delete.storage.remove" },
+    );
 
     if (storageError) {
-      console.error('[PROOF:MEDIA:DELETE:STORAGE_ERR]', JSON.stringify({ assetId, error: storageError.message, ts: Date.now() }));
+      debugApiLog('[PROOF:MEDIA:DELETE:STORAGE_ERR]', JSON.stringify({ assetId, error: storageError.message, ts: Date.now() }));
     }
 
     if (thumbs.length > 0) {
@@ -245,11 +272,11 @@ router.delete("/:assetId", async (req, res) => {
     }
     await db.delete(mediaAssets).where(eq(mediaAssets.id, assetId));
 
-    console.log('[PROOF:MEDIA:DELETE]', JSON.stringify({ actorUserId: userId, assetId, thumbsDeleted: thumbs.length, ok: true, ts: Date.now() }));
+    debugApiLog('[PROOF:MEDIA:DELETE]', JSON.stringify({ actorUserId: userId, assetId, thumbsDeleted: thumbs.length, ok: true, ts: Date.now() }));
 
     res.json({ ok: true, assetId, thumbsDeleted: thumbs.length });
   } catch (error: any) {
-    console.error('[PROOF:MEDIA:DELETE:ERR]', JSON.stringify({ error: error?.message, ts: Date.now() }));
+    debugApiLog('[PROOF:MEDIA:DELETE:ERR]', JSON.stringify({ error: error?.message, ts: Date.now() }));
     res.status(500).json({ error: "Failed to delete media" });
   }
 });
@@ -307,11 +334,11 @@ router.post("/cleanup-parent", async (req, res) => {
       )
     );
 
-    console.log('[PROOF:MEDIA:CLEANUP]', JSON.stringify({ parentType, parentId, deleted: assets.length + thumbs.length, ts: Date.now() }));
+    debugApiLog('[PROOF:MEDIA:CLEANUP]', JSON.stringify({ parentType, parentId, deleted: assets.length + thumbs.length, ts: Date.now() }));
 
     res.json({ ok: true, deleted: assets.length + thumbs.length });
   } catch (error: any) {
-    console.error('[PROOF:MEDIA:CLEANUP:ERR]', JSON.stringify({ error: error?.message, ts: Date.now() }));
+    debugApiLog('[PROOF:MEDIA:CLEANUP:ERR]', JSON.stringify({ error: error?.message, ts: Date.now() }));
     res.status(500).json({ error: "Failed to cleanup media" });
   }
 });
@@ -369,11 +396,11 @@ router.post("/sweep-orphans", async (req, res) => {
       }
     }
 
-    console.log('[PROOF:MEDIA:SWEEP]', JSON.stringify({ deletedCount, ts: Date.now() }));
+    debugApiLog('[PROOF:MEDIA:SWEEP]', JSON.stringify({ deletedCount, ts: Date.now() }));
 
     res.json({ ok: true, deletedCount, ts: Date.now() });
   } catch (error: any) {
-    console.error('[PROOF:MEDIA:SWEEP:ERR]', JSON.stringify({ error: error?.message, ts: Date.now() }));
+    debugApiLog('[PROOF:MEDIA:SWEEP:ERR]', JSON.stringify({ error: error?.message, ts: Date.now() }));
     res.status(500).json({ error: "Failed to sweep orphan media" });
   }
 });

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation } from 'wouter';
+import { useNavigate } from 'react-router-dom';
 import { CheckCircle, Crown, Gift } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { usePayments } from '@/hooks/usePayments';
 
 const SubscriptionSuccess = () => {
-  const [location, setLocation] = useLocation();
+  const navigate = useNavigate();
   const [sessionId, setSessionId] = useState<string>('');
   const { user } = useAuth();
   const { getSubscriptionStatus } = usePayments();
@@ -27,11 +27,11 @@ const SubscriptionSuccess = () => {
   }, [user, getSubscriptionStatus]);
 
   const handleContinue = () => {
-    setLocation('/marketplace');
+    navigate('/marketplace?tab=box');
   };
 
   const handleViewProfile = () => {
-    setLocation('/profile');
+    navigate('/profile');
   };
 
   return (

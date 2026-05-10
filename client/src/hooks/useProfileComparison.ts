@@ -143,7 +143,7 @@ export const useProfileComparison = () => {
         };
       } else {
         insights[field] = {
-          uniqueValues: [...new Set(values)].length,
+          uniqueValues: Array.from(new Set(values)).length,
           mostCommon: getMostCommon(values as string[])
         };
       }

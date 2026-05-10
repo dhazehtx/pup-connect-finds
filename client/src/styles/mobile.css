@@ -851,120 +851,6 @@
   }
 
   /* ============================================
-     VISUAL CONSISTENCY - Button Styles
-     ============================================ */
-  
-  @media (max-width: 768px) {
-    /* CRITICAL: Greeting page buttons - force blue backgrounds */
-    button.greeting-page,
-    .greeting-page button,
-    .greeting-page.bg-blue-600 {
-      background-color: #0074d4 !important;
-      background: #0074d4 !important;
-      color: #ffffff !important;
-      border-color: #0074d4 !important;
-    }
-    
-    button.greeting-page:hover,
-    .greeting-page button:hover {
-      background-color: #005aa8 !important;
-      background: #005aa8 !important;
-    }
-    
-    button.greeting-page svg,
-    button.greeting-page span,
-    .greeting-page button svg,
-    .greeting-page button span {
-      color: #ffffff !important;
-    }
-    
-    /* Primary button consistency */
-    button.bg-primary,
-    button.bg-blue-600,
-    [class*="btn-primary"],
-    .button-primary {
-      background-color: hsl(var(--primary)) !important;
-      color: hsl(var(--primary-foreground)) !important;
-      font-weight: 600;
-      border-radius: 0.5rem;
-    }
-    
-    /* Secondary/outline buttons */
-    button.bg-secondary,
-    .button-secondary,
-    button[class*="outline"] {
-      background-color: hsl(var(--secondary));
-      color: hsl(var(--secondary-foreground));
-      border: 1px solid hsl(var(--border));
-    }
-    
-    /* Ghost buttons */
-    button.bg-transparent,
-    .button-ghost,
-    button[class*="ghost"] {
-      background-color: transparent;
-      color: hsl(var(--foreground));
-    }
-    
-    /* Consistent button padding */
-    button,
-    [role="button"] {
-      padding-left: 1rem;
-      padding-right: 1rem;
-    }
-    
-    /* Icon buttons - square */
-    button[class*="icon"],
-    button:has(> svg:only-child) {
-      padding: 0.625rem;
-      aspect-ratio: 1;
-    }
-  }
-
-  /* ============================================
-     VISUAL CONSISTENCY - Colors
-     ============================================ */
-  
-  @media (max-width: 768px) {
-    /* Enforce blue primary everywhere */
-    .text-primary,
-    .text-blue-600,
-    a:not(.no-color) {
-      color: hsl(var(--primary));
-    }
-    
-    .bg-primary,
-    .bg-blue-600 {
-      background-color: hsl(var(--primary));
-    }
-    
-    /* Consistent muted text */
-    .text-muted,
-    .text-muted-foreground,
-    .text-gray-500,
-    .text-gray-400,
-    .text-slate-500 {
-      color: hsl(var(--muted-foreground));
-    }
-    
-    /* Consistent borders */
-    .border,
-    .border-gray-200,
-    .border-gray-300,
-    .border-slate-200 {
-      border-color: hsl(var(--border));
-    }
-    
-    /* Consistent backgrounds */
-    .bg-gray-50,
-    .bg-gray-100,
-    .bg-slate-50,
-    .bg-slate-100 {
-      background-color: hsl(var(--muted));
-    }
-  }
-
-  /* ============================================
      VISUAL CONSISTENCY - Typography
      ============================================ */
   
@@ -1206,23 +1092,13 @@
 }
 
 /* ============================================
-   GREETING HERO HEADLINE - OVERRIDE GLOBAL H1
-   Forces large marketing "hook" headline on greeting page
+   GREETING HERO HEADLINE
+   Sizing/weight come from Home.tsx (wordmark + paw icon).
    ============================================ */
 
-/* Desktop: 58px refined */
-.greeting-hero h1 {
-  font-size: 58px;
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-  margin-bottom: 20px;
-}
-
-/* Mobile: Let component styles control hero headline */
 @media (max-width: 768px) {
   .greeting-hero h1 {
-    /* Styles controlled by Home.tsx inline styles */
+    /* Component-controlled */
   }
   
   /* Subtitle with proper spacing */

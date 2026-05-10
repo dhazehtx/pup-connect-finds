@@ -31,6 +31,45 @@ interface EnhancedReview {
   user_helpful_vote?: boolean;
 }
 
+type DbReviewPhoto = {
+  id: string;
+  review_id: string;
+  image_url: string;
+  caption: string | null;
+};
+
+type DbEnhancedReview = Omit<EnhancedReview, 'title' | 'comment' | 'reviewer_profile' | 'photos'> & {
+  title: string | null;
+  comment: string | null;
+  reviewer_profile?: {
+    full_name: string | null;
+    username: string | null;
+    avatar_url?: string | null;
+    verified: boolean | null;
+  };
+  photos?: DbReviewPhoto[];
+};
+
+const normalizeEnhancedReview = (review: DbEnhancedReview): EnhancedReview => ({
+  ...review,
+  title: review.title ?? undefined,
+  comment: review.comment ?? undefined,
+  reviewer_profile: review.reviewer_profile
+    ? {
+        full_name: review.reviewer_profile.full_name ?? 'Unknown User',
+        username: review.reviewer_profile.username ?? 'unknown',
+        avatar_url: review.reviewer_profile.avatar_url ?? undefined,
+        verified: review.reviewer_profile.verified ?? false,
+      }
+    : undefined,
+  photos: (review.photos || []).map((photo) => ({
+    id: photo.id,
+    review_id: photo.review_id,
+    image_url: photo.image_url,
+    caption: photo.caption ?? undefined,
+  })),
+});
+
 export const useEnhancedReviews = () => {
   const [reviews, setReviews] = useState<EnhancedReview[]>([]);
   const [loading, setLoading] = useState(false);
@@ -213,9 +252,9 @@ export const useEnhancedReviews = () => {
           user_helpful_vote: votedReviewIds.has(review.id)
         }));
 
-        setReviews(reviewsWithVotes);
+        setReviews(reviewsWithVotes.map((review) => normalizeEnhancedReview(review as DbEnhancedReview)));
       } else {
-        setReviews(reviewsWithPhotos || []);
+        setReviews((reviewsWithPhotos || []).map((review) => normalizeEnhancedReview(review as DbEnhancedReview)));
       }
     } catch (error) {
       console.error('Error fetching reviews:', error);

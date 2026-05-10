@@ -87,7 +87,7 @@ const UnifiedMessagingInterface = () => {
           <ConversationsList
             conversations={conversations}
             onConversationSelect={handleSelectConversation}
-            selectedConversationId={selectedConversationId}
+            selectedConversationId={selectedConversationId ?? undefined}
             getOtherUser={getOtherUser}
           />
         </div>

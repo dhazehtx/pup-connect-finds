@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
   Select,
@@ -17,10 +16,9 @@ import {
 } from '@/components/ui/collapsible';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
-import { 
-  Search, 
-  Filter, 
-  X, 
+import {
+  Filter,
+  X,
   ChevronDown,
   MapPin,
   Calendar,
@@ -30,13 +28,23 @@ import {
   Dog,
   Home,
   Navigation,
-  Clock
+  Clock,
 } from 'lucide-react';
+import {
+  ExploreUniversalSearchBar,
+  DEFAULT_EXPLORE_TRENDING,
+  type ExploreTrendingItem,
+} from '@/components/explore/ExploreUniversalSearchBar';
+import { cn } from '@/lib/utils';
 
 interface AdvancedFiltersProps {
   onFiltersChange: (filters: any) => void;
   className?: string;
+  /** Exposes clear-all for empty-state “Reset all filters” on Explore */
+  clearFiltersRef?: React.MutableRefObject<(() => void) | null>;
 }
+
+const GOLDEN_RETRIEVER = 'Golden Retriever';
 
 const DOG_BREEDS = [
   'Golden Retriever', 'Labrador Retriever', 'German Shepherd', 'Bulldog',
@@ -61,7 +69,8 @@ const US_STATES = [
 
 const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
   onFiltersChange,
-  className = ''
+  className = '',
+  clearFiltersRef,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
@@ -139,7 +148,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
     }));
   };
 
-  const clearAllFilters = () => {
+  const clearAllFilters = useCallback(() => {
     const defaultFilters = {
       breeds: [],
       ageRange: [0, 10] as [number, number],
@@ -155,12 +164,20 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
       vaccinated: false,
       breederType: [] as string[],
       availability: '' as '' | 'available' | 'coming_soon' | 'reserved',
-      keywords: ''
+      keywords: '',
     };
     setFilters(defaultFilters);
     setSearchQuery('');
     localStorage.removeItem('exploreFilters');
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!clearFiltersRef) return;
+    clearFiltersRef.current = clearAllFilters;
+    return () => {
+      clearFiltersRef.current = null;
+    };
+  }, [clearFiltersRef, clearAllFilters]);
 
   const getActiveFiltersCount = () => {
     let count = 0;
@@ -217,8 +234,80 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
 
   const activeFiltersCount = getActiveFiltersCount();
 
+  const nearbyActive =
+    filters.distanceRadius === '25' || filters.distanceRadius === 'local';
+  const newestActive = filters.sortBy === 'newest';
+  const goldenActive = filters.breeds.includes(GOLDEN_RETRIEVER);
+  const smallActive = filters.size.includes('Small');
+
+  const toggleQuickNearby = () => {
+    setFilters((prev) => {
+      const on = prev.distanceRadius === '25' || prev.distanceRadius === 'local';
+      return { ...prev, distanceRadius: on ? ('' as const) : '25' };
+    });
+  };
+  const toggleQuickNewest = () => {
+    setFilters((prev) => ({
+      ...prev,
+      sortBy: prev.sortBy === 'newest' ? 'popular' : 'newest',
+    }));
+  };
+
+  const quickFilterChips = (
+    <div>
+      <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">Quick filters</p>
+      <div
+        className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:thin] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300"
+        role="group"
+        aria-label="Quick filters"
+      >
+        {(
+          [
+            { id: 'nearby', label: 'Nearby', active: nearbyActive, onClick: toggleQuickNearby },
+            { id: 'newest', label: 'Newest', active: newestActive, onClick: toggleQuickNewest },
+            {
+              id: 'golden',
+              label: 'Golden Retrievers',
+              active: goldenActive,
+              onClick: () => toggleBreed(GOLDEN_RETRIEVER),
+            },
+            {
+              id: 'small',
+              label: 'Small breeds',
+              active: smallActive,
+              onClick: () => toggleSize('Small'),
+            },
+          ] as const
+        ).map(({ id, label, active, onClick }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={onClick}
+            className={cn(
+              'shrink-0 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors',
+              active
+                ? 'border-blue-200 bg-blue-50 text-blue-700 ring-1 ring-blue-100 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-900/50'
+                : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800',
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
   const handleApplyFilters = useCallback(() => {
     setIsOpen(false);
+  }, []);
+
+  const handleTrendingPick = useCallback((item: ExploreTrendingItem) => {
+    if (item.kind === 'query') {
+      setSearchQuery(item.query);
+    } else {
+      setSearchQuery('');
+      setFilters((prev) => ({ ...prev, sortBy: item.sortBy }));
+    }
   }, []);
 
   // Filter content component - shared between desktop and mobile
@@ -625,46 +714,48 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
       {/* Search Bar Row */}
       <Card className="mb-4">
         <CardHeader className="pb-3">
-          <div className="flex items-center gap-3">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Search by keywords, breed, location..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Button 
-              variant="outline" 
-              className="relative"
-              onClick={() => setIsOpen(!isOpen)}
-              style={{
-                backgroundColor: isOpen ? '#0074d4' : '#ffffff',
-                color: isOpen ? '#ffffff' : '#374151',
-                borderColor: '#0074d4'
-              }}
-            >
-              <Filter className="w-4 h-4 mr-2" style={{ color: isOpen ? '#ffffff' : '#0074d4' }} />
-              {isOpen ? 'Hide Filters' : 'Show Filters'}
-              {activeFiltersCount > 0 && (
-                <Badge 
-                  className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
-                  style={{ backgroundColor: '#ef4444', color: '#ffffff' }}
-                >
-                  {activeFiltersCount}
-                </Badge>
-              )}
-            </Button>
-            {activeFiltersCount > 0 && (
-              <Button variant="ghost" size="sm" onClick={clearAllFilters}>
-                <X className="w-4 h-4 mr-1" />
-                Clear All
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-start">
+            <ExploreUniversalSearchBar
+              className="min-w-0 w-full lg:flex-1"
+              value={searchQuery}
+              onChange={setSearchQuery}
+              trending={DEFAULT_EXPLORE_TRENDING}
+              onTrendingPick={handleTrendingPick}
+            />
+            <div className="flex flex-shrink-0 flex-wrap items-center gap-2 lg:pt-0.5">
+              <Button
+                variant="outline"
+                className="relative"
+                onClick={() => setIsOpen(!isOpen)}
+                style={{
+                  backgroundColor: isOpen ? '#0074d4' : '#ffffff',
+                  color: isOpen ? '#ffffff' : '#374151',
+                  borderColor: '#0074d4',
+                }}
+              >
+                <Filter className="mr-2 h-4 w-4" style={{ color: isOpen ? '#ffffff' : '#0074d4' }} />
+                {isOpen ? 'Hide Filters' : 'Show Filters'}
+                {activeFiltersCount > 0 && (
+                  <Badge
+                    className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full p-0 text-xs"
+                    style={{ backgroundColor: '#ef4444', color: '#ffffff' }}
+                  >
+                    {activeFiltersCount}
+                  </Badge>
+                )}
               </Button>
-            )}
+              {activeFiltersCount > 0 && (
+                <Button variant="ghost" size="sm" onClick={clearAllFilters}>
+                  <X className="mr-1 h-4 w-4" />
+                  Clear All
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
+        <CardContent className="border-t border-slate-100/90 pt-4 dark:border-slate-800">
+          {quickFilterChips}
+        </CardContent>
       </Card>
 
       {/* Full Width Filter Grid */}
@@ -672,7 +763,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
         <Card className="mb-4">
           <CardContent className="pt-6">
             {/* Row 1: Sort, Gender, Location, Quick Filters */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
               {/* Sort By */}
               <div className="space-y-2">
                 <label className="text-sm font-medium flex items-center gap-2">
@@ -762,108 +853,116 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
               </div>
             </div>
 
-            {/* Row 2: Age Category, Size, Distance, Availability */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
-              {/* Age Category */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-blue-600" />
-                  Age Category
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { value: 'puppy', label: 'Puppy' },
-                    { value: 'young', label: 'Young' },
-                    { value: 'adult', label: 'Adult' }
-                  ].map(({ value, label }) => (
-                    <Badge
-                      key={value}
-                      variant={filters.ageCategory === value ? "default" : "outline"}
-                      className="cursor-pointer px-3 py-1"
-                      onClick={() => selectAgeCategory(value as 'puppy' | 'young' | 'adult')}
-                      style={filters.ageCategory === value ? { backgroundColor: '#0074d4' } : {}}
-                    >
-                      {label}
-                    </Badge>
-                  ))}
+            {/* Row 2: two columns — age/size vs distance/availability */}
+            <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-x-10">
+              <div className="space-y-6">
+                {/* Age Category */}
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm font-medium">
+                    <Calendar className="h-4 w-4 text-blue-600" />
+                    Age Category
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { value: 'puppy', label: 'Puppy' },
+                      { value: 'young', label: 'Young' },
+                      { value: 'adult', label: 'Adult' },
+                    ].map(({ value, label }) => (
+                      <Badge
+                        key={value}
+                        variant={filters.ageCategory === value ? 'default' : 'outline'}
+                        className="cursor-pointer px-3 py-1"
+                        onClick={() => selectAgeCategory(value as 'puppy' | 'young' | 'adult')}
+                        style={filters.ageCategory === value ? { backgroundColor: '#0074d4' } : {}}
+                      >
+                        {label}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Size */}
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm font-medium">
+                    <Dog className="h-4 w-4 text-blue-600" />
+                    Size
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {['Small', 'Medium', 'Large'].map((size) => (
+                      <Badge
+                        key={size}
+                        variant={filters.size.includes(size) ? 'default' : 'outline'}
+                        className="cursor-pointer px-3 py-1"
+                        onClick={() => toggleSize(size)}
+                        style={filters.size.includes(size) ? { backgroundColor: '#0074d4' } : {}}
+                      >
+                        {size}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              {/* Size */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <Dog className="w-4 h-4 text-blue-600" />
-                  Size
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {['Small', 'Medium', 'Large'].map((size) => (
-                    <Badge
-                      key={size}
-                      variant={filters.size.includes(size) ? "default" : "outline"}
-                      className="cursor-pointer px-3 py-1"
-                      onClick={() => toggleSize(size)}
-                      style={filters.size.includes(size) ? { backgroundColor: '#0074d4' } : {}}
-                    >
-                      {size}
-                    </Badge>
-                  ))}
+              <div className="space-y-6">
+                {/* Distance */}
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm font-medium">
+                    <Navigation className="h-4 w-4 text-blue-600" />
+                    Distance
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { value: '25', label: '25 mi' },
+                      { value: '50', label: '50 mi' },
+                      { value: '100', label: '100 mi' },
+                      { value: 'local', label: 'Local' },
+                    ].map(({ value, label }) => (
+                      <Badge
+                        key={value}
+                        variant={filters.distanceRadius === value ? 'default' : 'outline'}
+                        className="cursor-pointer px-3 py-1"
+                        onClick={() =>
+                          updateFilter('distanceRadius', filters.distanceRadius === value ? '' : value)
+                        }
+                        style={filters.distanceRadius === value ? { backgroundColor: '#0074d4' } : {}}
+                      >
+                        {label}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Distance */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <Navigation className="w-4 h-4 text-blue-600" />
-                  Distance
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { value: '25', label: '25 mi' },
-                    { value: '50', label: '50 mi' },
-                    { value: '100', label: '100 mi' },
-                    { value: 'local', label: 'Local' }
-                  ].map(({ value, label }) => (
-                    <Badge
-                      key={value}
-                      variant={filters.distanceRadius === value ? "default" : "outline"}
-                      className="cursor-pointer px-3 py-1"
-                      onClick={() => updateFilter('distanceRadius', filters.distanceRadius === value ? '' : value)}
-                      style={filters.distanceRadius === value ? { backgroundColor: '#0074d4' } : {}}
-                    >
-                      {label}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-
-              {/* Availability */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-blue-600" />
-                  Availability
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { value: 'available', label: 'Available' },
-                    { value: 'coming_soon', label: 'Coming Soon' },
-                    { value: 'reserved', label: 'Reserved' }
-                  ].map(({ value, label }) => (
-                    <Badge
-                      key={value}
-                      variant={filters.availability === value ? "default" : "outline"}
-                      className="cursor-pointer px-3 py-1"
-                      onClick={() => updateFilter('availability', filters.availability === value ? '' : value)}
-                      style={filters.availability === value ? { backgroundColor: '#0074d4' } : {}}
-                    >
-                      {label}
-                    </Badge>
-                  ))}
+                {/* Availability */}
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm font-medium">
+                    <Clock className="h-4 w-4 text-blue-600" />
+                    Availability
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { value: 'available', label: 'Available' },
+                      { value: 'coming_soon', label: 'Coming Soon' },
+                      { value: 'reserved', label: 'Reserved' },
+                    ].map(({ value, label }) => (
+                      <Badge
+                        key={value}
+                        variant={filters.availability === value ? 'default' : 'outline'}
+                        className="cursor-pointer px-3 py-1"
+                        onClick={() =>
+                          updateFilter('availability', filters.availability === value ? '' : value)
+                        }
+                        style={filters.availability === value ? { backgroundColor: '#0074d4' } : {}}
+                      >
+                        {label}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Row 3: Breeds, Breeder Type, Age Slider, Price Slider */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-6">
+            {/* Row 3: Breeds & breeder — two columns; sliders full width row below */}
+            <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-x-10">
               {/* Breeds */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Dog Breeds</label>
@@ -973,28 +1072,18 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
               </div>
             </div>
 
-            {/* Filter Summary */}
-            {activeFiltersCount > 0 && (
-              <div className="bg-blue-50 p-3 rounded-lg mt-6 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Filter className="w-4 h-4 text-blue-600" />
-                  <span className="text-sm font-medium text-blue-900">
-                    {activeFiltersCount} filter{activeFiltersCount !== 1 ? 's' : ''} applied
-                  </span>
-                  <span className="text-xs text-blue-800 ml-2">
-                    Filters are automatically saved
-                  </span>
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={clearAllFilters}
-                  className="text-blue-600 border-blue-600 hover:bg-blue-50"
-                >
-                  Clear All
-                </Button>
-              </div>
-            )}
+            <div className="mt-8 flex flex-col-reverse gap-3 border-t border-slate-200 pt-6 dark:border-slate-700 sm:flex-row sm:justify-end sm:gap-3">
+              <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={clearAllFilters}>
+                Clear All
+              </Button>
+              <Button
+                type="button"
+                className="w-full bg-blue-600 hover:bg-blue-700 sm:w-auto"
+                onClick={() => setIsOpen(false)}
+              >
+                Apply Filters
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -1005,23 +1094,19 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
   const MobileFilters = () => (
     <Card className={className}>
       <CardHeader className="pb-3">
-        <div className="flex items-center gap-3">
-          {/* Search Bar */}
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-11"
-            />
-          </div>
+        <div className="flex items-start gap-2">
+          <ExploreUniversalSearchBar
+            className="min-w-0 flex-1"
+            value={searchQuery}
+            onChange={setSearchQuery}
+            trending={DEFAULT_EXPLORE_TRENDING}
+            onTrendingPick={handleTrendingPick}
+          />
 
           {/* Filter Button - Icon only on mobile */}
           <Button 
             variant="outline" 
-            className="relative h-11 w-11 p-0 flex items-center justify-center"
+            className="relative flex h-11 w-11 shrink-0 items-center justify-center p-0"
             onClick={() => setIsOpen(true)}
             style={{
               backgroundColor: '#ffffff',
@@ -1032,7 +1117,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
             <Filter className="w-5 h-5" style={{ color: '#0074d4' }} />
             {activeFiltersCount > 0 && (
               <Badge 
-                className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+                className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full p-0 text-xs"
                 style={{ backgroundColor: '#0074d4' }}
               >
                 {activeFiltersCount}
@@ -1041,6 +1126,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
           </Button>
         </div>
       </CardHeader>
+      <CardContent className="border-t border-slate-100/90 pt-4 dark:border-slate-800">{quickFilterChips}</CardContent>
 
       {/* Mobile Bottom Sheet */}
       <MobileFilterSheet />

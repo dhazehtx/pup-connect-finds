@@ -1,25 +1,37 @@
-import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Heart, Plus, Bell, Shield, ShieldCheck } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { Plus, Search, ShieldCheck } from 'lucide-react';
+import { PawsWordmarkLockup } from '@/components/brand/PawsWordmark';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 
 import { useToast } from '@/hooks/use-toast';
-import { useEnhancedNotifications } from '@/hooks/useEnhancedNotifications';
 import ModernPostCreator from '@/components/home/ModernPostCreator';
-import NotificationCenter from '@/components/notifications/NotificationCenter';
 import NotificationButton from '@/components/notifications/NotificationButton';
-import SearchBar from '../SearchBar';
+
+const PLACEHOLDER = 'Search puppies, breeders, or messages...';
 
 const StickyHeader = () => {
   const { user, isGuest, profile, loading } = useAuth();
   
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
-  const { unreadCount } = useEnhancedNotifications();
   const [showPostCreator, setShowPostCreator] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
+  const [headerQuery, setHeaderQuery] = useState('');
+
+  const showHeaderSearch =
+    !location.pathname.startsWith('/greeting') && !location.pathname.startsWith('/auth');
+
+  useEffect(() => {
+    if (location.pathname.startsWith('/explore')) {
+      const s = searchParams.get('search') || searchParams.get('q') || '';
+      setHeaderQuery(s);
+    } else {
+      setHeaderQuery('');
+    }
+  }, [location.pathname, searchParams]);
 
   const handleCreatePost = () => {
     if (!user && !isGuest) {
@@ -27,14 +39,11 @@ const StickyHeader = () => {
       return;
     }
 
-    // Check current route to determine post type
     const isMarketplacePage = location.pathname === '/marketplace' || location.pathname === '/explore';
     
     if (isMarketplacePage) {
-      // Redirect to listing creation for marketplace/explore pages
       navigate('/create-listing');
     } else {
-      // Show social post creator for home/profile pages
       setShowPostCreator(true);
     }
   };
@@ -47,7 +56,6 @@ const StickyHeader = () => {
     setShowPostCreator(false);
   };
 
-  // Determine the correct home link based on authentication status
   const getHomeLink = () => {
     if (user || isGuest) {
       return "/home";
@@ -55,225 +63,155 @@ const StickyHeader = () => {
     return "/";
   };
 
-  // Only show social post button on home and profile pages
-  const isHomeOrProfilePage = location.pathname === '/home' || location.pathname.startsWith('/profile');
-  const isExplorePage = location.pathname === '/explore';
-  const isMarketplacePage = location.pathname === '/marketplace';
-  
-  // Hide search on auth pages
-  const showSearch = !location.pathname.startsWith('/auth');
+  const primaryNav = useMemo(
+    () =>
+      [
+        { to: '/explore', label: 'Explore' },
+        { to: '/marketplace', label: 'Shop' },
+        { to: '/services', label: 'Services' },
+        { to: '/help-center', label: 'Help' },
+      ] as const,
+    [],
+  );
 
-  // Determine button text and behavior
-  const getPostButtonText = () => {
-    if (isExplorePage) {
-      return "List Puppy";
-    }
-    return "Post";
+  const isNavActive = (to: string) => {
+    const p = location.pathname;
+    if (to === '/explore') return p === '/explore' || p.startsWith('/listing/');
+    if (to === '/marketplace')
+      return p === '/marketplace' || p.startsWith('/cart') || p.startsWith('/checkout') || p === '/shop';
+    if (to === '/services') return p.startsWith('/services');
+    if (to === '/help-center')
+      return p.startsWith('/help') || p === '/contact' || p === '/support' || p.startsWith('/legal');
+    return p === to;
   };
+
+  const showToolbar = !location.pathname.startsWith('/auth');
+
+  /** Glass bar: one surface behind logo + tools — logo link stays transparent (no “boxed” chip). */
+  const headerSurface =
+    'border-b border-white/25 bg-white/70 shadow-none backdrop-blur-md dark:border-slate-700/40 dark:bg-slate-950/65';
+
+  const submitHeaderSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = headerQuery.trim();
+    if (!q) {
+      navigate('/explore');
+      return;
+    }
+    navigate(`/explore?search=${encodeURIComponent(q)}`);
+  };
+
+  const HeaderToolbar = ({ className }: { className?: string }) => (
+    <div className={className}>
+      {(user || isGuest) && (
+        <button
+          type="button"
+          onClick={handleCreatePost}
+          title="Create Post"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#0074d4] transition-colors hover:bg-[#0074d4]/10"
+        >
+          <Plus className="h-5 w-5" />
+        </button>
+      )}
+
+      {loading ? (
+        <div className="h-6 w-6 shrink-0" />
+      ) : profile?.is_admin ? (
+        <Link
+          to="/admin"
+          title="Admin Dashboard"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#0074d4] hover:bg-[#0074d4]/10"
+        >
+          <ShieldCheck className="h-5 w-5" />
+        </Link>
+      ) : null}
+
+      {user && !isGuest && (
+        <NotificationButton className="rounded-full p-2 text-[#0074d4] transition-colors hover:bg-[#0074d4]/5 hover:shadow-sm" />
+      )}
+    </div>
+  );
 
   return (
     <>
-      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <Link to={getHomeLink()} className="flex items-center space-x-2 flex-shrink-0">
-              <Heart className="h-8 w-8 text-blue-600" />
-              <span className="text-xl font-bold text-gray-900">MY PUP</span>
+      <header className={`sticky top-0 z-50 ${headerSurface}`}>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center gap-2 sm:gap-3">
+            <Link
+              to={getHomeLink()}
+              className="group font-brand-wordmark inline-flex shrink-0 items-baseline gap-1 rounded-none bg-transparent text-base font-medium tracking-widest text-slate-700 shadow-none ring-0 ring-offset-0 hover:bg-transparent focus-visible:outline-none focus-visible:ring-0 dark:text-slate-100 sm:text-lg"
+              aria-label="PAWS — Home"
+            >
+              <PawsWordmarkLockup />
             </Link>
 
-            {/* Center: Search bar + Create Post button + Notification Bell */}
-            {showSearch && (
-              <div className="flex-1 max-w-2xl mx-8 hidden md:flex items-center space-x-4">
-                <SearchBar 
-                  placeholder="Search puppies, breeds, or breeders..." 
-                  className="flex-1"
-                />
-                
-                <div className="flex items-center space-x-3">
-                  {/* Create Post - visible on all pages for authenticated users */}
-                  {(user || isGuest) && (
-                    <button
-                      type="button"
-                      onClick={handleCreatePost}
-                      title="Create Post"
-                      style={{
-                        padding: '8px',
-                        color: '#0074d4',
-                        backgroundColor: 'transparent',
-                        border: 'none',
-                        borderRadius: '9999px',
-                        width: '36px',
-                        height: '36px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        flexShrink: 0
-                      }}
-                    >
-                      <Plus className="h-5 w-5" style={{ color: '#0074d4' }} />
-                    </button>
-                  )}
-
-                  {/* Admin Panel Access - Only for admin users */}
-                  {loading ? (
-                    <div className="h-6 w-6" />
-                  ) : profile?.is_admin ? (
+            {showHeaderSearch && (
+              <nav
+                className="hidden shrink-0 items-center gap-0.5 lg:flex"
+                aria-label="Primary"
+              >
+                {primaryNav.map((item) => {
+                  const active = isNavActive(item.to);
+                  return (
                     <Link
-                      to="/admin"
-                      title="Admin Dashboard"
-                      style={{
-                        padding: '8px',
-                        borderRadius: '9999px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0
-                      }}
+                      key={item.to}
+                      to={item.to}
+                      className={`rounded-lg px-2.5 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30 ${
+                        active
+                          ? 'bg-blue-50 text-blue-700 dark:bg-slate-800 dark:text-blue-300'
+                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
+                      }`}
                     >
-                      <ShieldCheck className="h-5 w-5" style={{ color: '#0074d4' }} />
+                      {item.label}
                     </Link>
-                  ) : null}
-                  
-
-
-
-
-                  {/* Notification Bell - Only for fully authenticated users (not guests) */}
-                  {user && !isGuest && (
-                    <NotificationButton className="p-2 text-[#0074d4] hover:text-[#0074d4] hover:bg-[#0074d4]/5 hover:shadow-sm transition-all duration-200 rounded-full" />
-                  )}
-                </div>
-              </div>
+                  );
+                })}
+              </nav>
             )}
 
-            {/* Mobile search and create */}
-            {showSearch && (
-              <div className="flex md:hidden items-center space-x-2 flex-1 mx-4">
-                <SearchBar 
-                  placeholder="Search..." 
-                  className="flex-1 text-sm"
+            {showHeaderSearch ? (
+              <form
+                onSubmit={submitHeaderSearch}
+                className="relative mx-auto min-w-0 w-full max-w-md flex-1 px-1 sm:px-2"
+                role="search"
+              >
+                <Search
+                  className="pointer-events-none absolute left-4 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-slate-400 sm:left-5"
+                  aria-hidden
                 />
-                
-                <div className="flex items-center space-x-2">
-                  {/* Mobile Create Post - visible on all pages for authenticated users */}
-                  {(user || isGuest) && (
-                    <button
-                      type="button"
-                      onClick={handleCreatePost}
-                      title="Create Post"
-                      style={{
-                        padding: '6px',
-                        color: '#0074d4',
-                        backgroundColor: 'transparent',
-                        border: 'none',
-                        borderRadius: '9999px',
-                        width: '32px',
-                        height: '32px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        flexShrink: 0
-                      }}
-                    >
-                      <Plus className="h-5 w-5" style={{ color: '#0074d4' }} />
-                    </button>
-                  )}
-
-
-
-                  {/* Mobile Admin Panel Access - Only for admin users */}
-                  {loading ? (
-                    <div className="h-6 w-6" />
-                  ) : profile?.is_admin && (
-                    <Link
-                      to="/admin"
-                      title="Admin Dashboard"
-                      style={{
-                        padding: '6px',
-                        borderRadius: '9999px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0
-                      }}
-                    >
-                      <ShieldCheck className="h-5 w-5" style={{ color: '#0074d4' }} />
-                    </Link>
-                  )}
-
-                  {/* Mobile Notification Bell - Only for fully authenticated users (not guests) */}
-                  {user && !isGuest && (
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onClick={() => setShowNotifications(!showNotifications)}
-                        style={{
-                          padding: '6px',
-                          color: '#0074d4',
-                          backgroundColor: 'transparent',
-                          border: 'none',
-                          borderRadius: '9999px',
-                          width: '32px',
-                          height: '32px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          cursor: 'pointer',
-                          outline: 'none'
-                        }}
-                      >
-                        <Bell className="h-5 w-5" style={{ color: '#0074d4' }} />
-                        {unreadCount > 0 && (
-                          <div style={{
-                            position: 'absolute',
-                            top: '-2px',
-                            right: '-2px',
-                            width: '8px',
-                            height: '8px',
-                            backgroundColor: '#FF3B30',
-                            borderRadius: '50%',
-                            border: '1px solid white'
-                          }}></div>
-                        )}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
+                <input
+                  type="search"
+                  value={headerQuery}
+                  onChange={(e) => setHeaderQuery(e.target.value)}
+                  placeholder={PLACEHOLDER}
+                  className="h-9 w-full rounded-full border border-slate-200/90 bg-slate-100/90 py-2 pl-9 pr-3 text-sm text-slate-800 shadow-inner placeholder:text-slate-400 focus:border-blue-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/25 sm:h-10 sm:pl-10 sm:pr-4"
+                  aria-label={PLACEHOLDER}
+                />
+              </form>
+            ) : (
+              <div className="min-w-0 flex-1" aria-hidden />
             )}
 
-            {/* Right: Sign In button only for non-authenticated users */}
-            <div className="flex items-center flex-shrink-0">
+            <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
+              {showToolbar && (
+                <HeaderToolbar className="flex items-center gap-2 sm:gap-3" />
+              )}
               {!user && !isGuest && (
-                <div className="flex items-center space-x-3">
-                  <Link to="/auth">
-                    <Button size="sm" className="px-5 py-2 btn-primary">
-                      Sign In
-                    </Button>
-                  </Link>
-                </div>
+                <Link to="/auth">
+                  <Button size="sm" className="btn-primary px-5 py-2">
+                    Sign In
+                  </Button>
+                </Link>
               )}
             </div>
           </div>
         </div>
       </header>
 
-      {/* Modern Post Creator Modal - Only for social posts */}
       {showPostCreator && (
         <ModernPostCreator
           onClose={() => setShowPostCreator(false)}
           onPostCreated={handlePostCreated}
-        />
-      )}
-
-      {/* Notification Center */}
-      {showNotifications && (
-        <NotificationCenter
-          isOpen={showNotifications}
-          onClose={() => setShowNotifications(false)}
         />
       )}
     </>

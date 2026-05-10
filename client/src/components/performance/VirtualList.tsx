@@ -46,9 +46,8 @@ export function VirtualList<T>({
   return (
     <div
       className={className}
-      style={{ height: containerHeight }}
+      style={{ height: containerHeight, overflow: 'auto' }}
       onScroll={handleScroll}
-      style={{ overflow: 'auto' }}
     >
       <div style={{ height: totalHeight, position: 'relative' }}>
         <div

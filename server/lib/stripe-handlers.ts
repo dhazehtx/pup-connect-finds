@@ -97,9 +97,10 @@ export async function upsertProviderStatus(status: ProviderStatus): Promise<void
 
 export async function markBookingPaid({ checkoutSessionId }: { checkoutSessionId: string }): Promise<void> {
   try {
-    // First find the booking/order by checkout session ID
+    // Match either column: store checkout writes stripe_session_id; legacy rows may use checkout_session_id only
     const findQuery = `
-      SELECT id, user_id, amount_total FROM orders WHERE checkout_session_id = $1
+      SELECT id, user_id, amount_total FROM orders
+      WHERE checkout_session_id = $1 OR stripe_session_id = $1
     `;
     const result = await pool.query(findQuery, [checkoutSessionId]);
 
@@ -110,13 +111,14 @@ export async function markBookingPaid({ checkoutSessionId }: { checkoutSessionId
 
     const booking = result.rows[0];
 
-    // Update booking status
     const updateQuery = `
       UPDATE orders 
-      SET status = 'paid', updated_at = NOW() 
+      SET status = 'paid', updated_at = NOW(),
+          stripe_session_id = COALESCE(stripe_session_id, $2),
+          checkout_session_id = COALESCE(checkout_session_id, $2)
       WHERE id = $1
     `;
-    await pool.query(updateQuery, [booking.id]);
+    await pool.query(updateQuery, [booking.id, checkoutSessionId]);
 
     console.log(`[STRIPE HANDLERS] Marked booking ${booking.id} as paid`);
 

@@ -30,7 +30,11 @@ const defaultSettings: NotificationSettingsData = {
   // In-App Settings
   sound_enabled: true,
   desktop_notifications: true,
-  notification_frequency: 'immediate'
+  notification_frequency: 'immediate',
+
+  notify_bookings: true,
+  notify_reviews: true,
+  notify_promotions: false,
 };
 
 export const useNotificationSettings = () => {

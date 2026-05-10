@@ -70,7 +70,7 @@ const GroupDetailPage: React.FC = () => {
   // Join group mutation
   const joinMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('POST', `/api/community/${groupId}/join`);
+      return apiRequest(`/api/community/${groupId}/join`, { method: 'POST' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['group-detail', groupId] });
@@ -90,7 +90,7 @@ const GroupDetailPage: React.FC = () => {
   // Leave group mutation
   const leaveMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('POST', `/api/community/${groupId}/leave`);
+      return apiRequest(`/api/community/${groupId}/leave`, { method: 'POST' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['group-detail', groupId] });

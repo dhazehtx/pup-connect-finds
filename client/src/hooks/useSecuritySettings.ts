@@ -50,18 +50,32 @@ export const useSecuritySettings = () => {
     setLoading(true);
     try {
       const updatedSettings = { ...settings, ...newSettings };
-      
+
+      const existing = await apiRequest('/api/profiles/me');
+      let privacyObj: Record<string, unknown> = {};
+      if (existing.privacy_settings) {
+        try {
+          privacyObj =
+            typeof existing.privacy_settings === 'string'
+              ? JSON.parse(existing.privacy_settings)
+              : existing.privacy_settings;
+        } catch {
+          privacyObj = {};
+        }
+      }
+
       await apiRequest('/api/profiles/me', {
         method: 'PATCH',
         body: {
           two_factor_enabled: updatedSettings.two_factor_enabled,
           privacy_settings: JSON.stringify({
+            ...privacyObj,
             login_notifications: updatedSettings.login_notifications,
             suspicious_activity_alerts: updatedSettings.suspicious_activity_alerts,
             device_tracking: updatedSettings.device_tracking,
             session_timeout: updatedSettings.session_timeout,
-            allowed_ip_ranges: updatedSettings.allowed_ip_ranges
-          })
+            allowed_ip_ranges: updatedSettings.allowed_ip_ranges,
+          }),
         },
       } as any);
 

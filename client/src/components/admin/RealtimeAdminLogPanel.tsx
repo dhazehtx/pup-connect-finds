@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { 
   Radio,
-  RadioOff,
+  CircleSlash,
   Pause,
   Play,
   Settings,
@@ -336,7 +336,7 @@ const RealtimeAdminLogPanel: React.FC<RealtimeAdminLogPanelProps> = ({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div>
               <div className="text-2xl font-bold text-blue-600">
-                {isListening ? <Radio className="w-6 h-6 mx-auto" /> : <RadioOff className="w-6 h-6 mx-auto" />}
+                {isListening ? <Radio className="w-6 h-6 mx-auto" /> : <CircleSlash className="w-6 h-6 mx-auto opacity-70" />}
               </div>
               <p className="text-sm text-muted-foreground">
                 {isListening ? 'Connected' : 'Disconnected'}

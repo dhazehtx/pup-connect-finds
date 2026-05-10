@@ -13,6 +13,7 @@ router.post('/', async (req, res) => {
   }
 
   try {
+    const userId = req.user!.id;
     const { content_id, content_type } = req.body;
     
     if (!content_id || !content_type) {
@@ -49,7 +50,7 @@ router.post('/', async (req, res) => {
       .select()
       .from(bookmarks)
       .where(and(
-        eq(bookmarks.user_id, req.user.id),
+        eq(bookmarks.user_id, userId),
         eq(bookmarks.content_id, content_id),
         eq(bookmarks.content_type, content_type)
       ));
@@ -62,7 +63,7 @@ router.post('/', async (req, res) => {
     const [bookmark] = await db
       .insert(bookmarks)
       .values({
-        user_id: req.user.id,
+        user_id: userId,
         content_id: content_id,
         content_type: content_type
       })
@@ -86,12 +87,13 @@ router.delete('/:contentId/:contentType', async (req, res) => {
   }
 
   try {
+    const userId = req.user!.id;
     const { contentId, contentType } = req.params;
 
     const deletedRows = await db
       .delete(bookmarks)
       .where(and(
-        eq(bookmarks.user_id, req.user.id),
+        eq(bookmarks.user_id, userId),
         eq(bookmarks.content_id, contentId),
         eq(bookmarks.content_type, contentType)
       ));
@@ -115,13 +117,14 @@ router.get('/check/:contentId/:contentType', async (req, res) => {
   }
 
   try {
+    const userId = req.user!.id;
     const { contentId, contentType } = req.params;
 
     const [bookmark] = await db
       .select()
       .from(bookmarks)
       .where(and(
-        eq(bookmarks.user_id, req.user.id),
+        eq(bookmarks.user_id, userId),
         eq(bookmarks.content_id, contentId),
         eq(bookmarks.content_type, contentType)
       ));
@@ -141,6 +144,7 @@ router.get('/', async (req, res) => {
   }
 
   try {
+    const userId = req.user!.id;
     const { 
       page = '1', 
       limit = '20', 
@@ -169,7 +173,7 @@ router.get('/', async (req, res) => {
       })
       .from(bookmarks)
       .where(and(
-        eq(bookmarks.user_id, req.user.id),
+        eq(bookmarks.user_id, userId),
         typeFilter
       ))
       .orderBy(desc(bookmarks.created_at))
@@ -181,7 +185,7 @@ router.get('/', async (req, res) => {
       .select({ count: count() })
       .from(bookmarks)
       .where(and(
-        eq(bookmarks.user_id, req.user.id),
+        eq(bookmarks.user_id, userId),
         typeFilter
       ));
 

@@ -1,3 +1,4 @@
+import { debugApiLog, debugApiWarn } from '../lib/debugApi';
 import { Router } from 'express';
 import { db } from '../db';
 import { follows, profiles, blocks } from '@shared/schema';
@@ -21,21 +22,21 @@ router.post('/', requireNotSuspended, perUserRateLimit('follows', 20), async (re
   const userId = req.user!.id;
   const { followed_id } = req.body || {};
 
-  console.log('[PROOF:FOLLOW] ▶ START', JSON.stringify({ actorUserId: userId, followed_id, bodyKeys: Object.keys(req.body || {}) }));
+  debugApiLog('[PROOF:FOLLOW] ▶ START', JSON.stringify({ actorUserId: userId, followed_id, bodyKeys: Object.keys(req.body || {}) }));
 
   try {
     if (!followed_id || typeof followed_id !== 'string') {
-      console.log('[PROOF:FOLLOW] ✗ END result=missing_followed_id');
+      debugApiLog('[PROOF:FOLLOW] ✗ END result=missing_followed_id');
       return res.status(400).json({ ok: false, isFollowing: false, message: 'followed_id is required and must be a string', code: 'MISSING_FOLLOWED_ID' });
     }
 
     if (!UUID_RE.test(followed_id)) {
-      console.log('[PROOF:FOLLOW] ✗ END result=invalid_uuid', followed_id);
+      debugApiLog('[PROOF:FOLLOW] ✗ END result=invalid_uuid', followed_id);
       return res.status(400).json({ ok: false, isFollowing: false, message: 'followed_id must be a valid UUID', code: 'INVALID_UUID' });
     }
 
     if (followed_id === userId) {
-      console.log('[PROOF:FOLLOW] ✗ END result=self_follow');
+      debugApiLog('[PROOF:FOLLOW] ✗ END result=self_follow');
       return res.status(400).json({ ok: false, isFollowing: false, message: 'Cannot follow yourself', code: 'SELF_FOLLOW' });
     }
 
@@ -47,7 +48,7 @@ router.post('/', requireNotSuspended, perUserRateLimit('follows', 20), async (re
         username: req.user!.username || null,
       });
     } catch (err) {
-      console.error('[PROOF:FOLLOW] ✗ END result=follower_profile_error', err);
+      debugApiLog('[PROOF:FOLLOW] ✗ END result=follower_profile_error', err);
       return res.status(400).json({ ok: false, isFollowing: false, message: 'Your profile is not initialized. Please reload the page.', code: 'FOLLOWER_MISSING' });
     }
 
@@ -57,7 +58,7 @@ router.post('/', requireNotSuspended, perUserRateLimit('follows', 20), async (re
       .where(eq(profiles.id, followed_id));
 
     if (!targetUser) {
-      console.log('[PROOF:FOLLOW] ✗ END result=target_not_found', followed_id);
+      debugApiLog('[PROOF:FOLLOW] ✗ END result=target_not_found', followed_id);
       return res.status(404).json({ ok: false, isFollowing: false, message: 'Target profile not found in database', code: 'TARGET_NOT_FOUND' });
     }
 
@@ -68,7 +69,7 @@ router.post('/', requireNotSuspended, perUserRateLimit('follows', 20), async (re
       )
     );
     if (blockRelation) {
-      console.log('[PROOF:BLOCK]', JSON.stringify({ userId, followed_id, action: 'follow_blocked', ts: Date.now() }));
+      debugApiLog('[PROOF:BLOCK]', JSON.stringify({ userId, followed_id, action: 'follow_blocked', ts: Date.now() }));
       return res.status(403).json({ ok: false, code: 'BLOCKED', error: 'interaction blocked' });
     }
 
@@ -81,7 +82,7 @@ router.post('/', requireNotSuspended, perUserRateLimit('follows', 20), async (re
       ));
 
     if (existingFollow) {
-      console.log('[PROOF:FOLLOW] ✓ END result=already_following', JSON.stringify({ actorUserId: userId, followed_id }));
+      debugApiLog('[PROOF:FOLLOW] ✓ END result=already_following', JSON.stringify({ actorUserId: userId, followed_id }));
       return res.status(200).json({ ok: true, isFollowing: true, message: 'Already following this user' });
     }
 
@@ -93,7 +94,7 @@ router.post('/', requireNotSuspended, perUserRateLimit('follows', 20), async (re
       })
       .returning();
 
-    console.log('[PROOF:FOLLOWS]', JSON.stringify({ actorUserId: userId, targetId: followed_id, action: 'follow', ok: true }));
+    debugApiLog('[PROOF:FOLLOWS]', JSON.stringify({ actorUserId: userId, targetId: followed_id, action: 'follow', ok: true }));
 
     createNotification({
       toUserId: followed_id,
@@ -112,7 +113,7 @@ router.post('/', requireNotSuspended, perUserRateLimit('follows', 20), async (re
     });
 
   } catch (error: any) {
-    console.error('[PROOF:FOLLOW] ✗ END result=error', JSON.stringify({
+    debugApiLog('[PROOF:FOLLOW] ✗ END result=error', JSON.stringify({
       actorUserId: userId,
       followed_id,
       error: error?.message,
@@ -142,7 +143,7 @@ router.delete('/:userId', async (req, res) => {
       return res.status(400).json({ message: 'Valid user ID is required', code: 'INVALID_UUID' });
     }
 
-    console.log('[PROOF:UNFOLLOW] ▶ START', JSON.stringify({ actorUserId: req.user!.id, targetUserId: userId }));
+    debugApiLog('[PROOF:UNFOLLOW] ▶ START', JSON.stringify({ actorUserId: req.user!.id, targetUserId: userId }));
 
     await db
       .delete(follows)
@@ -151,11 +152,11 @@ router.delete('/:userId', async (req, res) => {
         eq(follows.followed_id, userId)
       ));
 
-    console.log('[PROOF:FOLLOWS]', JSON.stringify({ actorUserId: req.user!.id, targetId: userId, action: 'unfollow', ok: true }));
+    debugApiLog('[PROOF:FOLLOWS]', JSON.stringify({ actorUserId: req.user!.id, targetId: userId, action: 'unfollow', ok: true }));
     res.json({ ok: true, isFollowing: false, message: 'User unfollowed successfully' });
 
   } catch (error: any) {
-    console.error('[PROOF:UNFOLLOW] ✗ END result=error', JSON.stringify({
+    debugApiLog('[PROOF:UNFOLLOW] ✗ END result=error', JSON.stringify({
       actorUserId: req.user?.id,
       targetUserId: req.params.userId,
       error: error?.message,

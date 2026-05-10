@@ -1,5 +1,4 @@
 import { useState, useRef } from "react";
-import { useLocation as useWouterLocation } from "wouter";
 import { Link, useNavigate } from "react-router-dom";
 import { useGlobalSearch } from "../hooks/useGlobalSearch";
 import { Search } from "lucide-react";

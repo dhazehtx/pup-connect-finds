@@ -61,7 +61,7 @@ export const performanceUtils = {
       console.log('Performance Metrics:', {
         domContentLoaded: entry.domContentLoadedEventEnd - entry.domContentLoadedEventStart,
         loadComplete: entry.loadEventEnd - entry.loadEventStart,
-        totalTime: entry.loadEventEnd - entry.navigationStart
+        totalTime: entry.loadEventEnd
       });
     }
   },

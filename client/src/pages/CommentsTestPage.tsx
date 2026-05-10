@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import PostCard from '@/components/feed/PostCard';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft } from 'lucide-react';
-import { useLocation } from 'wouter';
+import { useNavigate } from 'react-router-dom';
 
 const CommentsTestPage = () => {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const { toast } = useToast();
 
   // Test post with comments functionality
@@ -74,7 +74,7 @@ const CommentsTestPage = () => {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => setLocation('/explore')}
+                onClick={() => navigate('/explore')}
               >
                 <ArrowLeft className="w-4 h-4 mr-1" />
                 Back to Feed

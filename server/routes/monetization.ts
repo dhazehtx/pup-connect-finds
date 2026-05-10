@@ -1,6 +1,7 @@
 import express from 'express';
-import Stripe from 'stripe';
-import { db } from '@/db';
+import { db } from '../db';
+import { getStripe } from '../lib/stripeLazy';
+import { getPlatformFeePercent } from '../lib/platformFees';
 import { 
   platformCommissions, 
   providerSubscriptions, 
@@ -10,14 +11,6 @@ import {
   products
 } from '@shared/schema';
 import { eq, desc } from 'drizzle-orm';
-
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
-}
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
-});
 
 const router = express.Router();
 
@@ -36,7 +29,7 @@ router.post('/boost-product', async (req, res) => {
     expiresAt.setMonth(expiresAt.getMonth() + 1); // 30 days boost
 
     // Create Stripe payment intent
-    const paymentIntent = await stripe.paymentIntents.create({
+    const paymentIntent = await getStripe().paymentIntents.create({
       amount,
       currency: 'usd',
       metadata: {
@@ -71,7 +64,7 @@ router.post('/boost-service', async (req, res) => {
     const expiresAt = new Date();
     expiresAt.setMonth(expiresAt.getMonth() + 1); // 30 days boost
 
-    const paymentIntent = await stripe.paymentIntents.create({
+    const paymentIntent = await getStripe().paymentIntents.create({
       amount,
       currency: 'usd',
       metadata: {
@@ -130,7 +123,7 @@ router.post('/provider-subscription', async (req, res) => {
     let customerId = existingSubscription[0]?.stripeCustomerId;
     
     if (!customerId) {
-      const customer = await stripe.customers.create({
+      const customer = await getStripe().customers.create({
         email: user[0].email || '',
         name: user[0].full_name || user[0].username || '',
         metadata: { userId },
@@ -139,7 +132,7 @@ router.post('/provider-subscription', async (req, res) => {
     }
 
     // Create Stripe subscription (you'll need to create a price in Stripe dashboard)
-    const subscription = await stripe.subscriptions.create({
+    const subscription = await getStripe().subscriptions.create({
       customer: customerId,
       items: [{
         price: 'price_provider_subscription', // Replace with actual Stripe price ID
@@ -147,6 +140,7 @@ router.post('/provider-subscription', async (req, res) => {
       payment_behavior: 'default_incomplete',
       expand: ['latest_invoice.payment_intent'],
     });
+    const subscriptionData = subscription as any;
 
     // Save subscription to database
     await db.insert(providerSubscriptions).values({
@@ -155,12 +149,12 @@ router.post('/provider-subscription', async (req, res) => {
       stripeCustomerId: customerId,
       plan: 'premium',
       status: 'active',
-      currentPeriodStart: new Date(subscription.current_period_start * 1000),
-      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      currentPeriodStart: new Date(subscriptionData.current_period_start * 1000),
+      currentPeriodEnd: new Date(subscriptionData.current_period_end * 1000),
     });
 
-    const latestInvoice = subscription.latest_invoice as Stripe.Invoice;
-    const paymentIntent = latestInvoice.payment_intent as Stripe.PaymentIntent;
+    const latestInvoice = subscriptionData.latest_invoice as any;
+    const paymentIntent = latestInvoice.payment_intent as any;
 
     res.json({
       subscriptionId: subscription.id,
@@ -181,8 +175,9 @@ router.post('/process-commission', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    const commissionRate = 10.00; // 10% platform commission
-    const commissionAmount = (parseFloat(amount) * commissionRate / 100);
+    // Same fractional basis as PLATFORM_FEE_PERCENT (.e.g 0.10 → 10%)
+    const commissionRate = getPlatformFeePercent() * 100;
+    const commissionAmount = parseFloat(amount) * getPlatformFeePercent();
 
     // Create commission record
     await db.insert(platformCommissions).values({
@@ -255,7 +250,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 
   try {
     // You'll need to set STRIPE_WEBHOOK_SECRET in environment
-    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET || '');
+    event = getStripe().webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET || '');
   } catch (err: any) {
     console.error('Webhook signature verification failed:', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
@@ -264,7 +259,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
   try {
     switch (event.type) {
       case 'payment_intent.succeeded': {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        const paymentIntent = event.data.object as any;
         const { userId, productId, serviceId, boostType, expiresAt } = paymentIntent.metadata;
 
         if (boostType && userId) {
@@ -293,7 +288,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 
       case 'customer.subscription.updated':
       case 'customer.subscription.deleted': {
-        const subscription = event.data.object as Stripe.Subscription;
+        const subscription = event.data.object as any;
         
         await db
           .update(providerSubscriptions)

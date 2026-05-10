@@ -6,7 +6,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/api';
 import { supabase } from '@/integrations/supabase/client';
-import { useLocation } from 'wouter';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import ListingCard from '@/components/ListingCard';
 import EmptyState from '@/components/EmptyState';

@@ -1,18 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
+import { debugApiLog } from '../lib/debugApi';
 import rateLimit, { RateLimitRequestHandler } from 'express-rate-limit';
 import slowDown from 'express-slow-down';
-
-// Extend Express Request interface to include user
-declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        id: string;
-        isAdmin?: boolean;
-      };
-    }
-  }
-}
 
 // Store for tracking abuse attempts
 interface AbuseAttempt {
@@ -44,8 +33,7 @@ class RateLimitStore {
 
     this.attempts.set(key, attempt);
     
-    // Log to console for now (can be extended to database logging)
-    console.log(`[RATE_LIMIT_ABUSE] ${JSON.stringify({
+    debugApiLog(`[RATE_LIMIT_ABUSE] ${JSON.stringify({
       ip: attempt.ip,
       userId: attempt.userId,
       endpoint: attempt.endpoint,
@@ -80,7 +68,7 @@ class RateLimitStore {
     
     this.lockouts.set(key, lockoutUntil);
     
-    console.log(`[LOCKOUT_APPLIED] ${JSON.stringify({
+    debugApiLog(`[LOCKOUT_APPLIED] ${JSON.stringify({
       key,
       attempts,
       lockoutMinutes: backoffMinutes,
@@ -333,6 +321,10 @@ export const listingRateLimit: RateLimitRequestHandler = rateLimit({
     keyGeneratorIpFallback: false
   }
 });
+
+// Lost-pet specific aliases; kept separate to allow future tuning.
+export const lostPetAiMatchRateLimit = strictRateLimit;
+export const lostPetPatchRateLimit = generalRateLimit;
 
 // Speed limiter with progressive delays
 export const speedLimiter = slowDown({

@@ -6,10 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { Shield, CheckCircle, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface BecomeProviderModalProps {
   open: boolean;
@@ -22,6 +22,15 @@ interface ProviderApplication {
   price: string;
   availability?: string;
   location?: string;
+  whelpingRules?: {
+    yearsExperience: number;
+    hasBreedingLicense: true;
+    hasSecureWhelpingSpace: true;
+    theftPreventionPlan: string;
+    welfareCommitmentAck: true;
+    legalComplianceAck: true;
+    backgroundCheckAck: true;
+  };
 }
 
 export function BecomeProviderModal({ open, onClose }: BecomeProviderModalProps) {
@@ -33,6 +42,15 @@ export function BecomeProviderModal({ open, onClose }: BecomeProviderModalProps)
     location: '',
   });
   const [currentStep, setCurrentStep] = useState(1);
+  const [whelpingForm, setWhelpingForm] = useState({
+    yearsExperience: '',
+    theftPreventionPlan: '',
+    hasBreedingLicense: false,
+    hasSecureWhelpingSpace: false,
+    welfareCommitmentAck: false,
+    legalComplianceAck: false,
+    backgroundCheckAck: false,
+  });
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -42,6 +60,7 @@ export function BecomeProviderModal({ open, onClose }: BecomeProviderModalProps)
     { value: 'sitting', label: 'Pet Sitting', icon: '🏠' },
     { value: 'training', label: 'Dog Training', icon: '🎓' },
     { value: 'boarding', label: 'Pet Boarding', icon: '🏨' },
+    { value: 'whelping', label: 'Whelping Care', icon: '🍼' },
     { value: 'veterinary', label: 'Veterinary Care', icon: '🏥' },
   ];
 
@@ -49,7 +68,7 @@ export function BecomeProviderModal({ open, onClose }: BecomeProviderModalProps)
     mutationFn: async (data: ProviderApplication) => {
       return apiRequest('/api/services/signup', {
         method: 'POST',
-        body: JSON.stringify(data),
+        body: data,
       });
     },
     onSuccess: () => {
@@ -66,6 +85,15 @@ export function BecomeProviderModal({ open, onClose }: BecomeProviderModalProps)
         price: '',
         availability: '',
         location: '',
+      });
+      setWhelpingForm({
+        yearsExperience: '',
+        theftPreventionPlan: '',
+        hasBreedingLicense: false,
+        hasSecureWhelpingSpace: false,
+        welfareCommitmentAck: false,
+        legalComplianceAck: false,
+        backgroundCheckAck: false,
       });
     },
     onError: (error: any) => {
@@ -111,11 +139,55 @@ export function BecomeProviderModal({ open, onClose }: BecomeProviderModalProps)
       return;
     }
 
+    const isWhelping = formData.service_type === 'whelping';
+    if (isWhelping) {
+      const years = Number(whelpingForm.yearsExperience);
+      const strictReady =
+        Number.isFinite(years) &&
+        years >= 2 &&
+        whelpingForm.theftPreventionPlan.trim().length >= 30 &&
+        whelpingForm.hasBreedingLicense &&
+        whelpingForm.hasSecureWhelpingSpace &&
+        whelpingForm.welfareCommitmentAck &&
+        whelpingForm.legalComplianceAck &&
+        whelpingForm.backgroundCheckAck;
+      if (!strictReady) {
+        toast({
+          title: "Whelping guardrails required",
+          description: "Complete all strict safety requirements to submit a whelping application.",
+          variant: "destructive",
+        });
+        return;
+      }
+      submitApplication.mutate({
+        ...formData,
+        whelpingRules: {
+          yearsExperience: years,
+          theftPreventionPlan: whelpingForm.theftPreventionPlan.trim(),
+          hasBreedingLicense: true,
+          hasSecureWhelpingSpace: true,
+          welfareCommitmentAck: true,
+          legalComplianceAck: true,
+          backgroundCheckAck: true,
+        },
+      });
+      return;
+    }
+
     submitApplication.mutate(formData);
   };
 
   const isStep1Valid = formData.service_type && formData.bio.length >= 10;
-  const isStep2Valid = formData.price && parseFloat(formData.price) > 0;
+  const isWhelping = formData.service_type === 'whelping';
+  const whelpingStep2Valid =
+    Number(whelpingForm.yearsExperience) >= 2 &&
+    whelpingForm.theftPreventionPlan.trim().length >= 30 &&
+    whelpingForm.hasBreedingLicense &&
+    whelpingForm.hasSecureWhelpingSpace &&
+    whelpingForm.welfareCommitmentAck &&
+    whelpingForm.legalComplianceAck &&
+    whelpingForm.backgroundCheckAck;
+  const isStep2Valid = formData.price && parseFloat(formData.price) > 0 && (!isWhelping || whelpingStep2Valid);
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -232,6 +304,59 @@ export function BecomeProviderModal({ open, onClose }: BecomeProviderModalProps)
                   onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
                 />
               </div>
+
+              {isWhelping && (
+                <div className="space-y-4 rounded-lg border border-rose-200 bg-rose-50 p-4">
+                  <p className="text-sm font-semibold text-rose-900">Strict Whelping Guardrails</p>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="yearsExperience">Years of whelping experience *</Label>
+                      <Input
+                        id="yearsExperience"
+                        type="number"
+                        min="2"
+                        value={whelpingForm.yearsExperience}
+                        onChange={(e) => setWhelpingForm((prev) => ({ ...prev, yearsExperience: e.target.value }))}
+                        placeholder="2+"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="theftPreventionPlan">Theft prevention and emergency plan *</Label>
+                    <Textarea
+                      id="theftPreventionPlan"
+                      rows={3}
+                      value={whelpingForm.theftPreventionPlan}
+                      onChange={(e) =>
+                        setWhelpingForm((prev) => ({ ...prev, theftPreventionPlan: e.target.value }))
+                      }
+                      placeholder="Describe access controls, visitor policy, ID checks, and emergency escalation."
+                    />
+                  </div>
+                  <div className="space-y-3 text-sm">
+                    {[
+                      ['hasBreedingLicense', 'I hold all required breeding/whelping licenses for my jurisdiction.'],
+                      ['hasSecureWhelpingSpace', 'I maintain a secure, monitored whelping environment.'],
+                      ['welfareCommitmentAck', 'I commit to animal welfare standards and humane care practices.'],
+                      ['legalComplianceAck', 'I agree to legal compliance and truthful disclosure.'],
+                      ['backgroundCheckAck', 'I consent to strict screening and background checks.'],
+                    ].map(([key, label]) => (
+                      <div key={key} className="flex items-start gap-2">
+                        <Checkbox
+                          id={key}
+                          checked={Boolean(whelpingForm[key as keyof typeof whelpingForm])}
+                          onCheckedChange={(checked) =>
+                            setWhelpingForm((prev) => ({ ...prev, [key]: Boolean(checked) }))
+                          }
+                        />
+                        <Label htmlFor={key} className="leading-5">
+                          {label}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

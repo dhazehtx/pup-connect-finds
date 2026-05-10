@@ -3,7 +3,7 @@ import React from 'react';
 import { AlertTriangle, RefreshCw, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 interface ProfileErrorFallbackProps {
   error?: Error;
@@ -61,13 +61,7 @@ interface ProfileErrorBoundaryProps {
 
 export const ProfileErrorBoundary: React.FC<ProfileErrorBoundaryProps> = ({ children }) => {
   return (
-    <ErrorBoundary
-      fallback={<ProfileErrorFallback />}
-      onError={(error, errorInfo) => {
-        console.error('Profile error:', error, errorInfo);
-        // You could send this to an analytics service
-      }}
-    >
+    <ErrorBoundary fallback={<ProfileErrorFallback />}>
       {children}
     </ErrorBoundary>
   );

@@ -2,22 +2,13 @@
 import React from 'react';
 import { MapPin } from 'lucide-react';
 import MapMarker from './MapMarker';
-
-interface Listing {
-  id: string;
-  dog_name: string;
-  breed: string;
-  price: number;
-  location: string;
-  image_url?: string;
-  coordinates?: { lat: number; lng: number };
-}
+import { MarketplaceListing } from '@/types/marketplace';
 
 interface MapContainerProps {
-  listings: Listing[];
-  selectedListing?: Listing;
+  listings: MarketplaceListing[];
+  selectedListing?: MarketplaceListing;
   userLocation?: { lat: number; lng: number };
-  onMarkerClick: (listing: Listing) => void;
+  onMarkerClick: (listing: MarketplaceListing) => void;
 }
 
 const MapContainer = ({ 

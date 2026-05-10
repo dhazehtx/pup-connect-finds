@@ -7,16 +7,7 @@ import { useLocationServices } from '@/hooks/useLocationServices';
 import { useToast } from '@/hooks/use-toast';
 import RealGoogleMap from './RealGoogleMap';
 import { GoogleMapsService } from '@/services/GoogleMapsService';
-
-interface MapMarker {
-  id: string;
-  lat: number;
-  lng: number;
-  title: string;
-  description?: string;
-  type: 'listing' | 'user' | 'breeder';
-  distance?: number;
-}
+import { MapMarker } from '@/types/maps';
 
 interface InteractiveMapProps {
   markers?: MapMarker[];

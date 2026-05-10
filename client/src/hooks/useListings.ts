@@ -1,6 +1,7 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/api';
 import { useExploreFilters } from '@/context/ExploreFiltersContext';
+import { getBreedNameById } from '@/hooks/useBreedColorOptions';
 
 export interface Listing {
   id: string;
@@ -31,15 +32,16 @@ export const useListings = () => {
     queryKey: ['listings', filters],
     queryFn: async ({ pageParam = 0 }) => {
       try {
-        console.log('[LISTINGS] Fetching from Neon API with filters:', filters);
-        
+        if (import.meta.env.DEV) {
+          console.log('[LISTINGS] Fetching from Neon API with filters:', filters);
+        }
+
         const params = new URLSearchParams();
         params.append('offset', String(pageParam));
         params.append('limit', '20');
         params.append('status', 'active');
 
         if (filters.breedId) {
-          const { getBreedNameById } = await import('@/hooks/useBreedColorOptions');
           const breedName = getBreedNameById(filters.breedId);
           if (breedName) {
             params.append('breed', breedName);
@@ -86,10 +88,14 @@ export const useListings = () => {
 
         const data = await apiRequest(`/api/listings?${params.toString()}`);
         const list = Array.isArray(data) ? data : [];
-        console.log('[PROOF:LISTINGS] client count', list.length);
+        if (import.meta.env.DEV) {
+          console.log('[PROOF:LISTINGS] client count', list.length);
+        }
         return list;
       } catch (error) {
-        console.error('[LISTINGS] Error fetching listings:', error);
+        if (import.meta.env.DEV) {
+          console.error('[LISTINGS] Error fetching listings:', error);
+        }
         return [];
       }
     },

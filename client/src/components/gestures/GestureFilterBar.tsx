@@ -1,6 +1,8 @@
-import React from 'react';
-import { Filter, ArrowUpDown } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Filter, ArrowUpDown, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useDrag } from '@use-gesture/react';
+import { useSpring } from '@react-spring/web';
 
 type SortType = 'featured' | 'price-low-high' | 'price-high-low' | 'rating';
 
@@ -18,8 +20,8 @@ const GestureFilterBar: React.FC<GestureFilterBarProps> = ({
   onSortChange,
   onFilterOpen,
   hasActiveFilters,
-  onPriceRangeChange,
-  priceRange
+  onPriceRangeChange: _onPriceRangeChange,
+  priceRange: _priceRange
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [showGestureHints, setShowGestureHints] = useState(true);
@@ -32,7 +34,7 @@ const GestureFilterBar: React.FC<GestureFilterBarProps> = ({
   ];
 
   // Spring for sort indicator animation
-  const [{ sortProgress }, sortApi] = useSpring(() => ({
+  const [{ sortProgress: _sortProgress }, sortApi] = useSpring(() => ({
     sortProgress: 0,
     config: { tension: 200, friction: 25 }
   }));
@@ -40,7 +42,7 @@ const GestureFilterBar: React.FC<GestureFilterBarProps> = ({
   // Removed price slider spring for cleaner interface
 
   // Horizontal swipe to change sort type
-  const bindSortDrag = useDrag(({ active, movement: [mx], direction: [xDir], velocity: [vx] }) => {
+  const bindSortDrag = useDrag(({ active, movement: [mx], direction: [xDir], velocity: [vx] }: any) => {
     if (active) {
       setIsDragging(true);
       const progress = Math.abs(mx) / 100;
@@ -104,6 +106,7 @@ const GestureFilterBar: React.FC<GestureFilterBarProps> = ({
           value={sortType}
           onChange={(e) => onSortChange(e.target.value as any)}
           className="flex items-center gap-2 border border-primary-600 text-primary-600 bg-white rounded-full px-6 py-2 hover:bg-primary-50 transition-colors cursor-pointer"
+          aria-label={currentSort?.label || 'Sort options'}
         >
           {sortOptions.map((option) => (
             <option key={option.value} value={option.value}>

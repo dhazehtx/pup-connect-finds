@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Heart, MessageCircle, Share, MoreHorizontal, X } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { useLocation } from 'wouter';
+import { useNavigate } from 'react-router-dom';
 import HashtagParser from '@/components/tags/HashtagParser';
 import CommentsSection from '@/components/comments/CommentsSection';
 import SavePostButton from '@/components/posts/SavePostButton';
@@ -26,7 +26,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
   onLike,
   onShare
 }) => {
-  const [location, setLocation] = useLocation();
+  const navigate = useNavigate();
   const [isLiked, setIsLiked] = useState(false);
   const [commentsCount, setCommentsCount] = useState(post.comments_count || 0);
 
@@ -40,7 +40,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
   };
 
   const handleHashtagClick = (hashtag: string) => {
-    setLocation(`/explore?hashtag=${encodeURIComponent(hashtag)}`);
+    navigate(`/explore?hashtag=${encodeURIComponent(hashtag)}`);
     onOpenChange(false);
   };
 

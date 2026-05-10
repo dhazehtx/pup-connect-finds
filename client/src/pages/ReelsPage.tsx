@@ -1,12 +1,12 @@
 import React from 'react';
 import ReelsFeed from '@/components/reels/ReelsFeed';
-import { useLocation } from 'wouter';
+import { useNavigate } from 'react-router-dom';
 
 const ReelsPage = () => {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
 
   const handleClose = () => {
-    setLocation('/explore');
+    navigate('/explore');
   };
 
   return <ReelsFeed onClose={handleClose} />;

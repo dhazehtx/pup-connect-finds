@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/use-cart';
 import { Minus, Plus, Trash2, ShoppingBag, Loader2 } from 'lucide-react';
@@ -7,6 +7,10 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Cart = () => {
+  useEffect(() => {
+    document.title = 'Cart — PAWS';
+  }, []);
+
   const { cart, removeFromCart, updateQuantity, clearCart, getTotalPrice } = useCart();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const { toast } = useToast();
@@ -68,27 +72,32 @@ const Cart = () => {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 pt-20 px-4">
-        <div className="max-w-2xl mx-auto text-center py-16">
-          <ShoppingBag className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Your cart is empty</h2>
-          <p className="text-gray-600 mb-8">Add some products from our store to get started.</p>
-          <Link to="/marketplace">
-            <Button className="btn-primary">
-              Continue Shopping
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white px-4 pb-24 pt-20">
+        <div className="mx-auto max-w-2xl py-16 text-center">
+          <ShoppingBag className="mx-auto mb-4 h-16 w-16 text-slate-300" />
+          <h2 className="mb-2 text-2xl font-bold text-slate-900">Your cart is empty</h2>
+          <p className="mb-8 text-slate-600">
+            Add products from the PAWS store or Pup Box—then check out when you are ready.
+          </p>
+          <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+            <Link to="/marketplace?tab=store">
+              <Button className="btn-primary min-h-[44px] px-8">Continue to PAWS Store</Button>
+            </Link>
+            <Button variant="ghost" asChild>
+              <Link to="/marketplace?tab=box">Browse Pup Box</Link>
             </Button>
-          </Link>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-20 px-4 pb-24">
-      <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-3xl shadow-sm p-6 mb-6">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Shopping Cart</h1>
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white px-4 pb-24 pt-20">
+      <div className="mx-auto max-w-2xl">
+        <div className="mb-6 rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+          <div className="mb-6 flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-slate-900">Shopping cart</h1>
             <Button
               variant="outline"
               size="sm"
@@ -102,13 +111,17 @@ const Cart = () => {
 
           <div className="space-y-4">
             {items.map((item) => (
-              <div key={item.id} className="flex items-center gap-4 p-4 border border-gray-200 rounded-xl">
-                {item.image_url && (
+              <div key={item.id} className="flex items-center gap-4 rounded-xl border border-slate-200 p-4">
+                {item.image_url ? (
                   <img
                     src={item.image_url}
                     alt={item.name}
-                    className="w-16 h-16 object-cover rounded-lg"
+                    className="h-16 w-16 rounded-lg object-cover"
                   />
+                ) : (
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-slate-100">
+                    <ShoppingBag className="h-7 w-7 text-slate-300" aria-hidden />
+                  </div>
                 )}
                 
                 <div className="flex-1">
@@ -151,21 +164,21 @@ const Cart = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-3xl shadow-sm p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Order Summary</h2>
+        <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+          <h2 className="mb-4 text-xl font-bold text-slate-900">Order summary</h2>
           
-          <div className="space-y-2 mb-6">
-            <div className="flex justify-between text-gray-600">
+          <div className="mb-6 space-y-2">
+            <div className="flex justify-between text-slate-600">
               <span>Items ({items.reduce((sum, item) => sum + item.quantity, 0)})</span>
               <span>${totalPrice.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-gray-600">
+            <div className="flex justify-between text-slate-600">
               <span>Shipping</span>
-              <span>Free</span>
+              <span className="text-slate-800">Calculated at checkout</span>
             </div>
-            <hr className="my-4" />
-            <div className="flex justify-between text-xl font-bold text-gray-900">
-              <span>Total</span>
+            <hr className="my-4 border-slate-200" />
+            <div className="flex justify-between text-xl font-bold text-slate-900">
+              <span>Subtotal</span>
               <span>${totalPrice.toFixed(2)}</span>
             </div>
           </div>
@@ -173,7 +186,7 @@ const Cart = () => {
           <Button
             onClick={handleCheckout}
             disabled={isCheckingOut}
-            className="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white"
+            className="min-h-[48px] w-full bg-primary-600 py-3 text-white hover:bg-primary-700"
           >
             {isCheckingOut ? (
               <>
@@ -185,9 +198,9 @@ const Cart = () => {
             )}
           </Button>
           
-          <Link to="/marketplace" className="block mt-4">
-            <Button variant="outline" className="w-full">
-              Continue Shopping
+          <Link to="/marketplace?tab=store" className="mt-4 block">
+            <Button variant="outline" className="w-full border-slate-200">
+              Continue shopping
             </Button>
           </Link>
         </div>

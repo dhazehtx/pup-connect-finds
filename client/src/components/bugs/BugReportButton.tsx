@@ -19,6 +19,7 @@ const BugReportButton: React.FC<BugReportButtonProps> = ({
 }) => {
   const { user } = useAuth();
   const [showModal, setShowModal] = useState(false);
+  const normalizedSize = size === 'md' ? 'default' : size;
 
   if (!user) {
     return null; // Only show for authenticated users
@@ -28,7 +29,7 @@ const BugReportButton: React.FC<BugReportButtonProps> = ({
     <>
       <Button
         variant={variant}
-        size={size}
+        size={normalizedSize}
         onClick={() => setShowModal(true)}
         className={`flex items-center gap-2 ${className}`}
       >

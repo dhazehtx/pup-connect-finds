@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, uuid, decimal, jsonb, unique, uniqueIndex, index } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, uuid, decimal, jsonb, unique, uniqueIndex, index, real } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -1144,6 +1144,41 @@ export const orderItems = pgTable("order_items", {
   created_at: timestamp("created_at").defaultNow(),
 });
 
+// Transport jobs for post-order puppy delivery workflow (isolated from order/payment state)
+export const transportJobs = pgTable("transport_jobs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  order_id: uuid("order_id").notNull().references(() => orders.id, { onDelete: "cascade" }),
+  buyer_id: uuid("buyer_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  breeder_id: uuid("breeder_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  transporter_id: uuid("transporter_id").references(() => profiles.id, { onDelete: "set null" }),
+  status: text("status").notNull().default("pending"), // pending, assigned, picked_up, in_transit, delivered, flagged, cancelled
+  pickup_location: text("pickup_location").notNull(),
+  delivery_location: text("delivery_location").notNull(),
+  assigned_at: timestamp("assigned_at"),
+  picked_up_at: timestamp("picked_up_at"),
+  in_transit_at: timestamp("in_transit_at"),
+  delivered_at: timestamp("delivered_at"),
+  flagged_at: timestamp("flagged_at"),
+  cancelled_at: timestamp("cancelled_at"),
+  notes: jsonb("notes").default([]),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+// Dedicated status/event history per transport job (extends logging, does not modify global logs)
+export const transportJobLogs = pgTable("transport_job_logs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  transport_job_id: uuid("transport_job_id")
+    .notNull()
+    .references(() => transportJobs.id, { onDelete: "cascade" }),
+  from_status: text("from_status"),
+  to_status: text("to_status").notNull(),
+  action: text("action").notNull().default("status_change"), // status_change, admin_override, note
+  note: text("note"),
+  triggered_by: uuid("triggered_by").references(() => profiles.id, { onDelete: "set null" }),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
 // Subscriptions table for Pup Box tracking
 export const subscriptions = pgTable("subscriptions", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -1185,6 +1220,25 @@ export const insertOrderItemSchema = createInsertSchema(orderItems).omit({
   created_at: true 
 });
 
+export const insertTransportJobSchema = createInsertSchema(transportJobs).omit({
+  id: true,
+  transporter_id: true,
+  status: true,
+  assigned_at: true,
+  picked_up_at: true,
+  in_transit_at: true,
+  delivered_at: true,
+  flagged_at: true,
+  cancelled_at: true,
+  created_at: true,
+  updated_at: true,
+});
+
+export const insertTransportJobLogSchema = createInsertSchema(transportJobLogs).omit({
+  id: true,
+  created_at: true,
+});
+
 export const insertSubscriptionSchema = createInsertSchema(subscriptions).omit({ 
   id: true, 
   created_at: true, 
@@ -1204,6 +1258,10 @@ export type Order = typeof orders.$inferSelect;
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
 export type OrderItem = typeof orderItems.$inferSelect;
 export type InsertOrderItem = z.infer<typeof insertOrderItemSchema>;
+export type TransportJob = typeof transportJobs.$inferSelect;
+export type InsertTransportJob = z.infer<typeof insertTransportJobSchema>;
+export type TransportJobLog = typeof transportJobLogs.$inferSelect;
+export type InsertTransportJobLog = z.infer<typeof insertTransportJobLogSchema>;
 export type Subscription = typeof subscriptions.$inferSelect;
 export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
 export type ProductReview = typeof productReviews.$inferSelect;
@@ -1241,6 +1299,61 @@ export const serviceBookings = pgTable("service_bookings", {
   updated_at: timestamp("updated_at").defaultNow(),
 });
 
+// Whelping provider rules (strict onboarding gate for high-risk care category)
+export const whelpingProviderRules = pgTable("whelping_provider_rules", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  provider_id: uuid("provider_id")
+    .notNull()
+    .references(() => petServiceProviders.id, { onDelete: "cascade" })
+    .unique(),
+  years_experience: integer("years_experience").notNull(),
+  has_breeding_license: boolean("has_breeding_license").notNull().default(false),
+  has_secure_whelping_space: boolean("has_secure_whelping_space").notNull().default(false),
+  theft_prevention_plan: text("theft_prevention_plan").notNull(),
+  welfare_commitment_ack: boolean("welfare_commitment_ack").notNull().default(false),
+  legal_compliance_ack: boolean("legal_compliance_ack").notNull().default(false),
+  background_check_ack: boolean("background_check_ack").notNull().default(false),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+// Deposit-backed waitlist for expected litters (application-only, no direct booking)
+export const whelpingWaitlistEntries = pgTable("whelping_waitlist_entries", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  provider_id: uuid("provider_id")
+    .notNull()
+    .references(() => petServiceProviders.id, { onDelete: "cascade" }),
+  user_id: uuid("user_id")
+    .notNull()
+    .references(() => profiles.id, { onDelete: "cascade" }),
+  expected_litter_date: timestamp("expected_litter_date"),
+  puppy_preference: text("puppy_preference"),
+  notes: text("notes"),
+  deposit_amount: decimal("deposit_amount", { precision: 10, scale: 2 }).notNull(),
+  deposit_status: text("deposit_status").notNull().default("pending"), // pending, paid, refunded
+  status: text("status").notNull().default("pending"), // pending, approved, rejected, withdrew
+  stripe_checkout_session_id: text("stripe_checkout_session_id"),
+  stripe_payment_intent_id: text("stripe_payment_intent_id"),
+  policy_acknowledged: boolean("policy_acknowledged").notNull().default(false),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  uniqueProviderUserWaitlist: unique("uq_whelping_waitlist_provider_user").on(table.provider_id, table.user_id),
+}));
+
+// Per-user per-service verification rows (admin queue + badge assignment)
+export const userServices = pgTable("user_services", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  user_id: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  service_type: text("service_type").notNull(),
+  verified: boolean("verified").notNull().default(false),
+  review_status: text("review_status").notNull().default("pending"), // pending, approved, rejected
+  reviewed_at: timestamp("reviewed_at"),
+  reviewed_by: uuid("reviewed_by").references(() => profiles.id, { onDelete: "set null" }),
+  created_at: timestamp("created_at").notNull().defaultNow(),
+  updated_at: timestamp("updated_at").notNull().defaultNow(),
+});
+
 // Pet Services insert schemas
 export const insertPetServiceProviderSchema = createInsertSchema(petServiceProviders).omit({ 
   id: true, 
@@ -1256,11 +1369,190 @@ export const insertServiceBookingSchema = createInsertSchema(serviceBookings).om
   updated_at: true 
 });
 
+export const insertWhelpingProviderRulesSchema = createInsertSchema(whelpingProviderRules).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+});
+
+export const insertWhelpingWaitlistEntrySchema = createInsertSchema(whelpingWaitlistEntries).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+  stripe_payment_intent_id: true,
+});
+
+export const insertUserServiceSchema = createInsertSchema(userServices).omit({
+  id: true,
+  reviewed_at: true,
+  reviewed_by: true,
+  created_at: true,
+  updated_at: true,
+});
+
 // Pet Services type exports
 export type PetServiceProvider = typeof petServiceProviders.$inferSelect;
 export type InsertPetServiceProvider = z.infer<typeof insertPetServiceProviderSchema>;
 export type ServiceBooking = typeof serviceBookings.$inferSelect;
 export type InsertServiceBooking = z.infer<typeof insertServiceBookingSchema>;
+export type WhelpingProviderRules = typeof whelpingProviderRules.$inferSelect;
+export type InsertWhelpingProviderRules = z.infer<typeof insertWhelpingProviderRulesSchema>;
+export type WhelpingWaitlistEntry = typeof whelpingWaitlistEntries.$inferSelect;
+export type InsertWhelpingWaitlistEntry = z.infer<typeof insertWhelpingWaitlistEntrySchema>;
+export type UserService = typeof userServices.$inferSelect;
+export type InsertUserService = z.infer<typeof insertUserServiceSchema>;
+
+// ===== LOST & FOUND / NDIS SCHEMAS =====
+export const dogs = pgTable("dogs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  owner_user_id: uuid("owner_user_id").references(() => profiles.id, { onDelete: "set null" }),
+  name: text("name").notNull(),
+  breed: text("breed"),
+  sex: text("sex"),
+  dob: timestamp("dob"),
+  photo_url: text("photo_url"),
+  notes: text("notes"),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const microchips = pgTable("microchips", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  dog_id: uuid("dog_id").notNull().references(() => dogs.id, { onDelete: "cascade" }),
+  chip_number: text("chip_number").notNull().unique(),
+  registry: text("registry"),
+  status: text("status").default("active"),
+  last_scanned_at: timestamp("last_scanned_at"),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const vetVerification = pgTable("vet_verification", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  user_id: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  clinic_name: text("clinic_name"),
+  vet_name: text("vet_name"),
+  phone: text("phone"),
+  email: text("email"),
+  license_number: text("license_number"),
+  verified_at: timestamp("verified_at"),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const lostPetAlerts = pgTable("lost_pet_alerts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  user_id: uuid("user_id").references(() => profiles.id, { onDelete: "cascade" }),
+  alert_type: text("alert_type").default("lost"),
+  pet_name: text("pet_name"),
+  species: text("species").default("dog"),
+  breed: text("breed"),
+  description: text("description"),
+  image_url: text("image_url"),
+  last_seen_address: text("last_seen_address"),
+  city: text("city"),
+  last_seen_at: timestamp("last_seen_at"),
+  latitude: real("latitude"),
+  longitude: real("longitude"),
+  contact_info: text("contact_info"),
+  reward_offered: boolean("reward_offered").default(false),
+  dog_size: text("dog_size"),
+  color: text("color"),
+  gender: text("gender"),
+  collar_description: text("collar_description"),
+  microchip_status: text("microchip_status"),
+  temperament: text("temperament"),
+  status: text("status").default("active"),
+  view_count: integer("view_count").default(0),
+  reunited_at: timestamp("reunited_at"),
+  dog_id: uuid("dog_id").references(() => dogs.id, { onDelete: "set null" }),
+  is_vet_listing: boolean("is_vet_listing").default(false),
+  vet_verification_id: uuid("vet_verification_id").references(() => vetVerification.id, { onDelete: "set null" }),
+  intake_date: timestamp("intake_date"),
+  microchip_scan_result: text("microchip_scan_result"),
+  health_status: text("health_status"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const lostPetAlertSubscriptions = pgTable("lost_pet_alert_subscriptions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  user_id: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  alert_type: text("alert_type").notNull(),
+  breed: text("breed"),
+  radius_miles: integer("radius_miles").default(10),
+  latitude: real("latitude").notNull(),
+  longitude: real("longitude").notNull(),
+  email_digest_enabled: boolean("email_digest_enabled").default(false),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const lostPetAlertReports = pgTable("lost_pet_alert_reports", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  alert_id: uuid("alert_id").notNull().references(() => lostPetAlerts.id, { onDelete: "cascade" }),
+  user_id: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  report_type: text("report_type").notNull(),
+  location_text: text("location_text"),
+  message: text("message"),
+  latitude: real("latitude"),
+  longitude: real("longitude"),
+  source_platform: text("source_platform"),
+  screenshot_url: text("screenshot_url"),
+  seen_at: timestamp("seen_at"),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const searchMissions = pgTable("search_missions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  alert_id: uuid("alert_id").notNull().references(() => lostPetAlerts.id, { onDelete: "cascade" }),
+  owner_user_id: uuid("owner_user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  status: text("status").default("active"),
+  starts_at: timestamp("starts_at"),
+  ends_at: timestamp("ends_at"),
+  notes: text("notes"),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const searchParticipants = pgTable("search_participants", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  mission_id: uuid("mission_id").notNull().references(() => searchMissions.id, { onDelete: "cascade" }),
+  user_id: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  role: text("role").default("volunteer"),
+  status: text("status").default("active"),
+  joined_at: timestamp("joined_at").defaultNow(),
+});
+
+export const importedPosts = pgTable("imported_posts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  source_platform: text("source_platform").notNull(),
+  external_id: text("external_id"),
+  content_url: text("content_url"),
+  image_url: text("image_url"),
+  location_text: text("location_text"),
+  latitude: real("latitude"),
+  longitude: real("longitude"),
+  posted_at: timestamp("posted_at"),
+  raw_payload: jsonb("raw_payload"),
+  lost_dog_id: uuid("lost_dog_id").references(() => lostPetAlerts.id, { onDelete: "set null" }),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const dogEmbeddings = pgTable("dog_embeddings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  dog_id: uuid("dog_id").notNull().references(() => lostPetAlerts.id, { onDelete: "cascade" }),
+  embedding_vector: jsonb("embedding_vector").notNull(),
+  model: text("model"),
+  dims: integer("dims"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const listingEmbeddings = pgTable("listing_embeddings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  listing_id: uuid("listing_id").notNull().references(() => dogListings.id, { onDelete: "cascade" }).unique(),
+  embedding_vector: jsonb("embedding_vector").notNull(),
+  model: text("model"),
+  dims: integer("dims"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
 
 // ===== BREEDS TABLE =====
 

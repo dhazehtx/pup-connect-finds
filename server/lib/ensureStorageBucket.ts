@@ -1,4 +1,5 @@
 import { supabaseAdmin } from './supabaseAdmin';
+import { runSupabaseWithRetry } from './supabaseResilience';
 
 const BUCKET_NAME = 'provider-id-docs';
 
@@ -9,7 +10,10 @@ const BUCKET_NAME = 'provider-id-docs';
 export async function ensureProviderIdBucket(): Promise<string> {
   try {
     // Check if bucket exists
-    const { data: buckets, error: listError } = await supabaseAdmin.storage.listBuckets();
+    const { data: buckets, error: listError } = await runSupabaseWithRetry(
+      () => supabaseAdmin.storage.listBuckets(),
+      { opName: 'storage.listBuckets' },
+    );
     
     if (listError) {
       console.error('[Storage] Error listing buckets:', listError);
@@ -28,7 +32,10 @@ export async function ensureProviderIdBucket(): Promise<string> {
       console.log(`[Storage] Creating bucket: ${BUCKET_NAME}`);
       
       // Create the bucket with public access
-      const { data, error: createError } = await supabaseAdmin.storage.createBucket(BUCKET_NAME, bucketConfig);
+      const { data, error: createError } = await runSupabaseWithRetry(
+        () => supabaseAdmin.storage.createBucket(BUCKET_NAME, bucketConfig),
+        { opName: 'storage.createBucket' },
+      );
 
       if (createError) {
         console.error('[Storage] Error creating bucket:', createError);
@@ -41,7 +48,10 @@ export async function ensureProviderIdBucket(): Promise<string> {
       
       // Update existing bucket to ensure MIME types include HEIC/HEIF
       console.log(`[Storage] Updating bucket MIME types to include HEIC/HEIF...`);
-      const { error: updateError } = await supabaseAdmin.storage.updateBucket(BUCKET_NAME, bucketConfig);
+      const { error: updateError } = await runSupabaseWithRetry(
+        () => supabaseAdmin.storage.updateBucket(BUCKET_NAME, bucketConfig),
+        { opName: 'storage.updateBucket' },
+      );
       
       if (updateError) {
         console.warn('[Storage] Warning: Could not update bucket MIME types:', updateError.message);

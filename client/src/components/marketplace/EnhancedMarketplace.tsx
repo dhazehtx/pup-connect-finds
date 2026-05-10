@@ -7,21 +7,9 @@ import ListingsComparison from '@/components/comparison/ListingsComparison';
 import ListView from './ListView';
 import ViewSelector from './ViewSelector';
 import { useToast } from '@/hooks/use-toast';
+import { MarketplaceListing } from '@/types/marketplace';
 
-interface Listing {
-  id: string;
-  dog_name: string;
-  breed: string;
-  price: number;
-  age: number;
-  location: string;
-  image_url?: string;
-  description?: string;
-  user_id: string;
-  created_at: string;
-}
-
-const SAMPLE_LISTINGS: Listing[] = [
+const SAMPLE_LISTINGS: MarketplaceListing[] = [
   {
     id: '1',
     dog_name: 'Luna',
@@ -55,9 +43,9 @@ const AVAILABLE_BREEDS = [
 
 const EnhancedMarketplace = () => {
   const [activeView, setActiveView] = useState<'list' | 'map' | 'compare'>('list');
-  const [filteredListings, setFilteredListings] = useState<Listing[]>(SAMPLE_LISTINGS);
-  const [selectedListing, setSelectedListing] = useState<Listing | undefined>();
-  const [comparisonListings, setComparisonListings] = useState<Listing[]>([]);
+  const [filteredListings, setFilteredListings] = useState<MarketplaceListing[]>(SAMPLE_LISTINGS);
+  const [selectedListing, setSelectedListing] = useState<MarketplaceListing | undefined>();
+  const [comparisonListings, setComparisonListings] = useState<MarketplaceListing[]>([]);
   const [savedSearches, setSavedSearches] = useState<any[]>([]);
   const { toast } = useToast();
 
@@ -95,21 +83,21 @@ const EnhancedMarketplace = () => {
     });
   };
 
-  const handleContactSeller = (listing: Listing) => {
+  const handleContactSeller = (listing: MarketplaceListing) => {
     toast({
       title: "Contact Seller",
       description: `Opening conversation with seller of ${listing.dog_name}`,
     });
   };
 
-  const handleAddToFavorites = (listing: Listing) => {
+  const handleAddToFavorites = (listing: MarketplaceListing) => {
     toast({
       title: "Added to Favorites",
       description: `${listing.dog_name} has been added to your favorites.`,
     });
   };
 
-  const handleAddToComparison = (listing: Listing) => {
+  const handleAddToComparison = (listing: MarketplaceListing) => {
     if (comparisonListings.length >= 4) {
       toast({
         title: "Comparison Limit",
@@ -132,7 +120,7 @@ const EnhancedMarketplace = () => {
     setComparisonListings(prev => prev.filter(l => l.id !== listingId));
   };
 
-  const handleListingSelect = (listing: Listing) => {
+  const handleListingSelect = (listing: MarketplaceListing) => {
     setSelectedListing(listing);
   };
 

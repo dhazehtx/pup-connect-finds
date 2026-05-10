@@ -1,177 +1,216 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MessageCircle, Phone, Mail, MapPin, Clock, Send } from 'lucide-react';
+import { MessageCircle, Mail, LifeBuoy, Clock, Send, ChevronRight, Shield } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { APP_SHELL_CONTAINER_CLASS } from '@/lib/appShell';
+
+const SUPPORT_EMAIL_PLACEHOLDER = 'support@paws.app';
 
 const Contact = () => {
+  const { toast } = useToast();
+  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     subject: '',
     category: '',
-    message: ''
+    message: '',
   });
 
-  const contactMethods = [
-    {
-      icon: Phone,
-      title: 'Phone Support',
-      description: 'Speak directly with our team',
-      contact: '1-800-MY-PUPPY',
-      availability: 'Mon-Fri 9 AM - 6 PM PST',
-      color: 'text-green-600 bg-green-50'
-    },
-    {
-      icon: Mail,
-      title: 'Email Support',
-      description: 'Send us a detailed message',
-      contact: 'support@mypup.com',
-      availability: 'Response within 24 hours',
-      color: 'text-blue-600 bg-blue-50'
-    },
-    {
-      icon: MessageCircle,
-      title: 'Live Chat',
-      description: 'Chat with our support team',
-      contact: 'Available in-app',
-      availability: '9 AM - 6 PM PST',
-      color: 'text-purple-600 bg-purple-50'
-    },
-    {
-      icon: MapPin,
-      title: 'Business Address',
-      description: 'Visit our headquarters',
-      contact: '123 Pet Lane, San Francisco, CA 94102',
-      availability: 'By appointment only',
-      color: 'text-orange-600 bg-orange-50'
-    }
-  ];
+  useEffect(() => {
+    document.title = 'Contact & support — PAWS';
+  }, []);
 
   const supportCategories = [
-    'General Inquiry',
-    'Technical Support',
-    'Account Issues',
-    'Payment & Billing',
-    'Safety & Trust',
-    'Breeder Services',
-    'Report a Problem',
-    'Partnership Inquiry',
-    'Press & Media',
-    'Other'
+    'General inquiry',
+    'Orders & shipping',
+    'Pup Box & subscriptions',
+    'Account & sign-in',
+    'Payments & billing',
+    'Safety & trust',
+    'Technical issue',
+    'Partnerships',
+    'Other',
   ];
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Contact form submitted:', formData);
-    // Handle form submission here
-    alert('Thank you for your message! We\'ll get back to you within 24 hours.');
-    setFormData({
-      name: '',
-      email: '',
-      subject: '',
-      category: '',
-      message: ''
-    });
+    if (!formData.category.trim()) {
+      toast({
+        title: 'Choose a category',
+        description: 'Select the topic that best matches your message.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setSubmitting(true);
+    try {
+      // Owner can wire to `/api/support` or CRM later; UX is complete for launch shell.
+      console.info('[contact] message intent', { ...formData, at: new Date().toISOString() });
+      toast({
+        title: 'Message recorded',
+        description:
+          'Thanks — we received your note. When support email is live, this will route to the team automatically.',
+      });
+      setFormData({
+        name: '',
+        email: '',
+        subject: '',
+        category: '',
+        message: '',
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <MessageCircle className="w-16 h-16 mx-auto mb-4" />
-          <h1 className="text-4xl font-bold mb-4">Contact Us</h1>
-          <p className="text-xl text-blue-100">
-            We're here to help! Get in touch with our support team.
-          </p>
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white pb-24">
+      <div className="border-b border-slate-200/80 bg-gradient-to-r from-blue-600 via-blue-600 to-indigo-700 text-white">
+        <div className={`${APP_SHELL_CONTAINER_CLASS} py-12 sm:py-14`}>
+          <div className="mx-auto max-w-2xl text-center">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15 backdrop-blur">
+              <MessageCircle className="h-7 w-7" aria-hidden />
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Contact PAWS</h1>
+            <p className="mt-3 text-base text-blue-100 sm:text-lg">
+              We&apos;re here for orders, safety questions, and anything about your pup. Responses are prioritized
+              by urgency.
+            </p>
+          </div>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        
-        {/* Contact Methods */}
-        <section className="mb-12">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Get in Touch</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Choose the best way to reach us. Our team is ready to assist you with any questions or concerns.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {contactMethods.map((method, index) => {
-              const IconComponent = method.icon;
-              return (
-                <Card key={index} className="text-center hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
-                    <div className={`w-12 h-12 rounded-full ${method.color} flex items-center justify-center mx-auto mb-4`}>
-                      <IconComponent className="w-6 h-6" />
-                    </div>
-                    <h3 className="text-lg font-semibold mb-2">{method.title}</h3>
-                    <p className="text-gray-600 text-sm mb-2">{method.description}</p>
-                    <p className="font-medium text-gray-900 mb-2">{method.contact}</p>
-                    <p className="text-xs text-gray-500">{method.availability}</p>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </section>
-
-        <div className="grid lg:grid-cols-2 gap-12">
-          
-          {/* Contact Form */}
-          <section>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Send className="w-5 h-5 text-blue-600" />
-                  Send us a Message
+      <div className={`${APP_SHELL_CONTAINER_CLASS} py-10 sm:py-12`}>
+        <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-3">
+          <div className="space-y-4 lg:col-span-1">
+            <Card className="border-slate-200 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Mail className="h-5 w-5 text-blue-600" />
+                  Email
                 </CardTitle>
               </CardHeader>
+              <CardContent className="space-y-2 text-sm text-slate-600">
+                <p>
+                  Primary inbox (publish your real address at launch):{' '}
+                  <a
+                    href={`mailto:${SUPPORT_EMAIL_PLACEHOLDER}`}
+                    className="font-medium text-blue-600 underline-offset-2 hover:underline"
+                  >
+                    {SUPPORT_EMAIL_PLACEHOLDER}
+                  </a>
+                </p>
+                <p className="text-xs text-slate-500">Typical reply: within one business day.</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-slate-200 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <LifeBuoy className="h-5 w-5 text-blue-600" />
+                  In-app support
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm text-slate-600">
+                <p className="mb-3">Track requests and follow up in one place.</p>
+                <Button variant="outline" className="w-full border-slate-200" asChild>
+                  <Link to="/support" className="inline-flex items-center justify-center gap-2">
+                    Open support tickets
+                    <ChevronRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="border-slate-200 bg-slate-50/80 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Clock className="h-5 w-5 text-slate-600" />
+                  Hours
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm text-slate-600">
+                <div className="flex justify-between gap-4">
+                  <span>Mon–Fri</span>
+                  <span className="font-medium text-slate-800">9:00 – 18:00 PT</span>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <span>Sat–Sun</span>
+                  <span className="font-medium text-slate-800">Limited email</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-blue-100 bg-blue-50/60 shadow-sm">
+              <CardContent className="flex gap-3 pt-6">
+                <Shield className="mt-0.5 h-5 w-5 shrink-0 text-blue-700" />
+                <div className="text-sm text-blue-950">
+                  <p className="font-medium">Urgent safety concern?</p>
+                  <p className="mt-1 text-blue-900/90">
+                    Use{' '}
+                    <Link to="/support" className="font-semibold underline-offset-2 hover:underline">
+                      support tickets
+                    </Link>{' '}
+                    with category <em>Safety concern</em> — we prioritize those reviews.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="lg:col-span-2">
+            <Card className="border-slate-200 shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Send className="h-5 w-5 text-blue-600" />
+                  Send a message
+                </CardTitle>
+                <p className="text-sm text-slate-600">
+                  Include order numbers or listing links if relevant — it helps us resolve faster.
+                </p>
+              </CardHeader>
               <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid md:grid-cols-2 gap-4">
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <div className="grid gap-4 sm:grid-cols-2">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Full Name *
-                      </label>
+                      <label className="mb-1 block text-sm font-medium text-slate-700">Name *</label>
                       <Input
-                        type="text"
                         value={formData.name}
                         onChange={(e) => handleInputChange('name', e.target.value)}
-                        placeholder="Your full name"
+                        placeholder="Your name"
                         required
+                        autoComplete="name"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Email Address *
-                      </label>
+                      <label className="mb-1 block text-sm font-medium text-slate-700">Email *</label>
                       <Input
                         type="email"
                         value={formData.email}
                         onChange={(e) => handleInputChange('email', e.target.value)}
-                        placeholder="your.email@example.com"
+                        placeholder="you@example.com"
                         required
+                        autoComplete="email"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Category *
-                    </label>
-                    <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
+                    <label className="mb-1 block text-sm font-medium text-slate-700">Category *</label>
+                    <Select
+                      value={formData.category}
+                      onValueChange={(value) => handleInputChange('category', value)}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select a category" />
                       </SelectTrigger>
@@ -186,102 +225,42 @@ const Contact = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Subject *
-                    </label>
+                    <label className="mb-1 block text-sm font-medium text-slate-700">Subject *</label>
                     <Input
-                      type="text"
                       value={formData.subject}
                       onChange={(e) => handleInputChange('subject', e.target.value)}
-                      placeholder="Brief description of your inquiry"
+                      placeholder="Short summary"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Message *
-                    </label>
-                    <textarea
+                    <label className="mb-1 block text-sm font-medium text-slate-700">Message *</label>
+                    <Textarea
                       value={formData.message}
                       onChange={(e) => handleInputChange('message', e.target.value)}
-                      className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       rows={6}
-                      placeholder="Please provide as much detail as possible about your inquiry..."
+                      placeholder="What can we help with?"
                       required
+                      className="resize-y min-h-[140px]"
                     />
                   </div>
 
-                  <Button type="submit" className="w-full">
-                    <Send className="w-4 h-4 mr-2" />
-                    Send Message
-                  </Button>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <Button type="submit" className="min-h-[44px] sm:min-w-[200px]" disabled={submitting}>
+                      {submitting ? 'Sending…' : 'Send message'}
+                    </Button>
+                    <Button type="button" variant="ghost" asChild className="text-slate-600">
+                      <Link to="/help-center" className="inline-flex items-center gap-1">
+                        Browse Help Center
+                        <ChevronRight className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </div>
                 </form>
               </CardContent>
             </Card>
-          </section>
-
-          {/* Additional Information */}
-          <section className="space-y-6">
-            
-            {/* Business Hours */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-blue-600" />
-                  Business Hours
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Monday - Friday</span>
-                  <span className="font-medium">9:00 AM - 6:00 PM PST</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Saturday</span>
-                  <span className="font-medium">10:00 AM - 4:00 PM PST</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Sunday</span>
-                  <span className="font-medium">Closed</span>
-                </div>
-                <div className="pt-2 border-t text-sm text-gray-500">
-                  Emergency support available 24/7 for safety concerns
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* FAQ Link */}
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="font-semibold text-lg mb-2">Need Quick Answers?</h3>
-                <p className="text-gray-600 text-sm mb-4">
-                  Check our Help Center for instant answers to common questions about accounts, payments, safety, and more.
-                </p>
-                <Button variant="outline" className="w-full">
-                  Visit Help Center
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Emergency Contact */}
-            <Card className="bg-red-50 border-red-200">
-              <CardContent className="p-6">
-                <h3 className="font-semibold text-lg mb-2 text-red-900">Emergency Contact</h3>
-                <p className="text-red-700 text-sm mb-4">
-                  For urgent safety concerns, animal welfare issues, or suspected fraud:
-                </p>
-                <div className="space-y-2">
-                  <Button className="w-full bg-red-600 hover:bg-red-700 text-white">
-                    <Phone className="w-4 h-4 mr-2" />
-                    Emergency Line: 1-800-URGENT
-                  </Button>
-                  <p className="text-xs text-red-600 text-center">Available 24/7</p>
-                </div>
-              </CardContent>
-            </Card>
-
-          </section>
+          </div>
         </div>
       </div>
     </div>

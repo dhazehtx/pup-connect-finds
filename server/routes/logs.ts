@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { loggingService } from '../services/loggingService';
+import { loggingService, type LogCategory, type LogLevel } from '../services/loggingService';
 import { asyncHandler } from '../middleware/errorHandler';
 import { z } from 'zod';
 
@@ -12,8 +12,27 @@ const frontendLogSchema = z.object({
   userId: z.string().optional(),
   metadata: z.any().optional(),
   level: z.enum(['info', 'warn', 'error', 'debug']),
-  category: z.enum(['admin', 'api', 'ui', 'auth', 'error'])
+  category: z.enum(['admin', 'api', 'ui', 'auth', 'error']),
 });
+
+function mapFrontendCategoryToLogCategory(
+  c: z.infer<typeof frontendLogSchema>['category'],
+): LogCategory {
+  switch (c) {
+    case 'admin':
+      return 'user-action';
+    case 'api':
+      return 'api';
+    case 'ui':
+      return 'frontend';
+    case 'auth':
+      return 'auth';
+    case 'error':
+      return 'security';
+    default:
+      return 'frontend';
+  }
+}
 
 /**
  * Accept logs from frontend for persistent storage
@@ -27,18 +46,19 @@ router.post('/frontend', asyncHandler(async (req: Request, res: Response) => {
     const userAgent = req.get('User-Agent') || 'unknown';
     const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
 
-    await loggingService.log(
-      logData.level,
-      logData.category as any,
-      logData.action,
-      {
+    await loggingService.log({
+      level: logData.level as LogLevel,
+      category: mapFrontendCategoryToLogCategory(logData.category),
+      message: logData.action,
+      details: {
         frontend: true,
-        userAgent,
-        ipAddress,
-        ...logData.metadata
+        timestamp: logData.timestamp,
+        ...logData.metadata,
       },
-      userId
-    );
+      userId: userId !== 'anonymous' ? userId : undefined,
+      userAgent,
+      ipAddress,
+    });
 
     res.json({ success: true, message: 'Log recorded successfully' });
   } catch (error) {
@@ -74,7 +94,7 @@ router.get('/recent', asyncHandler(async (req: Request, res: Response) => {
     const category = req.query.category as string;
     const level = req.query.level as string;
 
-    const logs = await loggingService.getRecentLogs({
+    const logs = await loggingService.getLogs({
       limit,
       category: category as any,
       level: level as any

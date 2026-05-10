@@ -28,11 +28,13 @@ const ProductTags: React.FC<ProductTagsProps> = ({ selectedTag, onTagSelect, cla
   // Extract unique tags from all products
   const allTags = React.useMemo(() => {
     const tagSet = new Set<string>();
-    products.forEach((product: any) => {
-      if (product.tags && Array.isArray(product.tags)) {
-        product.tags.forEach((tag: string) => tagSet.add(tag));
-      }
-    });
+    products
+      .filter((product: { is_active?: boolean }) => product.is_active !== false)
+      .forEach((product: any) => {
+        if (product.tags && Array.isArray(product.tags)) {
+          product.tags.forEach((tag: string) => tagSet.add(tag));
+        }
+      });
     return Array.from(tagSet).sort();
   }, [products]);
 

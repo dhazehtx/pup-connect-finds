@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { db } from '../db';
 import { bugReports, profiles, insertBugReportSchema } from '@shared/schema';
-import { eq, desc, and, or, ilike, count } from 'drizzle-orm';
+import { eq, desc, and, or, ilike, count, isNull } from 'drizzle-orm';
 
 const router = Router();
 
@@ -103,7 +103,7 @@ router.get('/admin/reports', async (req, res) => {
     if (assigned === 'me') {
       conditions.push(eq(bugReports.assigned_admin_id, req.user.id));
     } else if (assigned === 'unassigned') {
-      conditions.push(eq(bugReports.assigned_admin_id, null));
+      conditions.push(isNull(bugReports.assigned_admin_id));
     }
     
     if (search) {

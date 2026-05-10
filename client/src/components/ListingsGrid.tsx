@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, MapPin } from 'lucide-react';
+import { Dog, Heart, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useListings } from '@/hooks/useListings';
 import { useAuth } from '@/contexts/AuthContext';
+import { EXPLORE_DEFAULT_FILTERS, useExploreFilters } from '@/context/ExploreFiltersContext';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/api';
 
@@ -12,6 +13,7 @@ export default function ListingsGrid() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { setFilters } = useExploreFilters();
   const {
     data,
     fetchNextPage,
@@ -134,9 +136,23 @@ export default function ListingsGrid() {
 
   if (allListings.length === 0) {
     return (
-      <div className="text-center py-12">
-        <p className="text-gray-500">No puppies found matching your filters.</p>
-        <p className="text-gray-400 text-sm mt-2">Try adjusting your search criteria.</p>
+      <div className="flex flex-col items-center justify-center px-4 py-16 text-center">
+        <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-blue-50 text-blue-500 dark:bg-blue-950/50 dark:text-blue-400">
+          <Dog className="h-12 w-12" strokeWidth={1.5} aria-hidden />
+        </div>
+        <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+          Searching for your perfect match...
+        </h3>
+        <p className="mt-2 max-w-sm text-sm text-slate-500 dark:text-slate-400">
+          Try widening your filters or reset to see more puppies.
+        </p>
+        <Button
+          type="button"
+          className="mt-6 bg-blue-600 hover:bg-blue-700"
+          onClick={() => setFilters(structuredClone(EXPLORE_DEFAULT_FILTERS))}
+        >
+          Reset all filters
+        </Button>
       </div>
     );
   }
@@ -147,7 +163,11 @@ export default function ListingsGrid() {
         {allListings.map((listing) => {
           const isFav = favorites.has(listing.id);
           return (
-            <Card key={listing.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate(`/listing/${listing.id}`)}>
+            <Card
+              key={listing.id}
+              className="cursor-pointer overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
+              onClick={() => navigate(`/listing/${listing.id}`)}
+            >
               <div className="relative aspect-square">
                 <img
                   src={listing.thumbUrls?.[0] || listing.image_url || '/api/placeholder/300/300'}

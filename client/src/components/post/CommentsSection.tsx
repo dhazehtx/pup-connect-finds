@@ -6,7 +6,7 @@ import LikesModal from '@/components/post/LikesModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
-interface Comment {
+export interface Comment {
   id: number;
   user: {
     id: string;

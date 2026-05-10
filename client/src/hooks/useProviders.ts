@@ -20,7 +20,10 @@ interface SupabaseServiceProvider {
 
 type UseProvidersResult = {
   providers: ServiceProvider[];
+  /** True when showing demo listings (signed out). Same as `isDemo`. */
   isDemo: boolean;
+  /** True when showing demo / guest marketplace data (signed out). */
+  isGuestData: boolean;
   isLoading: boolean;
   isError: boolean;
 };
@@ -78,9 +81,11 @@ export function useProviders(): UseProvidersResult {
     retry: 1,
   });
 
+  const guest = !isSignedIn;
   return {
     providers: data || [],
-    isDemo: !isSignedIn,
+    isDemo: guest,
+    isGuestData: guest,
     isLoading,
     isError,
   };

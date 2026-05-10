@@ -1,6 +1,9 @@
 // client/src/data/demoProviders.ts
+import type { PetServiceProvider } from '@shared/schema';
+
 export type ServiceProvider = {
   id: string;
+  user_id?: string;
   name: string;
   headline: string;
   since: string;
@@ -11,6 +14,22 @@ export type ServiceProvider = {
   price?: number;
   is_verified?: boolean;
   bio?: string;
+  availability?: string;
+  dog_name?: string;
+  breed?: string;
+  age?: string;
+  stud_method?: string;
+  images?: string[];
+  transport_type?: string;
+  vehicle_type?: string;
+  max_distance?: string;
+  user?: {
+    id: string;
+    username: string;
+    full_name: string;
+    avatar_url?: string;
+    verified?: boolean;
+  };
 };
 
 export const DEMO_PROVIDERS: ServiceProvider[] = [
@@ -93,3 +112,37 @@ export const DEMO_PROVIDERS: ServiceProvider[] = [
     bio: "Full-service mobile grooming van. We come to you for stress-free grooming experiences.",
   },
 ];
+
+/** Card + booking modal expect `PetServiceProvider` + nested `user` (join). Demo/summary rows only have `name` — map them here. */
+export type ServiceProviderForUi = PetServiceProvider & {
+  user?: {
+    id: string;
+    username: string;
+    full_name: string;
+    avatar_url?: string;
+    verified?: boolean;
+  };
+};
+
+export function enrichServiceProviderForUi(p: ServiceProvider): ServiceProviderForUi {
+  const fullName = p.name?.trim() || 'Service Provider';
+  return {
+    id: p.id,
+    user_id: p.id,
+    service_type: p.service_type ?? 'grooming',
+    bio: p.bio ?? p.headline ?? null,
+    price: p.price != null ? String(p.price) : null,
+    availability: null,
+    location: p.location ?? null,
+    is_verified: p.is_verified ?? false,
+    is_active: true,
+    verification_status: 'pending',
+    created_at: null,
+    updated_at: null,
+    user: {
+      id: p.id,
+      username: 'provider',
+      full_name: fullName,
+    },
+  } as ServiceProviderForUi;
+}

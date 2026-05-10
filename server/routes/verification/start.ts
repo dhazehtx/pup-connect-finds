@@ -1,12 +1,8 @@
 import { Router } from "express";
-import Stripe from "stripe";
 import { serverSupabase } from "../../lib/supabaseServer";
+import { getStripe } from "../../lib/stripeLazy";
 
 const router = Router();
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { 
-  apiVersion: "2024-06-20" as any 
-});
 
 const ORIGIN = process.env.REPLIT_DOMAIN || "http://localhost:3000";
 
@@ -29,7 +25,7 @@ router.post("/", async (req, res) => {
     }
 
     // Create Stripe Identity Verification Session
-    const session = await stripe.identity.verificationSessions.create({
+    const session = await getStripe().identity.verificationSessions.create({
       type: "document",
       metadata: { userId, providerId },
       return_url: `https://${ORIGIN}/services/onboarding/check?session={VERIFICATION_SESSION_ID}`,

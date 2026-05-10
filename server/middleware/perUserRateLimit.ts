@@ -1,3 +1,4 @@
+import { debugApiLog, debugApiWarn } from '../lib/debugApi';
 import type { Request, Response, NextFunction } from 'express';
 
 interface RateLimitEntry {
@@ -74,7 +75,7 @@ export function perUserRateLimit(name: string, maxRequests: number, windowMs: nu
       const existing = triggerStats.get(name) || { count: 0, lastTriggered: null };
       triggerStats.set(name, { count: existing.count + 1, lastTriggered: now });
 
-      console.log('[PROOF:RATE_LIMIT]', JSON.stringify({
+      debugApiLog('[PROOF:RATE_LIMIT]', JSON.stringify({
         userId,
         action: name,
         count: entry.timestamps.length,

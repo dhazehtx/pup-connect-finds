@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { createClient } from '@supabase/supabase-js';
 import { supabaseAdmin } from '../lib/supabaseAdmin.js';
+import type { AuthUser } from '../types/authUser';
+import { runSupabaseWithRetry } from '../lib/supabaseResilience';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -10,21 +12,6 @@ if (!supabaseUrl || !supabaseKey) {
 }
 
 const supabase = createClient(supabaseUrl || '', supabaseKey || '');
-
-// Extend Express Request interface to include user and authentication methods
-declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        id: string;
-        email?: string;
-        [key: string]: any;
-      };
-      isAuthenticated(): boolean;
-      skipAuth?: boolean;
-    }
-  }
-}
 
 /**
  * Authentication middleware for API routes
@@ -78,7 +65,10 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     }
     
     // Verify the JWT token with Supabase
-    const { data: { user }, error } = await supabase.auth.getUser(token);
+    const { data: { user }, error } = await runSupabaseWithRetry(
+      () => supabase.auth.getUser(token),
+      { opName: 'auth.getUser' },
+    );
 
     if (error || !user) {
       // Add isAuthenticated method that returns false
@@ -102,19 +92,28 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       profile = null;
     }
 
-    req.user = {
+    const authUser: AuthUser = {
+      ...(user.user_metadata as Record<string, unknown>),
       id: user.id,
       email: user.email,
-      is_admin: profile?.is_admin || false,
-      username: profile?.username,
-      ...user.user_metadata
+      is_admin: Boolean(profile?.is_admin),
+      username: profile?.username ?? null,
+      full_name: (profile?.full_name ?? meta.full_name ?? meta.name ?? null) as string | null,
+      name: (meta.name ?? meta.full_name ?? null) as string | null,
+      avatar_url: (profile?.avatar_url ?? meta.avatar_url ?? null) as string | null,
     };
+    req.user = authUser;
 
     // Add isAuthenticated method that returns true
     req.isAuthenticated = () => true;
 
     next();
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.code === 'SUPABASE_DEGRADED') {
+      res.locals.authDegraded = true;
+      req.isAuthenticated = () => false;
+      return next();
+    }
     console.error('Auth middleware error:', error);
     // Add isAuthenticated method that returns false
     req.isAuthenticated = () => false;
@@ -126,6 +125,13 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
  * Middleware that requires authentication
  */
 export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+  if (res.locals.authDegraded) {
+    return res.status(503).json({
+      error: 'Authentication temporarily unavailable',
+      code: 'SUPABASE_DEGRADED',
+      message: 'Auth service is degraded. Please retry shortly.'
+    });
+  }
   if (!req.isAuthenticated || !req.isAuthenticated()) {
     return res.status(401).json({ 
       error: 'Authentication required',
@@ -139,6 +145,13 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
  * Middleware that requires admin privileges
  */
 export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
+  if (res.locals.authDegraded) {
+    return res.status(503).json({
+      error: 'Admin authentication temporarily unavailable',
+      code: 'SUPABASE_DEGRADED',
+      message: 'Auth service is degraded. Please retry shortly.'
+    });
+  }
   if (!req.isAuthenticated || !req.isAuthenticated()) {
     return res.status(401).json({ 
       error: 'Authentication required',

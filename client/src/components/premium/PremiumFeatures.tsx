@@ -26,6 +26,7 @@ const PremiumFeatures = () => {
     premiumBadge: true,
     bulkOperations: false
   });
+  type FeatureKey = keyof typeof features;
 
   const premiumFeatures = [
     {
@@ -84,7 +85,7 @@ const PremiumFeatures = () => {
     }
   ];
 
-  const toggleFeature = (featureId: string) => {
+  const toggleFeature = (featureId: FeatureKey) => {
     setFeatures(prev => ({
       ...prev,
       [featureId]: !prev[featureId]
@@ -125,7 +126,7 @@ const PremiumFeatures = () => {
                   </div>
                   <Switch
                     checked={feature.enabled}
-                    onCheckedChange={() => toggleFeature(feature.id)}
+                    onCheckedChange={() => toggleFeature(feature.id as FeatureKey)}
                   />
                 </div>
               </CardHeader>

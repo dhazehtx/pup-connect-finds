@@ -3,21 +3,12 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-
-interface Listing {
-  id: string;
-  dog_name: string;
-  breed: string;
-  price: number;
-  location: string;
-  image_url?: string;
-  coordinates?: { lat: number; lng: number };
-}
+import { MarketplaceListing } from '@/types/marketplace';
 
 interface ListingsOverlayProps {
-  listings: Listing[];
-  selectedListing?: Listing;
-  onListingClick: (listing: Listing) => void;
+  listings: MarketplaceListing[];
+  selectedListing?: MarketplaceListing;
+  onListingClick: (listing: MarketplaceListing) => void;
   onClose: () => void;
 }
 

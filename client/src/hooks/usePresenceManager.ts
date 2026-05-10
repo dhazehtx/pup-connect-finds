@@ -30,7 +30,7 @@ export const usePresenceManager = () => {
     if (!user || joinedConversations.has(conversationId)) return;
 
     joinConversation(conversationId);
-    setJoinedConversations(prev => new Set([...prev, conversationId]));
+    setJoinedConversations(prev => new Set(Array.from(prev).concat(conversationId)));
 
     return () => {
       leaveConversation(conversationId);

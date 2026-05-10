@@ -44,7 +44,7 @@ if (!i18n.isInitialized) {
       ns: ['translation'],
 
       // Add error handling
-      missingKeyHandler: (lng, ns, key) => {
+      missingKeyHandler: (lng: string, ns: string, key: string) => {
         console.warn(`Missing translation key: ${key} for language: ${lng}`);
       }
     });

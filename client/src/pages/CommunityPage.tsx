@@ -92,7 +92,7 @@ const CommunityPage: React.FC = () => {
   // Join group mutation
   const joinGroupMutation = useMutation({
     mutationFn: async (groupId: string) => {
-      return apiRequest('POST', `/api/community/${groupId}/join`);
+      return apiRequest(`/api/community/${groupId}/join`, { method: 'POST' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['community-groups'] });

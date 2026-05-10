@@ -1,3 +1,4 @@
+import { debugApiLog, debugApiWarn } from '../lib/debugApi';
 import { Router, Request, Response } from "express";
 import Stripe from "stripe";
 import { Pool } from "@neondatabase/serverless";
@@ -24,7 +25,7 @@ router.post("/self-test", async (_req: Request, res: Response) => {
 
   function step(name: string, status: "PASS" | "FAIL" | "SKIP", detail?: string) {
     report.steps.push({ name, status, detail });
-    console.log(`[PROOF:STRIPE:SELFTEST] ${name}: ${status} ${detail || ""}`);
+    debugApiLog(`[PROOF:STRIPE:SELFTEST] ${name}: ${status} ${detail || ""}`);
     report.proof_logs.push(`[PROOF:STRIPE:SELFTEST] ${name}: ${status}`);
   }
 
@@ -189,7 +190,7 @@ router.post("/self-test", async (_req: Request, res: Response) => {
         [testListingId]
       );
 
-      console.log(`[PROOF:WEBHOOK:SIMULATED] deal=${dealId} RESERVED->DEPOSIT_PAID`);
+      debugApiLog(`[PROOF:WEBHOOK:SIMULATED] deal=${dealId} RESERVED->DEPOSIT_PAID`);
       report.proof_logs.push(`[PROOF:DEAL:STATE] deal=${dealId} RESERVED->DEPOSIT_PAID`);
 
       step("WEBHOOK_SIMULATION", "PASS", "Deal transitioned RESERVED -> DEPOSIT_PAID");
@@ -235,7 +236,7 @@ router.post("/self-test", async (_req: Request, res: Response) => {
       report.patch = `Fix failing steps: ${failed.map((f: any) => f.name).join(", ")}`;
     }
 
-    console.log(`[PROOF:STRIPE:SELFTEST] Overall: ${report.overall}`);
+    debugApiLog(`[PROOF:STRIPE:SELFTEST] Overall: ${report.overall}`);
     return res.json(report);
   } catch (error: any) {
     report.overall = "FAIL";
@@ -299,7 +300,7 @@ router.post("/webhook-replay", async (req: Request, res: Response) => {
 
         result.reprocessed = true;
         result.details = `Replayed ${kind} payment for deal ${dealId}`;
-        console.log(`[PROOF:WEBHOOK:REPLAYED] event=${event_id} deal=${dealId} kind=${kind}`);
+        debugApiLog(`[PROOF:WEBHOOK:REPLAYED] event=${event_id} deal=${dealId} kind=${kind}`);
       } else {
         result.details = "Non-deal payment_intent.succeeded — no deal metadata";
       }

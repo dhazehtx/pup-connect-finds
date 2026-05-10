@@ -78,11 +78,14 @@ export const ReportModal: React.FC<ReportModalProps> = ({
   // Submit report mutation
   const reportMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('POST', '/api/reports', {
+      return apiRequest('/api/reports', {
+        method: 'POST',
+        body: {
         target_id: targetId,
         target_type: targetType,
         reason: selectedReason,
         description: description.trim() || undefined
+        },
       });
     },
     onSuccess: () => {

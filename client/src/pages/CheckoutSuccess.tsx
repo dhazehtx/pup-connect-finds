@@ -21,6 +21,10 @@ const CheckoutSuccess = () => {
   const { clearCart } = useCart();
 
   useEffect(() => {
+    document.title = 'Order confirmed — PAWS';
+  }, []);
+
+  useEffect(() => {
     if (!sessionId) {
       setLoading(false);
       return;
@@ -56,24 +60,27 @@ const CheckoutSuccess = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-primary-600 animate-spin" />
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <div className="text-center">
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-blue-600" aria-hidden />
+          <p className="mt-3 text-sm text-slate-600">Confirming your order…</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-12 pb-24">
       <div className="max-w-2xl mx-auto px-4">
-        <Card className="text-center">
+        <Card className="border-slate-200 text-center shadow-sm">
           <CardContent className="pt-12 pb-8">
             <div className="mb-6">
               <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-4" />
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Payment Successful!
+              <h1 className="text-3xl font-bold text-slate-900 mb-2">
+                Thank you — you are all set
               </h1>
-              <p className="text-gray-600">
-                Thank you for your purchase. Your order has been confirmed.
+              <p className="text-slate-600">
+                Your payment was successful. We will send a confirmation to your email when processing completes.
               </p>
             </div>
 
@@ -107,9 +114,9 @@ const CheckoutSuccess = () => {
 
               <div className="flex flex-col sm:flex-row gap-3 justify-center pt-6">
                 <Button asChild className="bg-primary-600 hover:bg-primary-700">
-                  <Link to="/marketplace">
+                  <Link to="/marketplace?tab=store">
                     <ShoppingBag className="w-4 h-4 mr-2" />
-                    Continue Shopping
+                    Back to store
                   </Link>
                 </Button>
                 <Button asChild variant="outline">

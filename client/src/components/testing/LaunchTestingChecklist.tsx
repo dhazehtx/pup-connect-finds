@@ -76,7 +76,7 @@ const LaunchTestingChecklist = () => {
     }
   };
 
-  const categories = [...new Set(testItems.map(item => item.category))];
+  const categories = Array.from(new Set(testItems.map(item => item.category)));
   const passedTests = testItems.filter(item => item.status === 'passed').length;
   const totalTests = testItems.length;
   const completionPercentage = Math.round((passedTests / totalTests) * 100);

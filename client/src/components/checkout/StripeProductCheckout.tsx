@@ -131,18 +131,23 @@ const StripeProductCheckout: React.FC<StripeProductCheckoutProps> = ({
   React.useEffect(() => {
     const createPaymentIntent = async () => {
       try {
-        const response = await apiRequest("POST", `/api/products/${product.id}/checkout`, { 
-          quantity 
+        const response = await apiRequest(`/api/products/${product.id}/checkout`, {
+          method: 'POST',
+          body: { quantity },
         });
         
-        if (response.checkout_url) {
+        if (response?.checkout_url) {
           // Redirect to Stripe Checkout
           window.location.href = response.checkout_url;
           return;
         }
 
-        const data = await response.json();
-        setClientSecret(data.clientSecret);
+        const secret = response?.clientSecret || response?.client_secret || response?.data?.clientSecret;
+        if (secret) {
+          setClientSecret(secret);
+        } else {
+          throw new Error('No client secret returned from checkout endpoint');
+        }
       } catch (error) {
         console.error('Error creating checkout:', error);
         toast({

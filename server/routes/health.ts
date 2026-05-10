@@ -1,14 +1,65 @@
 import type { Express } from "express";
 import { db } from "../db";
-import { supabaseAdmin } from "../lib/supabaseAdmin";
+import { checkSupabaseHealth, getSupabaseHealthSnapshot } from "../lib/supabaseResilience";
+import { validateStartupConfig } from "../lib/startupConfig";
 
 export function registerHealthRoutes(app: Express) {
+  app.get("/api/ops/supabase", async (_req, res) => {
+    const snapshot = getSupabaseHealthSnapshot();
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
+    let host: string | null = null;
+    try {
+      host = supabaseUrl ? new URL(supabaseUrl).hostname : null;
+    } catch {
+      host = null;
+    }
+    res.json({
+      ok: snapshot.mode === "healthy",
+      mode: snapshot.mode,
+      host,
+      env: {
+        hasSupabaseUrl: Boolean(supabaseUrl),
+        hasServiceRoleKey: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY),
+      },
+      snapshot,
+    });
+  });
+
+  app.get("/api/ops/config", (_req, res) => {
+    const startup = validateStartupConfig();
+    res.json({
+      ok: startup.ok,
+      missingRequired: startup.missingRequired,
+      missingRecommended: startup.missingRecommended,
+      checks: startup.checks,
+      runtime: {
+        nodeEnv: process.env.NODE_ENV || "development",
+        uptimeSec: Math.round(process.uptime()),
+      },
+      supabase: getSupabaseHealthSnapshot(),
+    });
+  });
+
   // Supabase health check
   app.get("/api/health/supabase", async (req, res) => {
     try {
-      const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1 });
-      if (error) throw error;
-      res.json({ ok: true, usersSeen: data.users?.length ?? 0 });
+      const force = req.query.force === "1" || req.query.force === "true";
+      if (force) {
+        await checkSupabaseHealth("health_route_force");
+      }
+      const snapshot = getSupabaseHealthSnapshot();
+      const httpStatus = snapshot.mode === "healthy" ? 200 : 503;
+      res.status(httpStatus).json({
+        ok: snapshot.mode === "healthy",
+        mode: snapshot.mode,
+        initialized: snapshot.initialized,
+        monitorEnabled: snapshot.monitorEnabled,
+        lastCheckedAt: snapshot.lastCheckedAt,
+        lastHealthyAt: snapshot.lastHealthyAt,
+        lastLatencyMs: snapshot.lastLatencyMs,
+        consecutiveFailures: snapshot.consecutiveFailures,
+        lastError: snapshot.lastError,
+      });
     } catch (e: any) {
       res.status(500).json({ ok: false, error: e?.message || String(e) });
     }
@@ -28,6 +79,7 @@ export function registerHealthRoutes(app: Express) {
         version: process.env.npm_package_version || '1.0.0',
         services: {
           database: 'healthy',
+          supabase: getSupabaseHealthSnapshot().mode,
           memory: {
             used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + 'MB',
             total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + 'MB'
@@ -55,6 +107,7 @@ export function registerHealthRoutes(app: Express) {
       // Test database query
       await db.execute('SELECT COUNT(*) FROM profiles');
       const dbResponseTime = Date.now() - startTime;
+      const supabaseSnapshot = getSupabaseHealthSnapshot();
 
       // Check environment variables
       const requiredEnvVars = [
@@ -77,6 +130,15 @@ export function registerHealthRoutes(app: Express) {
           database: {
             status: 'healthy',
             responseTime: `${dbResponseTime}ms`
+          },
+          supabase: {
+            status: supabaseSnapshot.mode,
+            initialized: supabaseSnapshot.initialized,
+            lastCheckedAt: supabaseSnapshot.lastCheckedAt,
+            lastHealthyAt: supabaseSnapshot.lastHealthyAt,
+            lastLatencyMs: supabaseSnapshot.lastLatencyMs,
+            consecutiveFailures: supabaseSnapshot.consecutiveFailures,
+            lastError: supabaseSnapshot.lastError,
           },
           memory: {
             used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + 'MB',

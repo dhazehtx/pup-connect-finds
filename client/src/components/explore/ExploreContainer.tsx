@@ -457,14 +457,7 @@ const ExploreContainer = ({
       {loading ? (
         <LoadingSkeleton viewMode="grid" />
       ) : (
-        <ListingsGrid 
-          listings={listings}
-          viewMode="grid"
-          favorites={favorites}
-          onFavorite={handleFavorite}
-          onContact={handleContact}
-          onViewDetails={handleViewDetails}
-        />
+        <ListingsGrid />
       )}
     </div>
   );

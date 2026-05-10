@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { MapPin, Calendar, CheckCircle, Star, Shield, Award } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import UserAvatarWithPresence from '@/components/ui/user-avatar-with-presence';
@@ -17,7 +17,7 @@ const ProfileHeaderWithPresence = ({ profile }: ProfileHeaderWithPresenceProps) 
   const [showFollowersModal, setShowFollowersModal] = useState(false);
   const [showFollowingModal, setShowFollowingModal] = useState(false);
   const { followers, following } = useFollowSystem(profile.id);
-  const { postCount } = usePosts(profile.id);
+  const { postCount } = usePosts(profile.id, {});
   const { user } = useAuth();
 
   if (!profile) {
@@ -38,7 +38,7 @@ const ProfileHeaderWithPresence = ({ profile }: ProfileHeaderWithPresenceProps) 
     id: follower.follower_id,
     full_name: follower.follower_profile?.full_name || 'User',
     username: follower.follower_profile?.username || 'user',
-    avatar_url: follower.follower_profile?.avatar_url,
+    avatar_url: follower.follower_profile?.avatar_url ?? undefined,
     verified: false,
     user_type: 'buyer'
   }));
@@ -47,7 +47,7 @@ const ProfileHeaderWithPresence = ({ profile }: ProfileHeaderWithPresenceProps) 
     id: follow.following_id,
     full_name: follow.following_profile?.full_name || 'User',
     username: follow.following_profile?.username || 'user',
-    avatar_url: follow.following_profile?.avatar_url,
+    avatar_url: follow.following_profile?.avatar_url ?? undefined,
     verified: false,
     user_type: 'buyer'
   }));
@@ -59,7 +59,7 @@ const ProfileHeaderWithPresence = ({ profile }: ProfileHeaderWithPresenceProps) 
         <div className="relative">
           <UserAvatarWithPresence
             userId={profile.id}
-            username={profile.full_name || profile.username}
+            username={profile.full_name || profile.username || 'User'}
             avatarUrl={profile.avatar_url}
             size="lg"
             className="w-20 h-20"

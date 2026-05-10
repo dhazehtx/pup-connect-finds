@@ -15,21 +15,21 @@ interface DisputeTransaction {
   status: string;
   dispute_reason: string;
   dispute_created_at: string;
-  dispute_resolved_at?: string;
+  dispute_resolved_at?: string | null;
   meeting_location?: string;
   meeting_scheduled_at?: string;
   dog_listings?: {
     dog_name: string;
     breed: string;
-  };
+  } | null;
   buyer_profile?: {
     full_name: string;
     email: string;
-  };
+  } | null;
   seller_profile?: {
     full_name: string;
     email: string;
-  };
+  } | null;
 }
 
 interface DisputeDetailsDialogProps {

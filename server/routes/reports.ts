@@ -1,3 +1,4 @@
+import { debugApiLog, debugApiWarn } from '../lib/debugApi';
 import { Router } from 'express';
 import { db } from '../db';
 import { reports, profiles, posts, comments, dogListings } from '@shared/schema';
@@ -8,7 +9,8 @@ const router = Router();
 
 async function reportHandler(req: any, res: any) {
   try {
-    const { target_id, target_type, reason, description } = req.body;
+    const { target_id, target_type, reason } = req.body;
+    const description = req.body.description ?? req.body.message ?? null;
     
     if (!target_id || !target_type || !reason) {
       return res.status(400).json({ ok: false, error: 'Target ID, type, and reason are required' });
@@ -63,7 +65,7 @@ async function reportHandler(req: any, res: any) {
       })
       .returning();
 
-    console.log('[PROOF:REPORT]', JSON.stringify({ actorUserId: req.user.id, targetType: target_type, targetId: target_id, reason, ts: Date.now() }));
+    debugApiLog('[PROOF:REPORT]', JSON.stringify({ actorUserId: req.user.id, targetType: target_type, targetId: target_id, reason, ts: Date.now() }));
 
     res.status(201).json({
       ok: true,
@@ -128,7 +130,7 @@ router.get('/check/:targetType/:targetId', async (req, res) => {
         sql`${reports.created_at} > NOW() - INTERVAL '24 hours'`
       ));
 
-    console.log('[PROOF:REPORT:CHECK]', JSON.stringify({ targetType, targetId, alreadyReported: !!existing, ts: Date.now() }));
+    debugApiLog('[PROOF:REPORT:CHECK]', JSON.stringify({ targetType, targetId, alreadyReported: !!existing, ts: Date.now() }));
     res.json({ ok: true, alreadyReported: !!existing });
   } catch (error) {
     res.status(500).json({ ok: false, error: 'Failed to check report status' });

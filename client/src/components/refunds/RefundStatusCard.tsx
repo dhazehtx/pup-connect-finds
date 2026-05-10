@@ -93,9 +93,10 @@ export const RefundStatusCard: React.FC<RefundStatusCardProps> = ({
     return labels[reason as keyof typeof labels] || reason;
   };
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (dateValue: string | Date | null) => {
+    if (!dateValue) return 'N/A';
+    const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',

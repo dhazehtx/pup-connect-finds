@@ -52,7 +52,7 @@ const ComprehensiveTestingDashboard = () => {
 
   const [runningTests, setRunningTests] = useState(false);
 
-  const categories = [...new Set(testModules.map(m => m.category))];
+  const categories = Array.from(new Set(testModules.map(m => m.category)));
   const overallCompletion = Math.round(
     testModules.reduce((sum, module) => sum + module.completion, 0) / testModules.length
   );

@@ -1,0 +1,102 @@
+# Prompt 2.3 — Automated Playwright E2E against staging (secrets via GitHub Actions).
+#
+# Required repository secrets (Settings → Secrets and variables → Actions):
+#   PLAYWRIGHT_BASE_URL    Staging app origin, e.g. https://app-staging.example.com (no trailing slash)
+#   E2E_EMAIL              Verified test user email on staging
+#   E2E_PASSWORD           Test user password
+#
+# Strongly recommended (full suite / Stripe / DB assertions):
+#   DATABASE_URL or NEON_DATABASE_URL   Staging Postgres (pupbox order assertions)
+#   SUPABASE_URL                        Staging Supabase project URL
+#   SUPABASE_SERVICE_ROLE_KEY           Staging service role (admin createUser in pupbox test)
+#
+# Optional (extended critical tests):
+#   E2E_PEER_USER_ID, E2E_PEER_EMAIL, E2E_PEER_PASSWORD
+#
+# Fork PRs: secrets are not available to workflows from forks; this job is skipped unless
+# the workflow runs in the same repository (push to main / internal PRs).
+
+name: E2E (Playwright)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: e2e-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  playwright:
+    name: Playwright — staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    # Avoid running with missing secrets on fork PRs (secrets are empty / unavailable).
+    if: |
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+
+      - name: Verify staging base URL is configured
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ secrets.PLAYWRIGHT_BASE_URL }}
+        run: |
+          if [ -z "$PLAYWRIGHT_BASE_URL" ]; then
+            echo "::error::PLAYWRIGHT_BASE_URL is not set. Add it under Repository secrets (staging HTTPS origin, no trailing slash)."
+            exit 1
+          fi
+          echo "PLAYWRIGHT_BASE_URL is set (length ${#PLAYWRIGHT_BASE_URL})"
+
+      - name: Run Playwright
+        env:
+          CI: 'true'
+          # Hit deployed staging — do not start local `npm run dev` (see playwright.config.ts).
+          PLAYWRIGHT_NO_SERVER: '1'
+          PLAYWRIGHT_BASE_URL: ${{ secrets.PLAYWRIGHT_BASE_URL }}
+          E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
+          E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+          E2E_PEER_USER_ID: ${{ secrets.E2E_PEER_USER_ID }}
+          E2E_PEER_EMAIL: ${{ secrets.E2E_PEER_EMAIL }}
+          E2E_PEER_PASSWORD: ${{ secrets.E2E_PEER_PASSWORD }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEON_DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results/
+          retention-days: 7

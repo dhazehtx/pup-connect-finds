@@ -1,13 +1,12 @@
+import { debugApiLog, debugApiWarn } from '../lib/debugApi';
 import { Router } from "express";
-import Stripe from "stripe";
+import type Stripe from "stripe";
 import { storage } from "../storage";
 import { authMiddleware } from "../middleware/auth";
+import { getStripe } from "../lib/stripeLazy";
+import { getOrCreateStripeCustomer } from "../lib/stripeCustomer";
 
 const router = Router();
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: "2025-08-27.basil" as any
-});
 
 router.post("/session", authMiddleware, async (req, res) => {
   try {
@@ -21,40 +20,65 @@ router.post("/session", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "cartItems array is required" });
     }
 
-    console.log(`[PROOF:CHECKOUT:SESSION_START] user=${user_id} items=${cartItems.length}`);
+    debugApiLog(`[PROOF:CHECKOUT:SESSION_START] user=${user_id} items=${cartItems.length}`);
 
-    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
-    let amountTotal = 0;
-
+    const resolved: { product: Awaited<ReturnType<typeof storage.getProduct>>; qty: number }[] = [];
     for (const item of cartItems) {
       if (!item.id || !item.quantity || item.quantity < 1) {
         return res.status(400).json({ error: `Invalid cart item: ${JSON.stringify(item)}` });
       }
-
       const product = await storage.getProduct(item.id);
       if (!product) {
         return res.status(400).json({ error: `Product not found: ${item.id}` });
       }
+      resolved.push({ product, qty: item.quantity });
+    }
 
+    const anySubscription = resolved.some(({ product }) => product!.is_subscription);
+    const anyOneTime = resolved.some(({ product }) => !product!.is_subscription);
+    if (anySubscription && anyOneTime) {
+      return res.status(400).json({
+        error:
+          "Cart mixes subscription and one-time products. Complete subscription checkout separately from one-time purchases.",
+      });
+    }
+
+    const mode: Stripe.Checkout.SessionCreateParams.Mode = anySubscription ? "subscription" : "payment";
+
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
+    let amountTotal = 0;
+
+    for (const { product, qty } of resolved) {
+      if (!product) continue;
       const unitPriceCents = Math.round(parseFloat(product.unit_price) * 100);
-      amountTotal += unitPriceCents * item.quantity;
+      amountTotal += unitPriceCents * qty;
 
-      if (product.stripe_price_id) {
+      if (mode === "subscription") {
+        if (!product.stripe_price_id) {
+          return res.status(400).json({
+            error: `Subscription product "${product.name}" is missing stripe_price_id`,
+          });
+        }
         lineItems.push({
           price: product.stripe_price_id,
-          quantity: item.quantity,
+          quantity: qty,
+        });
+      } else if (product.stripe_price_id) {
+        lineItems.push({
+          price: product.stripe_price_id,
+          quantity: qty,
         });
       } else {
         lineItems.push({
           price_data: {
-            currency: product.currency || 'usd',
+            currency: product.currency || "usd",
             product_data: {
               name: product.name,
               ...(product.image_url ? { images: [product.image_url] } : {}),
             },
             unit_amount: unitPriceCents,
           },
-          quantity: item.quantity,
+          quantity: qty,
         });
       }
     }
@@ -62,28 +86,28 @@ router.post("/session", authMiddleware, async (req, res) => {
     const order = await storage.createOrder({
       user_id,
       amount_total: (amountTotal / 100).toFixed(2),
-      currency: 'usd',
-      status: 'pending',
+      currency: "usd",
+      status: "pending",
+      is_subscription: anySubscription,
     });
 
-    for (const item of cartItems) {
-      const product = await storage.getProduct(item.id);
+    for (const { product, qty } of resolved) {
       if (product) {
         await storage.createOrderItem({
           order_id: order.id,
-          product_id: item.id,
-          qty: item.quantity,
+          product_id: product.id,
+          qty,
           unit_price: product.unit_price,
         });
       }
     }
 
-    console.log(`[PROOF:CHECKOUT:ORDER_CREATED] order=${order.id} amount=${(amountTotal / 100).toFixed(2)}`);
+    debugApiLog(`[PROOF:CHECKOUT:ORDER_CREATED] order=${order.id} amount=${(amountTotal / 100).toFixed(2)} mode=${mode}`);
 
-    const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+    const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
 
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
+      mode,
       line_items: lineItems,
       success_url: `${baseUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/cart`,
@@ -92,17 +116,36 @@ router.post("/session", authMiddleware, async (req, res) => {
         order_id: order.id,
         user_id: user_id,
       },
-    });
+    };
+
+    if (mode === "subscription") {
+      const email = (req.user as { email?: string } | undefined)?.email;
+      sessionParams.customer = await getOrCreateStripeCustomer(user_id, email);
+    }
+
+    const session = await getStripe().checkout.sessions.create(sessionParams);
+
+    let totalCents = amountTotal;
+    try {
+      const retrieved = await getStripe().checkout.sessions.retrieve(session.id);
+      if (typeof retrieved.amount_total === "number" && retrieved.amount_total > 0) {
+        totalCents = retrieved.amount_total;
+      }
+    } catch (e: any) {
+      debugApiWarn("[CHECKOUT:SESSION_RETRIEVE]", e?.message || e);
+    }
 
     await storage.updateOrder(order.id, {
       stripe_session_id: session.id,
+      checkout_session_id: session.id,
+      amount_total: (totalCents / 100).toFixed(2),
     });
 
-    console.log(`[PROOF:CHECKOUT:SESSION_CREATED] order=${order.id} session=${session.id}`);
+    debugApiLog(`[PROOF:CHECKOUT:SESSION_CREATED] order=${order.id} session=${session.id}`);
 
     res.json({ url: session.url });
   } catch (error: any) {
-    console.error("[PROOF:CHECKOUT:ERROR]", error.message);
+    debugApiLog("[PROOF:CHECKOUT:ERROR]", error.message);
     res.status(500).json({ error: "Failed to create checkout session" });
   }
 });
@@ -127,7 +170,7 @@ router.get("/status", async (req, res) => {
       created_at: order.created_at,
     });
   } catch (error: any) {
-    console.error("[PROOF:CHECKOUT:STATUS_ERROR]", error.message);
+    debugApiLog("[PROOF:CHECKOUT:STATUS_ERROR]", error.message);
     res.status(500).json({ error: "Failed to fetch order status" });
   }
 });

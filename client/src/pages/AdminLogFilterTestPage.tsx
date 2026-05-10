@@ -152,9 +152,8 @@ const AdminLogFilterTestPage = () => {
   const testDatabaseConnectivity = async () => {
     try {
       const { data, error } = await supabase
-        .from('admin_logs')
-        .select('count')
-        .limit(1);
+        .from('admin_logs' as any)
+        .select('*', { count: 'exact', head: true });
 
       if (error) {
         addTestResult('Database Test', 'error', `Database connection failed: ${error.message}`);

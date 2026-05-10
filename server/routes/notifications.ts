@@ -1,3 +1,4 @@
+import { debugApiLog, debugApiWarn } from '../lib/debugApi';
 import { Router } from "express";
 import { db } from "../db";
 import { notifications, profiles } from "../../shared/schema";
@@ -61,7 +62,7 @@ router.get("/", async (req, res) => {
         filteredData = filteredData.filter((row) => !blockedSet.has(row.fromUserId || '') && !blockedSet.has(row.actorId || ''));
         const filteredCount = before - filteredData.length;
         if (filteredCount > 0) {
-          console.log('[PROOF:BLOCK:READ]', JSON.stringify({ actorUserId: userId, filteredCount, domain: 'notifications', ts: Date.now() }));
+          debugApiLog('[PROOF:BLOCK:READ]', JSON.stringify({ actorUserId: userId, filteredCount, domain: 'notifications', ts: Date.now() }));
         }
       }
     }
@@ -108,7 +109,7 @@ router.get("/", async (req, res) => {
 
     return res.status(200).json(shaped);
   } catch (err) {
-    console.error('[PROOF:NOTIFS:ERR]', { error: String(err), stack: (err as any)?.stack, ts: Date.now() });
+    debugApiLog('[PROOF:NOTIFS:ERR]', { error: String(err), stack: (err as any)?.stack, ts: Date.now() });
     return res.status(200).json([]);
   }
 });
@@ -132,10 +133,10 @@ router.get("/unread-count", async (req, res) => {
       );
 
     const count = Number(result[0]?.count) || 0;
-    console.log('[PROOF:NOTIFS:UNREAD_COUNT]', JSON.stringify({ userId, count, ts: Date.now() }));
+    debugApiLog('[PROOF:NOTIFS:UNREAD_COUNT]', JSON.stringify({ userId, count, ts: Date.now() }));
     res.json({ unread_count: count });
   } catch (error: any) {
-    console.error('[PROOF:NOTIFS:ERR]', JSON.stringify({ route: 'unread-count', error: error?.message, ts: Date.now() }));
+    debugApiLog('[PROOF:NOTIFS:ERR]', JSON.stringify({ route: 'unread-count', error: error?.message, ts: Date.now() }));
     return res.status(200).json({ unread_count: 0 });
   }
 });
@@ -159,10 +160,10 @@ router.get("/badge", async (req, res) => {
       );
 
     const count = Number(result[0]?.count) || 0;
-    console.log('[PROOF:NOTIFS:BADGE]', JSON.stringify({ userId, count, has_unread: count > 0, ts: Date.now() }));
+    debugApiLog('[PROOF:NOTIFS:BADGE]', JSON.stringify({ userId, count, has_unread: count > 0, ts: Date.now() }));
     res.json({ unread_count: count, has_unread: count > 0, ts: Date.now() });
   } catch (error: any) {
-    console.error('[PROOF:NOTIFS:ERR]', JSON.stringify({ route: 'badge', code: 'BADGE_FAILED', error: error?.message, ts: Date.now() }));
+    debugApiLog('[PROOF:NOTIFS:ERR]', JSON.stringify({ route: 'badge', code: 'BADGE_FAILED', error: error?.message, ts: Date.now() }));
     return res.status(200).json({ unread_count: 0, has_unread: false, ts: Date.now() });
   }
 });

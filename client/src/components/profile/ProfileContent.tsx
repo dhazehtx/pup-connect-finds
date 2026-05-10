@@ -43,7 +43,7 @@ const ProfileContent = ({
   const isGuestUser = !user;
   
   const { followers, following, isFollowing, followUser, unfollowUser } = useFollowSystem(displayProfile.id);
-  const { postCount } = usePosts(displayProfile.id);
+  const { postCount } = usePosts(displayProfile.id, {});
 
   console.log('ProfileContent render:', {
     displayProfile: !!displayProfile,

@@ -4,3 +4,23 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
+
+# Secrets and local env (never commit)
+.env
+.env.local
+.env.*.local
+attached_assets/.env
+
+# Tooling / IDE / caches
+.cursor/
+.local/
+.pw-browsers/
+test-results/
+playwright-report/
+
+# Accidental artifact (do not track)
+=
+
+# Keep example env files in repo
+!.env.example
+!.env.staging.example

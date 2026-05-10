@@ -1,3 +1,4 @@
+import { debugApiLog, debugApiWarn } from '../lib/debugApi';
 import { Router } from "express";
 import { db } from "../db";
 import { blocks, profiles } from "@shared/schema";
@@ -30,15 +31,15 @@ router.post("/:blockedId", async (req, res) => {
 
     if (existing) {
       await db.delete(blocks).where(eq(blocks.id, existing.id));
-      console.log('[PROOF:BLOCK]', JSON.stringify({ actorUserId: blockerId, blockedId, action: 'unblock', ts: Date.now() }));
+      debugApiLog('[PROOF:BLOCK]', JSON.stringify({ actorUserId: blockerId, blockedId, action: 'unblock', ts: Date.now() }));
       return res.json({ ok: true, action: 'unblocked', blocked: false });
     }
 
     await db.insert(blocks).values({ blocker_id: blockerId, blocked_id: blockedId });
-    console.log('[PROOF:BLOCK]', JSON.stringify({ actorUserId: blockerId, blockedId, action: 'block', ts: Date.now() }));
+    debugApiLog('[PROOF:BLOCK]', JSON.stringify({ actorUserId: blockerId, blockedId, action: 'block', ts: Date.now() }));
     res.json({ ok: true, action: 'blocked', blocked: true });
   } catch (error: any) {
-    console.error('[PROOF:BLOCK:ERR]', JSON.stringify({ error: error?.message, ts: Date.now() }));
+    debugApiLog('[PROOF:BLOCK:ERR]', JSON.stringify({ error: error?.message, ts: Date.now() }));
     res.status(500).json({ error: "Failed to toggle block" });
   }
 });

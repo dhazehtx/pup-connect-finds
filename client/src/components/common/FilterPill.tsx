@@ -5,9 +5,10 @@ type Props = {
   active?: boolean;
   count?: number;
   className?: string;
+  label?: string;
 };
 
-export default function FilterPill({ onClick, active, count, className }: Props) {
+export default function FilterPill({ onClick, active, count, className, label }: Props) {
   return (
     <button
       type="button"
@@ -25,7 +26,7 @@ export default function FilterPill({ onClick, active, count, className }: Props)
       ].join(" ")}
     >
       <Filter className={active ? "h-4 w-4 opacity-90" : "h-4 w-4 text-slate-500"} />
-      <span>Filter{count ? ` (${count})` : ""}</span>
+      <span>{label || "Filter"}{count ? ` (${count})` : ""}</span>
     </button>
   );
 }

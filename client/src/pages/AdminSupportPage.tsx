@@ -84,7 +84,7 @@ const AdminSupportPage: React.FC = () => {
       const response = await apiRequest(`/api/support/admin/tickets?${params.toString()}`);
       return response.json();
     },
-    enabled: !!user?.is_admin,
+    enabled: !!(user as any)?.is_admin,
   });
 
   // Update ticket mutation
@@ -171,7 +171,7 @@ const AdminSupportPage: React.FC = () => {
     return categoryConfig ? categoryConfig.icon : MessageSquare;
   };
 
-  if (!user?.is_admin) {
+  if (!(user as any)?.is_admin) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <Card className="p-8 text-center max-w-md">
@@ -338,7 +338,7 @@ const AdminSupportPage: React.FC = () => {
                   getStatusColor={getStatusColor}
                   getPriorityColor={getPriorityColor}
                   onView={() => setSelectedTicket(ticket)}
-                  onStatusChange={(status) => handleStatusChange(ticket.id, status)}
+                  onStatusChange={(status: string) => handleStatusChange(ticket.id, status)}
                   onAssign={() => handleAssignTicket(ticket.id)}
                   onReply={() => {
                     setSelectedTicket(ticket);
@@ -380,7 +380,7 @@ const AdminSupportPage: React.FC = () => {
             setShowReplyModal(false);
             setSelectedTicket(null);
           }}
-          onSubmit={(message, updateStatus) => 
+          onSubmit={(message: string, updateStatus?: string) => 
             addReplyMutation.mutate({ 
               ticketId: selectedTicket.id, 
               message, 

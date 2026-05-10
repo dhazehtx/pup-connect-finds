@@ -135,9 +135,11 @@ const EnhancedMessagingInterface = () => {
     );
   }
 
-  const otherUserId = selectedConversation?.seller_id === user?.id 
-    ? selectedConversation?.buyer_id 
-    : selectedConversation?.seller_id || '';
+  const otherUserId = selectedConversation
+    ? (selectedConversation.seller_id === user?.id
+        ? selectedConversation.buyer_id
+        : selectedConversation.seller_id)
+    : '';
 
   // Filter and type-safe convert messages to match Message interface
   const typedMessages: Message[] = messages.filter((msg): msg is any => {

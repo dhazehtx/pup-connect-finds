@@ -16,10 +16,12 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 export async function getPayoutLink(req: Request, res: Response) {
   try {
     // --- Basic sanity checks
-    const origin =
-      process.env.PUBLIC_APP_URL ||
-      process.env.BASE_URL ||
-      "";
+    const configuredOrigin = process.env.PUBLIC_APP_URL || process.env.BASE_URL || "";
+    const requestHost = req.get("x-forwarded-host") || req.get("host") || "";
+    const requestProto = req.get("x-forwarded-proto") || req.protocol || "http";
+    const requestOrigin = requestHost ? `${requestProto}://${requestHost}` : "";
+    const isLocalPreview = /^(127\.0\.0\.1|localhost)(:\d+)?$/i.test(requestHost);
+    const origin = isLocalPreview ? requestOrigin : configuredOrigin || requestOrigin;
 
     if (!process.env.STRIPE_SECRET_KEY?.startsWith("sk_test_")) {
       console.warn("[PAYOUT LINK] Warning: not using a test key");

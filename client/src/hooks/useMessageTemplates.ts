@@ -16,6 +16,27 @@ interface MessageTemplate {
   updated_at: string;
 }
 
+type DbMessageTemplate = {
+  id: string;
+  user_id: string;
+  title: string;
+  content: string;
+  category: string | null;
+  is_public: boolean | null;
+  usage_count: number | null;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
+const normalizeTemplate = (template: DbMessageTemplate): MessageTemplate => ({
+  ...template,
+  category: template.category ?? 'general',
+  is_public: template.is_public ?? false,
+  usage_count: template.usage_count ?? 0,
+  created_at: template.created_at ?? new Date().toISOString(),
+  updated_at: template.updated_at ?? new Date().toISOString(),
+});
+
 export const useMessageTemplates = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -39,7 +60,7 @@ export const useMessageTemplates = () => {
 
       if (fetchError) throw fetchError;
 
-      setTemplates(data || []);
+      setTemplates((data || []).map((template) => normalizeTemplate(template as DbMessageTemplate)));
     } catch (err: any) {
       setError(err.message);
       toast({
@@ -77,7 +98,7 @@ export const useMessageTemplates = () => {
 
       if (error) throw error;
 
-      setTemplates(prev => [data, ...prev]);
+      setTemplates(prev => [normalizeTemplate(data as DbMessageTemplate), ...prev]);
       toast({
         title: "Success",
         description: "Message template created successfully",
@@ -113,7 +134,7 @@ export const useMessageTemplates = () => {
 
       if (error) throw error;
 
-      setTemplates(prev => prev.map(t => t.id === id ? data : t));
+      setTemplates(prev => prev.map(t => t.id === id ? normalizeTemplate(data as DbMessageTemplate) : t));
       toast({
         title: "Success",
         description: "Message template updated successfully",

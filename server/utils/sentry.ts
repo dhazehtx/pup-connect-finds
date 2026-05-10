@@ -1,12 +1,14 @@
 import * as Sentry from '@sentry/node';
 
+export const getSentryEnvironment = (): string => process.env.NODE_ENV || 'development';
+
 export const initializeSentry = () => {
   if (process.env.SENTRY_DSN) {
     Sentry.init({
       dsn: process.env.SENTRY_DSN,
-      environment: process.env.NODE_ENV || 'development',
+      environment: getSentryEnvironment(),
       integrations: [
-        Sentry.httpIntegration({ tracing: true }),
+        Sentry.httpIntegration(),
         Sentry.expressIntegration(),
       ],
       tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
@@ -19,9 +21,10 @@ export const initializeSentry = () => {
         return event;
       }
     });
-    
-    console.log('Sentry initialized for error tracking');
-  } else {
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Sentry initialized for error tracking');
+    }
+  } else if (process.env.NODE_ENV !== 'production') {
     console.warn('Sentry DSN not configured, error tracking disabled');
   }
 };
@@ -36,7 +39,7 @@ export const captureError = (error: Error, context?: Record<string, any>) => {
       }
       Sentry.captureException(error);
     });
-  } else {
+  } else if (process.env.NODE_ENV !== 'production') {
     console.error('Error captured:', error, context);
   }
 };
@@ -44,7 +47,7 @@ export const captureError = (error: Error, context?: Record<string, any>) => {
 export const captureMessage = (message: string, level: 'info' | 'warning' | 'error' = 'info') => {
   if (process.env.SENTRY_DSN) {
     Sentry.captureMessage(message, level);
-  } else {
+  } else if (process.env.NODE_ENV !== 'production') {
     console.log(`[${level.toUpperCase()}] ${message}`);
   }
 };

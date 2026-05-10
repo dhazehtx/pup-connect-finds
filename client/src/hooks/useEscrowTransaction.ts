@@ -12,6 +12,27 @@ export const useEscrowTransaction = () => {
   const { user } = useAuth();
   const { toast } = useToast();
 
+  type DbEscrowTransaction = Omit<EscrowTransaction, 'buyer_confirmed_at' | 'seller_confirmed_at' | 'meeting_location' | 'meeting_scheduled_at' | 'funds_released_at' | 'dispute_reason' | 'dispute_resolution'> & {
+    buyer_confirmed_at: string | null;
+    seller_confirmed_at: string | null;
+    meeting_location: string | null;
+    meeting_scheduled_at: string | null;
+    funds_released_at: string | null;
+    dispute_reason: string | null;
+    dispute_resolution: string | null;
+  };
+
+  const normalizeEscrowTransaction = (item: DbEscrowTransaction): EscrowTransaction => ({
+    ...item,
+    buyer_confirmed_at: item.buyer_confirmed_at ?? undefined,
+    seller_confirmed_at: item.seller_confirmed_at ?? undefined,
+    meeting_location: item.meeting_location ?? undefined,
+    meeting_scheduled_at: item.meeting_scheduled_at ?? undefined,
+    funds_released_at: item.funds_released_at ?? undefined,
+    dispute_reason: item.dispute_reason ?? undefined,
+    dispute_resolution: item.dispute_resolution ?? undefined,
+  });
+
   const createEscrowTransaction = useCallback(async (
     listingId: string,
     sellerId: string,
@@ -161,9 +182,9 @@ export const useEscrowTransaction = () => {
       if (error) throw error;
       
       // Type assertion to ensure compatibility
-      const typedData = (data || []).map(item => ({
-        ...item,
-        status: item.status as EscrowTransaction['status']
+      const typedData = (data || []).map(item => normalizeEscrowTransaction({
+        ...(item as DbEscrowTransaction),
+        status: (item as DbEscrowTransaction).status as EscrowTransaction['status']
       }));
       
       setTransactions(typedData);

@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Upload, X, Plus } from 'lucide-react';
+import { SERVICE_CATEGORY_FILTER_OPTIONS } from '@shared/serviceCategories';
 
 const CreateServiceListing = () => {
   const { user } = useAuth();
@@ -24,21 +25,17 @@ const CreateServiceListing = () => {
     price: '',
     location: '',
     experience_years: '',
-    certifications: [],
-    service_areas: [],
-    availability: {}
+    certifications: [] as string[],
+    service_areas: [] as string[],
+    availability: {} as Record<string, unknown>,
   });
   const [newCertification, setNewCertification] = useState('');
   const [newServiceArea, setNewServiceArea] = useState('');
 
-  const serviceTypes = [
-    { value: 'grooming', label: 'Pet Grooming' },
-    { value: 'walking', label: 'Dog Walking' },
-    { value: 'sitting', label: 'Pet Sitting' },
-    { value: 'training', label: 'Pet Training' },
-    { value: 'veterinary', label: 'Veterinary Care' },
-    { value: 'boarding', label: 'Pet Boarding' }
-  ];
+  const serviceTypes = SERVICE_CATEGORY_FILTER_OPTIONS.map((c) => ({
+    value: c.id,
+    label: c.label,
+  }));
 
   const priceTypes = [
     { value: 'hourly', label: 'Per Hour' },
@@ -100,22 +97,20 @@ const CreateServiceListing = () => {
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('services')
-        .insert({
-          user_id: user.id,
-          title: formData.title,
-          description: formData.description,
-          service_type: formData.service_type,
-          price_type: formData.price_type,
-          price: parseFloat(formData.price),
-          location: formData.location,
-          experience_years: parseInt(formData.experience_years) || 0,
-          certifications: formData.certifications,
-          service_areas: formData.service_areas,
-          availability: formData.availability,
-          status: 'active'
-        });
+      const { error } = await supabase.from('services').insert({
+        user_id: user.id,
+        title: formData.title,
+        description: formData.description,
+        service_type: formData.service_type,
+        price_type: formData.price_type,
+        price: parseFloat(formData.price),
+        location: formData.location,
+        experience_years: parseInt(formData.experience_years, 10) || 0,
+        certifications: formData.certifications,
+        service_areas: formData.service_areas,
+        availability: formData.availability,
+        status: 'active',
+      } as any);
 
       if (error) throw error;
 
@@ -133,9 +128,9 @@ const CreateServiceListing = () => {
         price: '',
         location: '',
         experience_years: '',
-        certifications: [],
-        service_areas: [],
-        availability: {}
+        certifications: [] as string[],
+        service_areas: [] as string[],
+        availability: {} as Record<string, unknown>,
       });
     } catch (error: any) {
       console.error('Error creating service:', error);
