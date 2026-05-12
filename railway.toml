@@ -3,9 +3,10 @@
 # Secrets (DATABASE_URL, Stripe, Supabase, SESSION_SECRET, BASE_URL, …) are NOT stored here.
 
 [build]
-# HUSKY=0: skip `prepare` → husky during install on the builder (no `.git` hooks needed).
-# `.npmrc` in repo pins legacy peer resolution so `npm ci` matches lockfile across Node 20–22 + npm 10/11.
-buildCommand = "HUSKY=0 npm ci && npm run build"
+# Railpack already runs install (`npm ci` / equivalent) *before* this command.
+# Running `npm ci` again here caused EBUSY removing `node_modules/.vite` (double install).
+# `.npmrc` (legacy-peer-deps) still applies to Railpack’s install step.
+buildCommand = "npm run build"
 
 [deploy]
 startCommand = "npm start"
