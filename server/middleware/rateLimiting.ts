@@ -126,7 +126,12 @@ setInterval(() => rateLimitStore.cleanup(), 60 * 60 * 1000);
 // Helper function to check if request should be rate limited
 const shouldRateLimit = (req: Request): boolean => {
   const path = req.path;
-  
+
+  // PaaS liveness (Railway/Render) — must not share slow-down / 429 with app traffic.
+  if (path === "/api/health/live") {
+    return false;
+  }
+
   // Skip rate limiting for static assets, Vite HMR, and dev server resources
   if (
     path.startsWith('/@vite') ||

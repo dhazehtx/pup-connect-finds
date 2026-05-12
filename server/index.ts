@@ -18,6 +18,10 @@ import { validateStartupConfig } from "./lib/startupConfig";
 initializeSentry();
 
 const app = express();
+// Behind Railway/Render reverse proxy so req.ip and rate-limit keys are per-client, not "unknown".
+if (process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+}
 app.use(express.json({
   verify: (req: any, _res, buf) => {
     req.rawBody = buf;
