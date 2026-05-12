@@ -4,6 +4,16 @@ import { checkSupabaseHealth, getSupabaseHealthSnapshot } from "../lib/supabaseR
 import { validateStartupConfig } from "../lib/startupConfig";
 
 export function registerHealthRoutes(app: Express) {
+  // Liveness only — no DB. Use for PaaS health checks (Railway/Render) so a cold DB
+  // or bad DATABASE_URL does not fail the deploy before you can fix variables.
+  app.get("/api/health/live", (_req, res) => {
+    res.status(200).json({
+      ok: true,
+      ts: new Date().toISOString(),
+      uptimeSec: Math.round(process.uptime()),
+    });
+  });
+
   app.get("/api/ops/supabase", async (_req, res) => {
     const snapshot = getSupabaseHealthSnapshot();
     const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
