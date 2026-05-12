@@ -11,6 +11,9 @@ export function registerHealthRoutes(app: Express) {
       ok: true,
       ts: new Date().toISOString(),
       uptimeSec: Math.round(process.uptime()),
+      dbConfigured: Boolean(
+        process.env.DATABASE_URL?.trim() || process.env.NEON_DATABASE_URL?.trim(),
+      ),
     });
   });
 
