@@ -9,6 +9,10 @@ r.post('/', async (req: any, res) => {
   const userId = req.user.id;
   const { provider_id } = req.body;
 
+  if (!supabaseAdmin) {
+    return res.status(503).json({ error: 'Supabase is not configured' });
+  }
+
   // Ensure consent recorded
   const { data: consent, error: cErr } = await supabaseAdmin
     .from('consents')

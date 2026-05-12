@@ -12,6 +12,13 @@ const router = Router();
 // Submit provider application (Step 7 of onboarding)
 router.post("/submit", async (req, res) => {
   try {
+    if (!supabase) {
+      return res.status(503).json({
+        ok: false,
+        error: "Supabase is not configured",
+      });
+    }
+
     const { providerId } = req.body;
 
     if (!providerId) {
@@ -138,6 +145,13 @@ router.post("/submit", async (req, res) => {
 // Admin review endpoint (uses supabaseAdmin)
 router.post("/review", async (req, res) => {
   try {
+    if (!supabaseAdmin) {
+      return res.status(503).json({
+        ok: false,
+        error: "Supabase admin is not configured",
+      });
+    }
+
     const { applicationId, action, notes } = req.body;
 
     if (!applicationId || !action) {
@@ -399,13 +413,15 @@ router.get("/:id", async (req, res) => {
     let providerDetails = null;
     if (application.provider_id) {
       try {
-        const { data: provider } = await supabaseAdmin
-          .from("providers")
-          .select("*")
-          .eq("id", application.provider_id)
-          .single();
+        if (supabaseAdmin) {
+          const { data: provider } = await supabaseAdmin
+            .from("providers")
+            .select("*")
+            .eq("id", application.provider_id)
+            .single();
 
-        providerDetails = provider;
+          providerDetails = provider;
+        }
       } catch (err) {
         console.error("[PROVIDER APP] Error fetching provider details:", err);
       }
@@ -417,11 +433,15 @@ router.get("/:id", async (req, res) => {
 
     if (application.front_image_url) {
       try {
-        const { data: signedData } = await supabaseAdmin.storage
-          .from("provider-id-docs")
-          .createSignedUrl(application.front_image_url, 3600); // 1 hour expiry
+        if (supabaseAdmin) {
+          const { data: signedData } = await supabaseAdmin.storage
+            .from("provider-id-docs")
+            .createSignedUrl(application.front_image_url, 3600); // 1 hour expiry
 
-        frontImageSignedUrl = signedData?.signedUrl || application.front_image_url;
+          frontImageSignedUrl = signedData?.signedUrl || application.front_image_url;
+        } else {
+          frontImageSignedUrl = application.front_image_url;
+        }
       } catch (err) {
         console.error("[PROVIDER APP] Error generating signed URL for front image:", err);
         frontImageSignedUrl = application.front_image_url;
@@ -430,11 +450,15 @@ router.get("/:id", async (req, res) => {
 
     if (application.back_image_url) {
       try {
-        const { data: signedData } = await supabaseAdmin.storage
-          .from("provider-id-docs")
-          .createSignedUrl(application.back_image_url, 3600); // 1 hour expiry
+        if (supabaseAdmin) {
+          const { data: signedData } = await supabaseAdmin.storage
+            .from("provider-id-docs")
+            .createSignedUrl(application.back_image_url, 3600); // 1 hour expiry
 
-        backImageSignedUrl = signedData?.signedUrl || application.back_image_url;
+          backImageSignedUrl = signedData?.signedUrl || application.back_image_url;
+        } else {
+          backImageSignedUrl = application.back_image_url;
+        }
       } catch (err) {
         console.error("[PROVIDER APP] Error generating signed URL for back image:", err);
         backImageSignedUrl = application.back_image_url;
@@ -547,6 +571,12 @@ router.patch("/:id", async (req, res) => {
     // Update provider status if approved (with error handling)
     if (dbStatus === "approved" && application.provider_id) {
       try {
+        if (!supabaseAdmin) {
+          return res.status(503).json({
+            ok: false,
+            error: "Supabase admin is not configured; cannot verify provider.",
+          });
+        }
         const { error: providerError } = await supabaseAdmin
           .from("providers")
           .update({

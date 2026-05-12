@@ -140,6 +140,16 @@ export async function checkSupabaseHealth(context = "runtime"): Promise<CheckRes
     return result;
   }
 
+  if (!supabaseAdmin) {
+    const result: CheckResult = {
+      ok: false,
+      mode: "degraded",
+      reason: "Supabase admin client not initialized",
+    };
+    updateStateFromResult(result);
+    return result;
+  }
+
   const started = Date.now();
   try {
     const [authRes, storageRes] = await Promise.all([

@@ -11,6 +11,18 @@ const router = Router();
 
 const ALLOWED_BUCKETS = ['avatars', 'posts', 'listings', 'provider-id-docs'];
 
+function requireMediaSupabase(res: import("express").Response): boolean {
+  if (!supabase) {
+    res.status(503).json({
+      error: "Media storage is not configured",
+      code: "SUPABASE_UNCONFIGURED",
+      message: "Set VITE_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY on the server.",
+    });
+    return false;
+  }
+  return true;
+}
+
 router.post("/sign", async (req, res) => {
   if (!req.isAuthenticated()) {
     return res.status(401).json({ error: "Authentication required", code: "AUTH_REQUIRED" });
@@ -24,6 +36,7 @@ router.post("/sign", async (req, res) => {
         message: "Storage/auth service is degraded. Please retry shortly.",
       });
     }
+    if (!requireMediaSupabase(res)) return;
     const { bucket, fileName, mimeType, kind, sizeBytes, parentId } = req.body;
     const userId = req.user!.id;
 
@@ -91,6 +104,7 @@ router.post("/commit", async (req, res) => {
         message: "Storage service is degraded. Please retry shortly.",
       });
     }
+    if (!requireMediaSupabase(res)) return;
     const { bucket, path, mimeType, sizeBytes, width, height, durationSeconds, kind, parentId } = req.body;
     const userId = req.user!.id;
 
@@ -239,6 +253,7 @@ router.delete("/:assetId", async (req, res) => {
         message: "Storage service is degraded. Please retry shortly.",
       });
     }
+    if (!requireMediaSupabase(res)) return;
     const { assetId } = req.params;
     const userId = req.user!.id;
 
@@ -294,6 +309,8 @@ router.post("/cleanup-parent", async (req, res) => {
       return res.status(400).json({ error: "parentType and parentId required" });
     }
 
+    if (!requireMediaSupabase(res)) return;
+
     const assets = await db.select().from(mediaAssets).where(
       and(
         eq(mediaAssets.parent_type, parentType),
@@ -348,6 +365,9 @@ router.post("/sweep-orphans", async (req, res) => {
     return res.status(403).json({ error: 'Dev endpoint disabled in production' });
   }
   try {
+    if (!supabase) {
+      return res.status(503).json({ error: "Media storage is not configured", code: "SUPABASE_UNCONFIGURED" });
+    }
     const orphanPosts = await db.select().from(mediaAssets).where(
       and(
         eq(mediaAssets.parent_type, 'post'),

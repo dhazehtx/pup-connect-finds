@@ -11,6 +11,10 @@ import { storage } from "../storage";
  */
 export async function ensureVerifiedBadge(userId: string): Promise<void> {
   try {
+    if (!supabase) {
+      return;
+    }
+
     // Fetch provider record with verification flags
     const { data: provider, error: providerError } = await supabase
       .from("providers")

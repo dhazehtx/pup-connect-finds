@@ -35,8 +35,10 @@ async function getUserIdFromToken(req: Request): Promise<string | null> {
     const auth = req.headers.authorization || '';
     const token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
     if (!token) return null;
+    const admin = supabaseAdmin;
+    if (!admin) return null;
     const { data, error } = await runSupabaseWithRetry(
-      () => supabaseAdmin.auth.getUser(token),
+      () => admin.auth.getUser(token),
       { opName: 'upload-id.auth.getUser' },
     );
     if (error) return null;
@@ -57,6 +59,13 @@ router.post('/front', upload.single('file'), async (req: Request, res: Response)
         error: 'Upload service temporarily degraded',
         code: 'SUPABASE_DEGRADED',
         message: 'Please retry in a minute.',
+      });
+    }
+    if (!supabaseAdmin) {
+      return res.status(503).json({
+        error: 'Upload service not configured',
+        code: 'SUPABASE_UNCONFIGURED',
+        message: 'Set VITE_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY on the server.',
       });
     }
     const userId = await getUserIdFromToken(req);
@@ -119,6 +128,13 @@ router.post('/back', upload.single('file'), async (req: Request, res: Response) 
         error: 'Upload service temporarily degraded',
         code: 'SUPABASE_DEGRADED',
         message: 'Please retry in a minute.',
+      });
+    }
+    if (!supabaseAdmin) {
+      return res.status(503).json({
+        error: 'Upload service not configured',
+        code: 'SUPABASE_UNCONFIGURED',
+        message: 'Set VITE_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY on the server.',
       });
     }
     const userId = await getUserIdFromToken(req);

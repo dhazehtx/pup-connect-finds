@@ -5,6 +5,10 @@ const router = Router()
 
 router.post('/consent', async (req, res) => {
   try {
+    if (!supabaseAdmin) {
+      return res.status(503).json({ error: 'Supabase is not configured' })
+    }
+
     // 1) Require bearer token and get user_id
     const auth = req.headers.authorization || ''
     const jwt = auth.replace(/^Bearer\s+/i, '')

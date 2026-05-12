@@ -46,6 +46,9 @@ router.get('/status', async (req, res) => {
 
     // Get provider status from database
     const { supabase } = await import('../../lib/supabase.js');
+    if (!supabase) {
+      return res.json({ status: 'pending' });
+    }
     const { data: provider, error } = await supabase
       .from('providers')
       .select('status')

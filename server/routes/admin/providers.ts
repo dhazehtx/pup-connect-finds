@@ -9,6 +9,9 @@ const r = Router();
 r.use(requireAdmin);
 
 r.post('/:id/approve', async (req: any, res) => {
+  if (!supabaseAdmin) {
+    return res.status(503).json({ error: 'Supabase is not configured' });
+  }
   const providerId = req.params.id;
   const reviewerId = req.user.id;
   const { badge = 'verified', review_notes } = req.body;
@@ -49,6 +52,9 @@ r.post('/:id/approve', async (req: any, res) => {
 });
 
 r.post('/:id/reject', async (req: any, res) => {
+  if (!supabaseAdmin) {
+    return res.status(503).json({ error: 'Supabase is not configured' });
+  }
   const providerId = req.params.id;
   const reviewerId = req.user.id;
   const { review_notes } = req.body;

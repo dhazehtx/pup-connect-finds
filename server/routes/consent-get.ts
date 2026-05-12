@@ -4,6 +4,10 @@ import { supabaseAdmin } from '../lib/supabaseAdmin'
 const r = Router()
 
 r.get('/consent/status', async (req, res) => {
+  if (!supabaseAdmin) {
+    return res.status(503).json({ error: 'Supabase is not configured' })
+  }
+
   const jwt = (req.headers.authorization || '').replace(/^Bearer\s+/i, '')
   if (!jwt) return res.status(401).json({ error: 'Bearer token required' })
 

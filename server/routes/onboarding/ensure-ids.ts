@@ -45,6 +45,13 @@ export async function ensureOnboardingIds(req: Request, res: Response) {
 
     console.log('[ENSURE IDS] User ID:', userId);
     
+    if (!supabase) {
+      return res.status(503).json({
+        success: false,
+        message: 'Supabase is not configured',
+      });
+    }
+
     // 1. Ensure provider exists
     let providerId: string;
     

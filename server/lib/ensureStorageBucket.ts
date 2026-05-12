@@ -9,9 +9,16 @@ const BUCKET_NAME = 'provider-id-docs';
  */
 export async function ensureProviderIdBucket(): Promise<string> {
   try {
+    if (!supabaseAdmin) {
+      console.warn(
+        "[Storage] Supabase admin not configured; skip provider-id bucket ensure.",
+      );
+      return BUCKET_NAME;
+    }
+
     // Check if bucket exists
     const { data: buckets, error: listError } = await runSupabaseWithRetry(
-      () => supabaseAdmin.storage.listBuckets(),
+      () => supabaseAdmin!.storage.listBuckets(),
       { opName: 'storage.listBuckets' },
     );
     
@@ -33,7 +40,7 @@ export async function ensureProviderIdBucket(): Promise<string> {
       
       // Create the bucket with public access
       const { data, error: createError } = await runSupabaseWithRetry(
-        () => supabaseAdmin.storage.createBucket(BUCKET_NAME, bucketConfig),
+        () => supabaseAdmin!.storage.createBucket(BUCKET_NAME, bucketConfig),
         { opName: 'storage.createBucket' },
       );
 
@@ -49,7 +56,7 @@ export async function ensureProviderIdBucket(): Promise<string> {
       // Update existing bucket to ensure MIME types include HEIC/HEIF
       console.log(`[Storage] Updating bucket MIME types to include HEIC/HEIF...`);
       const { error: updateError } = await runSupabaseWithRetry(
-        () => supabaseAdmin.storage.updateBucket(BUCKET_NAME, bucketConfig),
+        () => supabaseAdmin!.storage.updateBucket(BUCKET_NAME, bucketConfig),
         { opName: 'storage.updateBucket' },
       );
       

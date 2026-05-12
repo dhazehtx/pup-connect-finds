@@ -7,6 +7,9 @@ const r = Router();
 r.use(requireAdmin);
 
 r.get('/providers', async (_req, res) => {
+  if (!supabaseAdmin) {
+    return res.status(503).json({ error: 'Supabase is not configured' });
+  }
   const { data, error } = await supabaseAdmin
     .from('admin_provider_queue')
     .select('*')

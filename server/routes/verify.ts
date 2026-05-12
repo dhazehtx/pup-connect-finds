@@ -10,7 +10,9 @@ async function getUserIdFromToken(req: Request): Promise<string | null> {
     const auth = req.headers.authorization || '';
     const token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
     if (!token) return null;
-    const { data, error } = await supabaseAdmin.auth.getUser(token);
+    const admin = supabaseAdmin;
+    if (!admin) return null;
+    const { data, error } = await admin.auth.getUser(token);
     if (error) return null;
     return data.user?.id ?? null;
   } catch {

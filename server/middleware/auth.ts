@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { createClient } from '@supabase/supabase-js';
-import { supabaseAdmin } from '../lib/supabaseAdmin.js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { AuthUser } from '../types/authUser';
 import { runSupabaseWithRetry } from '../lib/supabaseResilience';
 
@@ -11,7 +10,12 @@ if (!supabaseUrl || !supabaseKey) {
   console.error('[AUTH] Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables');
 }
 
-const supabase = createClient(supabaseUrl || '', supabaseKey || '');
+const supabase: SupabaseClient | null =
+  supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey, {
+        auth: { autoRefreshToken: false, persistSession: false },
+      })
+    : null;
 
 /**
  * Authentication middleware for API routes
@@ -63,7 +67,12 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       req.isAuthenticated = () => false;
       return next();
     }
-    
+
+    if (!supabase) {
+      req.isAuthenticated = () => false;
+      return next();
+    }
+
     // Verify the JWT token with Supabase
     const { data: { user }, error } = await runSupabaseWithRetry(
       () => supabase.auth.getUser(token),

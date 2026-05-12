@@ -14,6 +14,13 @@ export async function ensureApplication(req: Request, res: Response) {
       });
     }
 
+    if (!supabase) {
+      return res.status(503).json({
+        success: false,
+        message: 'Supabase is not configured',
+      });
+    }
+
     // Try to find existing draft/in-progress application
     const { data: existing, error: existingError } = await supabase
       .from('provider_applications')

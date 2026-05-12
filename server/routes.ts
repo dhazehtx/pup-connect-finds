@@ -134,7 +134,7 @@ async function cleanupParentMedia(parentType: string, parentId: string) {
         assets.some(a => a.path === p && a.bucket === bucket) ||
         thumbs.some(t => t.path === p)
       );
-      if (bucketPaths.length > 0) {
+      if (bucketPaths.length > 0 && supabase) {
         await supabase.storage.from(bucket).remove(bucketPaths);
       }
     }
@@ -2625,6 +2625,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { supabaseAdmin } = await import('./lib/supabaseAdmin');
       const { ensureProfile } = await import('./lib/ensureProfile');
+
+      if (!supabaseAdmin) {
+        return res.status(503).json({ error: 'Supabase admin not configured' });
+      }
 
       let page = 1;
       let totalInserted = 0;

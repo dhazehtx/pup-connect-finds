@@ -15,6 +15,10 @@ r.post("/signed-url", async (req, res) => {
   const { fileName, mime } = req.body || {};
   if (!fileName || !mime) return res.status(400).json({ error: "Missing fileName/mime" });
 
+  if (!supabase) {
+    return res.status(503).json({ error: "Storage is not configured" });
+  }
+
   const key = `${userId}/${Date.now()}-${fileName}`;
   const { data, error } = await supabase.storage.from("provider-docs").createSignedUploadUrl(key);
   if (error) return res.status(500).json({ error: error.message });

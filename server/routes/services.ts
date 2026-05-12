@@ -322,6 +322,14 @@ router.get("/provider/:providerId/available-slots", async (req, res) => {
       return res.status(404).json({ success: false, code: "provider_not_found", error: "Service provider not found" });
     }
 
+    if (!supabaseAdmin) {
+      return res.status(503).json({
+        success: false,
+        code: "supabase_unconfigured",
+        error: "Calendar service is not configured",
+      });
+    }
+
     const dayStart = `${date}T00:00:00.000Z`;
     const dayEnd = `${date}T23:59:59.999Z`;
     console.log(
@@ -444,6 +452,14 @@ router.patch("/admin/service-applications/:id", authMiddleware, async (req, res)
 // POST /api/services/book/:providerId - Book a service (unified contract)
 router.post("/book/:providerId", authMiddleware, async (req, res) => {
   try {
+    if (!supabaseAdmin) {
+      return res.status(503).json({
+        success: false,
+        code: "supabase_unconfigured",
+        error: "Calendar service is not configured",
+      });
+    }
+
     const validatedData = createServiceBookingRequestSchema.parse(req.body);
     const providerId = req.params.providerId;
 
@@ -780,19 +796,23 @@ router.patch("/bookings/:id/status", authMiddleware, async (req, res) => {
           ? "cancelled"
           : "confirmed";
 
-    const { error: syncEventError } = await supabaseAdmin
-      .from("scheduled_events")
-      .update({ status: mappedEventStatus })
-      .eq("user_id", booking.provider?.user_id || "")
-      .ilike("description", `%\"bookingId\":\"${bookingId}\"%`);
+    if (supabaseAdmin) {
+      const { error: syncEventError } = await supabaseAdmin
+        .from("scheduled_events")
+        .update({ status: mappedEventStatus })
+        .eq("user_id", booking.provider?.user_id || "")
+        .ilike("description", `%\"bookingId\":\"${bookingId}\"%`);
 
-    if (syncEventError) {
-      console.error("[BOOKING:SYNC_EVENT_STATUS] failed", syncEventError);
+      if (syncEventError) {
+        console.error("[BOOKING:SYNC_EVENT_STATUS] failed", syncEventError);
+      } else {
+        console.log(
+          "[BOOKING:SYNC_EVENT_STATUS]",
+          JSON.stringify({ bookingId, bookingStatus: validatedData.status, eventStatus: mappedEventStatus }),
+        );
+      }
     } else {
-      console.log(
-        "[BOOKING:SYNC_EVENT_STATUS]",
-        JSON.stringify({ bookingId, bookingStatus: validatedData.status, eventStatus: mappedEventStatus }),
-      );
+      console.warn("[BOOKING:SYNC_EVENT_STATUS] skipped — Supabase admin not configured");
     }
 
     res.json({

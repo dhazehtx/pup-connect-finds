@@ -22,6 +22,13 @@ export async function requireVerifiedProvider(
 
     const userId = req.user.id;
 
+    if (!supabase) {
+      return res.status(503).json({
+        error: 'Service temporarily unavailable',
+        message: 'Provider verification requires Supabase configuration',
+      });
+    }
+
     // Check if user has a verified provider account
     const { data: provider, error } = await supabase
       .from('providers')
