@@ -19,6 +19,8 @@ export default defineConfig({
       : []),
   ],
   resolve: {
+    /** Single React resolution — avoids duplicate React in split chunks. */
+    dedupe: ["react", "react-dom"],
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
       "@shared": path.resolve(import.meta.dirname, "shared"),
@@ -48,11 +50,23 @@ export default defineConfig({
         manualChunks(id) {
           if (!id.includes("node_modules")) return;
 
+          // Keep React + DOM + scheduler + common React-only helpers in ONE chunk.
+          // Splitting "misc" packages that import React (e.g. react-remove-scroll,
+          // react-image-crop) into a separate chunk created a circular chunk graph:
+          // vendor-react imported interop/helpers from vendor-misc while vendor-misc
+          // imported React from vendor-react → undefined `useLayoutEffect` at runtime.
           if (
             id.includes("/react/") ||
             id.includes("/react-dom/") ||
             id.includes("/react-router") ||
-            id.includes("/scheduler/")
+            id.includes("/scheduler/") ||
+            id.includes("/use-sync-external-store/") ||
+            id.includes("/react-remove-scroll/") ||
+            id.includes("/react-remove-scroll-bar/") ||
+            id.includes("/react-style-singleton/") ||
+            id.includes("/use-callback-ref/") ||
+            id.includes("/use-sidecar/") ||
+            id.includes("/react-image-crop/")
           ) {
             return "vendor-react";
           }
@@ -63,7 +77,15 @@ export default defineConfig({
           if (id.includes("/framer-motion/")) return "vendor-motion";
           if (id.includes("/lucide-react/")) return "vendor-icons";
           if (id.includes("/recharts/")) return "vendor-charts";
-          if (id.includes("/socket.io-client/")) return "vendor-realtime";
+          if (
+            id.includes("/socket.io-client/") ||
+            id.includes("/socket.io-parser/") ||
+            id.includes("/engine.io-client/") ||
+            id.includes("/engine.io-parser/") ||
+            id.includes("/engine.io/")
+          ) {
+            return "vendor-realtime";
+          }
           if (id.includes("/@stripe/") || id.includes("/stripe/")) return "vendor-stripe";
           if (id.includes("/date-fns/")) return "vendor-date-fns";
           if (id.includes("/zod/")) return "vendor-zod";
@@ -85,7 +107,10 @@ export default defineConfig({
           if (id.includes("/react-resizable-panels/")) return "vendor-panels";
           if (id.includes("/next-themes/")) return "vendor-themes";
 
-          return "vendor-misc";
+          // Avoid a giant catch-all "vendor-misc" chunk: it shared Rollup interop/helpers
+          // with vendor-react and created a circular chunk graph (React undefined at runtime:
+          // "Cannot read properties of undefined (reading 'useLayoutEffect')").
+          return undefined;
         },
       },
     },
