@@ -751,24 +751,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const conversationId = conversation.id;
       debugApiLog('[PROOF:MSG:OK]', JSON.stringify({ actorUserId, targetUserId, conversationId, created: conversation.created, ts: Date.now() }));
       res.json({ ok: true, conversationId, id: conversationId, created: conversation.created });
-    } catch (error: any) {
-      const errCode = error?.code === '23503' ? 'MSG_TARGET_NOT_FOUND'
-        : error?.code === '23505' ? 'MSG_DUPLICATE'
+    } catch (error: unknown) {
+      const pg = postgresErrorMeta(error);
+      const pgCode = pg.code || (error as { code?: string })?.code;
+      const errMessage = error instanceof Error ? error.message : String(error);
+      const errCode = pgCode === '23503' ? 'MSG_TARGET_NOT_FOUND'
+        : pgCode === '23505' ? 'MSG_DUPLICATE'
+        : pgCode === '42P01' ? 'MSG_SCHEMA_MISSING'
         : 'MSG_FAILED';
+      console.error('[MSG:find-or-create]', errMessage, pg.table ? pg : '');
       debugApiLog('[PROOF:MSG:ERR]', JSON.stringify({
         actorUserId: actorRaw,
         targetUserId: targetUserId_raw,
         code: errCode,
-        error: error?.message,
-        stack: error?.stack,
+        pgCode: pg.code,
+        pgTable: pg.table,
+        error: errMessage,
         ts: Date.now(),
       }));
-      if (error?.code === '23503') {
+      if (pgCode === '23503') {
         res.status(404).json({ ok: false, error: 'target profile not found in Neon', code: 'MSG_TARGET_NOT_FOUND' });
-      } else if (error?.code === '23505') {
+      } else if (pgCode === '23505') {
         res.status(409).json({ ok: false, error: 'duplicate conversation participant', code: 'MSG_DUPLICATE' });
       } else {
-        res.status(422).json({ ok: false, error: error?.message || 'conversation creation failed', code: 'MSG_FAILED' });
+        res.status(422).json({ ok: false, error: errMessage || 'conversation creation failed', code: errCode });
       }
     }
   });

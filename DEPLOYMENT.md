@@ -84,6 +84,10 @@ npx cap sync
 
 Production apps must call your **deployed** API, not `localhost`.
 
+## Schema migrations (media + messaging)
+
+After pulling changes that add `supabase/migrations/20260519000000_media_assets.sql` and `20260519000001_conversation_participants.sql`, run both files in order in the **Supabase SQL Editor** on the same project as `DATABASE_URL`. Without these tables, profile photo upload (`Failed to commit media`) and the Message button (`MSG_FAILED`) will fail.
+
 ## Supplier / wholesale “company website”
 
 Use any **public HTTPS** URL that opens in a browser (your `BASE_URL` or a landing page). Do not use `localhost`.

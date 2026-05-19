@@ -6,6 +6,7 @@ import { eq, and, isNull, notInArray, sql } from "drizzle-orm";
 import { supabase } from "../lib/supabase";
 import { validateMediaUpload, ALL_ALLOWED_TYPES } from "../lib/mediaHelpers";
 import { isSupabaseDegraded, runSupabaseWithRetry } from "../lib/supabaseResilience";
+import { postgresErrorMeta } from "../lib/pgErrorMeta";
 
 const router = Router();
 
@@ -234,9 +235,22 @@ router.post("/commit", async (req, res) => {
       path,
       bucket
     });
-  } catch (error: any) {
-    debugApiLog('[PROOF:MEDIA:COMMIT:ERR]', JSON.stringify({ error: error?.message, ts: Date.now() }));
-    res.status(500).json({ error: "Failed to commit media" });
+  } catch (error: unknown) {
+    const pg = postgresErrorMeta(error);
+    const message = error instanceof Error ? error.message : String(error);
+    console.error('[MEDIA:COMMIT:ERR]', message, pg.code ? pg : '');
+    debugApiLog('[PROOF:MEDIA:COMMIT:ERR]', JSON.stringify({ error: message, pg, ts: Date.now() }));
+    const exposeDetail =
+      process.env.NODE_ENV !== 'production' || process.env.DEBUG_API_ERRORS === '1';
+    res.status(500).json({
+      error: 'Failed to commit media',
+      code: pg.code || 'MEDIA_COMMIT_FAILED',
+      ...(exposeDetail && {
+        detail: message.slice(0, 200),
+        table: pg.table,
+        hint: pg.hint,
+      }),
+    });
   }
 });
 

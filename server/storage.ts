@@ -293,15 +293,30 @@ export class DatabaseStorage implements IStorage {
   }
 
   async searchProfiles(query: string, options?: { userType?: string; verifiedOnly?: boolean; limit?: number }): Promise<Profile[]> {
-    const like = `%${query}%`;
-    const conditions = [
-      or(
-        ilike(profiles.username, like),
-        ilike(profiles.full_name, like),
-        ilike(profiles.email, like),
-        ilike(profiles.location, like)
-      )
-    ];
+    const trimmed = query.trim();
+    const tokens = trimmed.split(/\s+/).filter((t) => t.length >= 1);
+    const wholeLike = `%${trimmed.replace(/[%_\\]/g, '')}%`;
+
+    const nameMatch =
+      tokens.length <= 1
+        ? or(
+            ilike(profiles.username, wholeLike),
+            ilike(profiles.full_name, wholeLike),
+            ilike(profiles.email, wholeLike),
+            ilike(profiles.location, wholeLike),
+          )
+        : or(
+            ...tokens.flatMap((token) => {
+              const tokenLike = `%${token.replace(/[%_\\]/g, '')}%`;
+              return [
+                ilike(profiles.username, tokenLike),
+                ilike(profiles.full_name, tokenLike),
+                ilike(profiles.email, tokenLike),
+              ];
+            }),
+          );
+
+    const conditions = [nameMatch];
     if (options?.userType && options.userType !== 'all') {
       conditions.push(eq(profiles.user_type, options.userType));
     }

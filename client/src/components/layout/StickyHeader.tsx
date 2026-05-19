@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import { Plus, Search, ShieldCheck } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Plus, ShieldCheck } from 'lucide-react';
+import SearchBar from '@/components/SearchBar';
 import { PawsWordmarkLockup } from '@/components/brand/PawsWordmark';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,22 +17,10 @@ const StickyHeader = () => {
   
   const navigate = useNavigate();
   const location = useLocation();
-  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [showPostCreator, setShowPostCreator] = useState(false);
-  const [headerQuery, setHeaderQuery] = useState('');
-
   const showHeaderSearch =
     !location.pathname.startsWith('/greeting') && !location.pathname.startsWith('/auth');
-
-  useEffect(() => {
-    if (location.pathname.startsWith('/explore')) {
-      const s = searchParams.get('search') || searchParams.get('q') || '';
-      setHeaderQuery(s);
-    } else {
-      setHeaderQuery('');
-    }
-  }, [location.pathname, searchParams]);
 
   const handleCreatePost = () => {
     if (!user && !isGuest) {
@@ -90,16 +79,6 @@ const StickyHeader = () => {
   /** Glass bar: one surface behind logo + tools — logo link stays transparent (no “boxed” chip). */
   const headerSurface =
     'border-b border-white/25 bg-white/70 shadow-none backdrop-blur-md dark:border-slate-700/40 dark:bg-slate-950/65';
-
-  const submitHeaderSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const q = headerQuery.trim();
-    if (!q) {
-      navigate('/explore');
-      return;
-    }
-    navigate(`/explore?search=${encodeURIComponent(q)}`);
-  };
 
   const HeaderToolbar = ({ className }: { className?: string }) => (
     <div className={className}>
@@ -170,24 +149,9 @@ const StickyHeader = () => {
             )}
 
             {showHeaderSearch ? (
-              <form
-                onSubmit={submitHeaderSearch}
-                className="relative mx-auto min-w-0 w-full max-w-md flex-1 px-1 sm:px-2"
-                role="search"
-              >
-                <Search
-                  className="pointer-events-none absolute left-4 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-slate-400 sm:left-5"
-                  aria-hidden
-                />
-                <input
-                  type="search"
-                  value={headerQuery}
-                  onChange={(e) => setHeaderQuery(e.target.value)}
-                  placeholder={PLACEHOLDER}
-                  className="h-9 w-full rounded-full border border-slate-200/90 bg-slate-100/90 py-2 pl-9 pr-3 text-sm text-slate-800 shadow-inner placeholder:text-slate-400 focus:border-blue-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/25 sm:h-10 sm:pl-10 sm:pr-4"
-                  aria-label={PLACEHOLDER}
-                />
-              </form>
+              <div className="relative z-40 mx-auto min-w-0 w-full max-w-md flex-1 px-1 sm:px-2">
+                <SearchBar placeholder={PLACEHOLDER} className="[&_input]:h-9 [&_input]:rounded-full [&_input]:border-slate-200/90 [&_input]:bg-slate-100/90 sm:[&_input]:h-10" />
+              </div>
             ) : (
               <div className="min-w-0 flex-1" aria-hidden />
             )}
