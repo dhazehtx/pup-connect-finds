@@ -262,12 +262,23 @@ export class DatabaseStorage implements IStorage {
 
   // Profile methods
   async getProfile(id: string): Promise<Profile | undefined> {
-    const result = await db.select().from(profiles).where(eq(profiles.id, id)).limit(1);
-    return result[0];
+    try {
+      const result = await db.select().from(profiles).where(eq(profiles.id, id)).limit(1);
+      return result[0];
+    } catch (err) {
+      const { logStabilizeError } = await import('./lib/stabilizeDebug');
+      logStabilizeError('storage.getProfile', err, { profileId: id });
+      throw err;
+    }
   }
 
   async getProfileByUsername(username: string): Promise<Profile | undefined> {
-    const result = await db.select().from(profiles).where(eq(profiles.username, username)).limit(1);
+    const normalized = username.trim().toLowerCase();
+    const result = await db
+      .select()
+      .from(profiles)
+      .where(sql`lower(${profiles.username}) = ${normalized}`)
+      .limit(1);
     return result[0];
   }
 
@@ -869,7 +880,9 @@ export class DatabaseStorage implements IStorage {
       .from(follows)
       .where(eq(follows.follower_id, userId));
 
-    const feedUserIds = followedRows.map(r => r.followed_id).filter(id => id !== userId);
+    const feedUserIds = followedRows
+      .map((r) => r.followed_id)
+      .filter((id): id is string => typeof id === 'string' && id.length > 0 && id !== userId);
 
     if (feedUserIds.length === 0) {
       return [];
@@ -1019,6 +1032,7 @@ export class DatabaseStorage implements IStorage {
       id: comments.id,
       post_id: comments.post_id,
       user_id: comments.user_id,
+      parent_comment_id: comments.parent_comment_id,
       content: comments.content,
       likes_count: comments.likes_count,
       created_at: comments.created_at,
@@ -1042,6 +1056,31 @@ export class DatabaseStorage implements IStorage {
       await db.update(posts).set({ comments_count: sql`${posts.comments_count} + 1` as any }).where(eq(posts.id, comment.post_id));
     }
     return result[0];
+  }
+
+  async getCommentWithProfile(commentId: string): Promise<any | undefined> {
+    const rows = await db
+      .select({
+        id: comments.id,
+        post_id: comments.post_id,
+        user_id: comments.user_id,
+        parent_comment_id: comments.parent_comment_id,
+        content: comments.content,
+        likes_count: comments.likes_count,
+        created_at: comments.created_at,
+        updated_at: comments.updated_at,
+        profiles: {
+          id: profiles.id,
+          username: profiles.username,
+          full_name: profiles.full_name,
+          avatar_url: profiles.avatar_url,
+        },
+      })
+      .from(comments)
+      .leftJoin(profiles, eq(comments.user_id, profiles.id))
+      .where(eq(comments.id, commentId))
+      .limit(1);
+    return rows[0];
   }
 
   async updateComment(id: string, content: string): Promise<Comment | undefined> {

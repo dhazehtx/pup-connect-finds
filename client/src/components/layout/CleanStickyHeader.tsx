@@ -76,7 +76,7 @@ const CleanStickyHeader = () => {
             {/* Logo */}
             <Link to={getHomeLink()} className="flex items-center space-x-2 flex-shrink-0">
               <Heart className="h-8 w-8 text-blue-600" />
-              <span className="text-xl font-bold text-gray-900">MY PUP</span>
+              <span className="text-xl font-bold text-gray-900">PAWS</span>
             </Link>
 
             {/* Center: Search bar + Create Post button + Notification Bell */}

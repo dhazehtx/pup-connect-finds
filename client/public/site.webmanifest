@@ -1,8 +1,7 @@
-
 {
-  "name": "My Pup - Puppy Marketplace",
-  "short_name": "My Pup",
-  "description": "Find your perfect puppy companion from verified breeders",
+  "name": "Pet Adoption Web Services | petadoptionwebservices.com",
+  "short_name": "PAWS",
+  "description": "petadoptionwebservices.com — Connect with verified breeders, shelters, and trusted pet service providers on PAWS. Discover puppies, pet products, and services in one secure platform.",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",

@@ -58,7 +58,7 @@ const Header = () => {
             className="flex items-center space-x-2 cursor-pointer"
           >
             <Heart className="h-8 w-8 text-blue-600" />
-            <span className="text-xl font-bold text-gray-900 dark:text-white">MY PUP</span>
+            <span className="text-xl font-bold text-gray-900 dark:text-white">PAWS</span>
           </button>
 
           {/* Simple Sign In/Sign Up buttons on the right */}

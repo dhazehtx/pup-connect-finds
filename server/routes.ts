@@ -37,6 +37,8 @@ import paymentsRouter from './routes/payments';
 import bookingsRouter from './routes/bookings';
 import payoutsRouter from './routes/payouts';
 import { registerHealthRoutes } from './routes/health';
+import debugRouter from './routes/debug';
+import { sendRouteError, buildRouteCtx } from './lib/routeErrorDetail';
 import consentRouter from './routes/consent';
 import consentGetRouter from './routes/consent-get';
 import uploadIdRouter from './routes/upload-id';
@@ -76,7 +78,7 @@ import { apiLoggingMiddleware, performanceLogger } from './middleware/loggingMid
 import { sessionTimeout, lightSessionCheck } from './middleware/sessionTimeout';
 
 // Authentication middleware
-import { authMiddleware } from './middleware/auth';
+import { authMiddleware, requireAuth } from './middleware/auth';
 import { requireAdmin, requireNotSuspended } from './middleware/requireAdmin';
 
 // Admin logging utilities
@@ -84,6 +86,8 @@ import { logPostAction, logCommentAction, logSubscriptionAction } from './utils/
 
 // GDPR routes
 import { registerGDPRRoutes } from './routes/gdpr';
+import searchRouter from './routes/search';
+import userRouter from './routes/user';
 
 // Security and performance middleware
 import { compressionMiddleware } from './middleware/compression';
@@ -113,6 +117,7 @@ import { supabase } from "./lib/supabase";
 import { isBlocked, blockedResponse, getBlockedUserIds } from "./lib/isBlocked";
 import { perUserRateLimit } from "./middleware/perUserRateLimit";
 import { getThumbUrlsForParents, attachThumbUrls } from "./lib/mediaHelpers";
+import { postgresErrorMeta } from "./lib/pgErrorMeta";
 
 async function cleanupParentMedia(parentType: string, parentId: string) {
   try {
@@ -199,6 +204,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin queue routes (protected by requireAdmin middleware)
   const { default: adminQueueRouter } = await import('./routes/admin/queue.js');
   app.use('/api/admin/queue', adminQueueRouter);
+
+  const { default: adminProfileSyncRouter } = await import('./routes/admin/profile-sync.js');
+  app.use('/api/admin/profile-sync', adminProfileSyncRouter);
   app.use('/api/webhook', webhookRouter);
   app.use('/api/qa', qaRouter);
   
@@ -337,6 +345,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Profile routes (Neon/Drizzle)
   app.use('/api/profiles', profilesRouter);
+  app.use('/api/search', searchRouter);
+  app.use('/api/user', userRouter);
 
   // Legacy profile routes (kept for backwards compatibility)
   app.get("/api/profile/:id", async (req, res) => {
@@ -379,6 +389,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Dog listing routes (with rate limiting for creation)
   const handleListingsQuery = async (req: any, res: any) => {
+    let step = 'getDogListings';
     try {
       const { breed, minPrice, maxPrice, location, status, userId, min_price, max_price, min_age, max_age, gender, verified_only, health_tested, vaccinated, breeds, search, sort, offset, limit, good_with_kids, neutered_spayed, color } = req.query;
       const filters = {
@@ -407,6 +418,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const actorId = req.user?.id;
       let filtered = listings;
+      step = 'getBlockedUserIds';
       if (actorId) {
         const blockedIds = await getBlockedUserIds(actorId);
         if (blockedIds.length > 0) {
@@ -421,6 +433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const listingIds = filtered.map((l: any) => l.id).filter(Boolean);
+      step = 'getThumbUrlsForParents';
       const thumbMap = await getThumbUrlsForParents('listing', listingIds);
       const augmented = attachThumbUrls(filtered as any[], thumbMap);
 
@@ -429,8 +442,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       debugApiLog('[PROOF:LISTINGS]', JSON.stringify({ count: augmented.length, filters: { breed: filters.breed, status: filters.status, location: filters.location, gender: filters.gender, sort: filters.sort } }));
       res.json(augmented);
     } catch (error) {
-      debugApiLog("[PROOF:LISTINGS:ERR]", { ts: new Date().toISOString(), error: String(error), stack: (error as any)?.stack });
-      res.status(500).json({ error: "LISTINGS_FAILED", code: "LISTINGS_FAILED" });
+      debugApiLog("[PROOF:LISTINGS:ERR]", { ts: new Date().toISOString(), error: String(error), stack: (error as any)?.stack, step });
+      sendRouteError(
+        req,
+        res,
+        500,
+        'LISTINGS_FAILED',
+        'LISTINGS_FAILED',
+        error,
+        buildRouteCtx(req, 'GET /api/listings', step, 'dog_listings', res),
+      );
     }
   };
 
@@ -786,14 +807,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: 'Unauthorized' });
       }
       const token = authHeader.substring(7);
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabaseUrl = process.env.VITE_SUPABASE_URL;
-      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-      if (!supabaseUrl || !supabaseServiceKey) {
+      if (!supabase) {
         return res.status(500).json({ error: 'Server misconfiguration' });
       }
-      const sb = createClient(supabaseUrl, supabaseServiceKey);
-      const { data: { user }, error: authError } = await sb.auth.getUser(token);
+      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
       if (authError || !user) {
         return res.status(401).json({ error: 'Invalid token' });
       }
@@ -834,14 +851,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: 'Unauthorized' });
       }
       const token = authHeader.substring(7);
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabaseUrl = process.env.VITE_SUPABASE_URL;
-      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-      if (!supabaseUrl || !supabaseServiceKey) {
+      if (!supabase) {
         return res.status(500).json({ error: 'Server misconfiguration' });
       }
-      const sb = createClient(supabaseUrl, supabaseServiceKey);
-      const { data: { user }, error: authError } = await sb.auth.getUser(token);
+      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
       if (authError || !user) {
         return res.status(401).json({ error: 'Invalid token' });
       }
@@ -878,14 +891,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: 'Unauthorized' });
       }
       const token = authHeader.substring(7);
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabaseUrl = process.env.VITE_SUPABASE_URL;
-      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-      if (!supabaseUrl || !supabaseServiceKey) {
+      if (!supabase) {
         return res.status(500).json({ error: 'Server misconfiguration' });
       }
-      const sb = createClient(supabaseUrl, supabaseServiceKey);
-      const { data: { user }, error: authError } = await sb.auth.getUser(token);
+      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
       if (authError || !user) {
         return res.status(401).json({ error: 'Invalid token' });
       }
@@ -904,14 +913,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: 'Unauthorized' });
       }
       const token = authHeader.substring(7);
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabaseUrl = process.env.VITE_SUPABASE_URL;
-      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-      if (!supabaseUrl || !supabaseServiceKey) {
+      if (!supabase) {
         return res.status(500).json({ error: 'Server misconfiguration' });
       }
-      const sb = createClient(supabaseUrl, supabaseServiceKey);
-      const { data: { user }, error: authError } = await sb.auth.getUser(token);
+      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
       if (authError || !user) {
         return res.status(401).json({ error: 'Invalid token' });
       }
@@ -930,14 +935,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: 'Unauthorized' });
       }
       const token = authHeader.substring(7);
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabaseUrl = process.env.VITE_SUPABASE_URL;
-      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-      if (!supabaseUrl || !supabaseServiceKey) {
+      if (!supabase) {
         return res.status(500).json({ error: 'Server misconfiguration' });
       }
-      const sb = createClient(supabaseUrl, supabaseServiceKey);
-      const { data: { user }, error: authError } = await sb.auth.getUser(token);
+      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
       if (authError || !user) {
         return res.status(401).json({ error: 'Invalid token' });
       }
@@ -1167,6 +1168,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Posts routes (community features) - Neon/Drizzle only
   app.get("/api/posts", async (req, res) => {
+    let step = 'getPostsWithProfiles';
     try {
       const { category, userId, limit, cursor } = req.query;
       const result = await storage.getPostsWithProfiles({
@@ -1177,6 +1179,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const actorId = req.user?.id;
       let filtered = result;
+      step = 'getBlockedUserIds';
       if (actorId) {
         const blockedIds = await getBlockedUserIds(actorId);
         if (blockedIds.length > 0) {
@@ -1190,6 +1193,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const postIds = filtered.map((p: any) => p.id).filter(Boolean);
+      step = 'getThumbUrlsForParents';
       const thumbMap = await getThumbUrlsForParents('post', postIds);
       const augmented = attachThumbUrls(filtered as any[], thumbMap);
 
@@ -1198,13 +1202,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       debugApiLog("[PROOF:POSTS:LIST]", { count: augmented.length, userId: userId || "all", ts: new Date().toISOString() });
       res.json(augmented);
     } catch (error) {
-      debugApiLog("[PROOF:POSTS:ERR]", { ts: new Date().toISOString(), error: String(error), stack: (error as any)?.stack });
-      res.status(500).json({ error: "POSTS_FAILED", code: "POSTS_FAILED" });
+      debugApiLog("[PROOF:POSTS:ERR]", { ts: new Date().toISOString(), error: String(error), stack: (error as any)?.stack, step });
+      sendRouteError(
+        req,
+        res,
+        500,
+        'POSTS_FAILED',
+        'POSTS_FAILED',
+        error,
+        buildRouteCtx(req, 'GET /api/posts', step, 'posts', res),
+      );
     }
   });
 
   // Get posts for authenticated user's home feed (followed users only, NOT own posts)
-  app.get('/api/posts/home-feed', authMiddleware, async (req, res) => {
+  app.get('/api/posts/home-feed', authMiddleware, requireAuth, async (req, res) => {
+    let step = 'getHomeFeedPosts';
     try {
       const userId = req.user?.id;
       if (!userId) {
@@ -1213,6 +1226,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const feedPosts = await storage.getHomeFeedPosts(userId);
       let filtered = feedPosts || [];
+      step = 'getBlockedUserIds';
       const blockedIds = await getBlockedUserIds(userId);
       if (blockedIds.length > 0) {
         const blockedSet = new Set(blockedIds);
@@ -1224,12 +1238,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       const feedIds = filtered.map((p: any) => p.id).filter(Boolean);
+      step = 'getThumbUrlsForParents';
       const feedThumbMap = await getThumbUrlsForParents('post', feedIds);
       const augmentedFeed = attachThumbUrls(filtered as any[], feedThumbMap);
       res.json(augmentedFeed);
     } catch (error) {
-      debugApiLog('[PROOF:POSTS:ERR]', { domain: 'home-feed', ts: new Date().toISOString(), error: String(error), stack: (error as any)?.stack });
-      res.status(500).json({ error: 'Failed to fetch home feed', code: 'HOME_FEED_FAILED' });
+      const { logStabilizeError } = await import('./lib/stabilizeDebug');
+      logStabilizeError('home-feed', error, { userId: req.user?.id, step });
+      debugApiLog('[PROOF:POSTS:ERR]', { domain: 'home-feed', ts: new Date().toISOString(), error: String(error), stack: (error as any)?.stack, step });
+      sendRouteError(
+        req,
+        res,
+        500,
+        'Failed to fetch home feed',
+        'HOME_FEED_FAILED',
+        error,
+        buildRouteCtx(req, 'GET /api/posts/home-feed', step, 'posts', res),
+      );
     }
   });
 
@@ -1297,6 +1322,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertCommentSchema.parse(req.body);
 
+      if (req.user?.id) {
+        validatedData.user_id = req.user.id;
+      }
+
       if (validatedData.post_id && validatedData.user_id) {
         const [postForBlock] = await db.select({ user_id: posts.user_id }).from(posts).where(eq(posts.id, validatedData.post_id));
         if (postForBlock?.user_id && await isBlocked(validatedData.user_id, postForBlock.user_id)) {
@@ -1327,8 +1356,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }).catch(() => {});
         }
       }
-      
-      res.json(comment);
+
+      const enriched = await storage.getCommentWithProfile(comment.id);
+      res.json(enriched ?? comment);
     } catch (error) {
       debugApiLog("[PROOF:COMMENTS:ERR]", { ts: new Date().toISOString(), error: String(error) });
       res.status(500).json({ error: "COMMENTS_FAILED" });
@@ -2255,7 +2285,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             price_data: {
               currency: "usd",
               product_data: {
-                name: "My Pup Service Example",
+                name: "PAWS Service Example",
               },
               unit_amount: 2000, // $20
             },
@@ -2584,6 +2614,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register health check routes
   registerHealthRoutes(app);
+  app.use('/api/debug', debugRouter);
 
   app.get('/api/dev/whoami', async (req, res) => {
     if (process.env.NODE_ENV === 'production') {
@@ -2596,9 +2627,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json({ supabaseUserId: null, neonProfileExists: false, neonProfileId: null, username: null });
       }
       const token = authHeader.substring(7);
-      const { createClient } = await import('@supabase/supabase-js');
-      const sb = createClient(process.env.VITE_SUPABASE_URL || '', process.env.SUPABASE_SERVICE_ROLE_KEY || '');
-      const { data: { user }, error: authError } = await sb.auth.getUser(token);
+      if (!supabase) {
+        return res.status(500).json({ error: 'Server misconfiguration' });
+      }
+      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
       if (authError || !user) {
         debugApiLog('[PROOF:WHOAMI]', JSON.stringify({ supabaseUserId: null, neonProfileExists: false, neonProfileId: null, username: null, authError: authError?.message }));
         return res.json({ supabaseUserId: null, neonProfileExists: false, neonProfileId: null, username: null, authError: authError?.message });
@@ -2745,7 +2777,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await db.execute(sql`SELECT 1`);
       neonConnected = true;
     } catch {}
-    const supabaseStorageConfigured = !!(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
+    const supabaseStorageConfigured = !!supabase;
     const result = { neonConnected, supabaseStorageConfigured, nodeEnv: process.env.NODE_ENV || 'development', ts: Date.now() };
     debugApiLog('[PROOF:HEALTH]', JSON.stringify(result));
     res.json(result);

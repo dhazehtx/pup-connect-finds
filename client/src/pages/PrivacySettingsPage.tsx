@@ -17,11 +17,16 @@ import {
   FileText
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { deleteAccountWithPassword } from '@/lib/deleteAccount';
+import { supabase } from '@/integrations/supabase/client';
 
 const PrivacySettingsPage: React.FC = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
   const { toast } = useToast();
 
   const handleDataExport = async () => {
@@ -63,35 +68,37 @@ const PrivacySettingsPage: React.FC = () => {
   };
 
   const handleDeleteAccount = async () => {
+    if (!deletePassword.trim()) {
+      toast({
+        title: 'Password required',
+        description: 'Enter your password to permanently delete your account.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsDeleting(true);
     try {
-      const response = await fetch('/api/delete-account', {
-        method: 'DELETE',
-        credentials: 'include'
-      });
-
-      if (response.ok) {
-        toast({
-          title: "Account Deleted",
-          description: "Your account and all associated data have been permanently deleted.",
-        });
-        // Redirect to homepage after a delay
-        setTimeout(() => {
-          window.location.href = '/';
-        }, 2000);
-      } else {
-        const error = await response.json();
-        throw new Error(error.message || 'Account deletion failed');
-      }
-    } catch (error: any) {
+      await deleteAccountWithPassword(deletePassword);
+      await supabase.auth.signOut();
       toast({
-        title: "Deletion Failed",
-        description: error.message || "Unable to delete your account. Please contact support.",
-        variant: "destructive",
+        title: 'Account Deleted',
+        description: 'Your account and all associated data have been permanently deleted.',
+      });
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 2000);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unable to delete your account.';
+      toast({
+        title: 'Deletion Failed',
+        description: message,
+        variant: 'destructive',
       });
     } finally {
       setIsDeleting(false);
       setShowDeleteConfirm(false);
+      setDeletePassword('');
     }
   };
 
@@ -301,6 +308,17 @@ const PrivacySettingsPage: React.FC = () => {
                       This will permanently delete your account and all associated data. 
                       This action cannot be undone.
                     </p>
+                    <div className="space-y-2">
+                      <Label htmlFor="privacy-delete-password">Password</Label>
+                      <Input
+                        id="privacy-delete-password"
+                        type="password"
+                        value={deletePassword}
+                        onChange={(e) => setDeletePassword(e.target.value)}
+                        placeholder="Your account password"
+                        autoComplete="current-password"
+                      />
+                    </div>
                     <div className="flex gap-3">
                       <Button 
                         variant="destructive" 

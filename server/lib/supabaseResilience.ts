@@ -1,4 +1,5 @@
 import { supabaseAdmin } from "./supabaseAdmin";
+import { getRawServerSupabaseUrl } from "./serverSupabaseEnv";
 
 type SupabaseMode = "healthy" | "degraded" | "unknown";
 
@@ -127,7 +128,7 @@ export async function runSupabaseWithRetry<T>(
 }
 
 export async function checkSupabaseHealth(context = "runtime"): Promise<CheckResult> {
-  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const supabaseUrl = getRawServerSupabaseUrl();
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !serviceKey) {

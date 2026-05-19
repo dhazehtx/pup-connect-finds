@@ -55,7 +55,7 @@ export const useAuthState = () => {
         });
       } else {
         toast({
-          title: "Welcome to MY PUP!",
+          title: "Welcome to PAWS!",
           description: "Your account has been created successfully.",
         });
       }

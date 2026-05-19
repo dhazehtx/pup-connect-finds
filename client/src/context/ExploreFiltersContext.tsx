@@ -1,6 +1,8 @@
 import { createContext, useContext, useState } from 'react';
 
 export type Filters = {
+  /** Free-text search from header / explore URL (?search=) */
+  searchText: string;
   breedId: number | null;
   color: string | null;
   gender: 'male' | 'female' | 'any';
@@ -26,6 +28,7 @@ export type Filters = {
 
 /** Default filter state — use for “Reset all filters” on Explore / listings. */
 export const EXPLORE_DEFAULT_FILTERS: Filters = {
+  searchText: '',
   breedId: null,
   color: null,
   gender: 'any',

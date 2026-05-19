@@ -11,14 +11,14 @@ import { eq } from 'drizzle-orm';
 export function registerLostPetShareHtml(app: Express): void {
   app.get('/share/lost-pet/:id', async (req: Request, res: Response) => {
     const id = req.params.id;
-    let title = 'Lost & Found — My Pup';
-    let description = 'View lost and found dog listings on My Pup.';
+    let title = 'Lost & Found — PAWS';
+    let description = 'View lost and found dog listings on PAWS.';
     let image = '';
     try {
       const [a] = await db.select().from(lostPetAlerts).where(eq(lostPetAlerts.id, id)).limit(1);
       if (a) {
         const kind = a.alert_type === 'lost' ? 'Lost' : 'Found';
-        title = `${kind} dog${a.pet_name ? `: ${a.pet_name}` : ''} — My Pup`;
+        title = `${kind} dog${a.pet_name ? `: ${a.pet_name}` : ''} — PAWS`;
         const parts = [a.breed, a.last_seen_address || a.city].filter(Boolean);
         description = parts.length ? parts.join(' · ') : description;
         image = (a.image_url || '').trim();
@@ -58,7 +58,7 @@ export function registerLostPetShareHtml(app: Express): void {
   <link rel="canonical" href="${esc(pageUrl)}" />
 </head>
 <body>
-  <p><a href="${esc(pageUrl)}">Continue to My Pup — Lost &amp; Found</a></p>
+  <p><a href="${esc(pageUrl)}">Continue to PAWS — Lost &amp; Found</a></p>
 </body>
 </html>`);
   });

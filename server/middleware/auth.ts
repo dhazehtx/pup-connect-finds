@@ -1,21 +1,21 @@
 import { Request, Response, NextFunction } from 'express';
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { AuthUser } from '../types/authUser';
 import { runSupabaseWithRetry } from '../lib/supabaseResilience';
+import { getRawServerSupabaseUrl } from '../lib/serverSupabaseEnv';
+import { supabase } from '../lib/supabase';
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!supabaseUrl || !supabaseKey) {
-  console.error('[AUTH] Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables');
+const hasUrl = Boolean(getRawServerSupabaseUrl());
+const hasKey = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY?.trim());
+if (!hasUrl || !hasKey) {
+  console.error('[AUTH] Missing SUPABASE_URL/VITE_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables');
 }
 
-const supabase: SupabaseClient | null =
-  supabaseUrl && supabaseKey
-    ? createClient(supabaseUrl, supabaseKey, {
-        auth: { autoRefreshToken: false, persistSession: false },
-      })
-    : null;
+/** Throttle noisy ensureProfile failures (e.g. DB down) so Railway logs are usable. */
+let lastEnsureProfileFailureLogMs = 0;
+const ENSURE_PROFILE_FAIL_LOG_COOLDOWN_MS = 60_000;
+
+let lastAuthMiddlewareErrorLogMs = 0;
+const AUTH_MIDDLEWARE_ERROR_LOG_COOLDOWN_MS = 60_000;
 
 /**
  * Authentication middleware for API routes
@@ -40,7 +40,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
         req.isAuthenticated = () => false;
         return next();
       }
-      
+
       // Check for problematic Unicode characters at any position
       for (let i = 0; i < token.length; i++) {
         const charCode = token.charCodeAt(i);
@@ -49,21 +49,20 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
           return next();
         }
       }
-      
+
       // Validate basic JWT structure before processing
       const parts = token.trim().split('.');
-      if (parts.length !== 3 || parts.some(part => !part)) {
+      if (parts.length !== 3 || parts.some((part) => !part)) {
         req.isAuthenticated = () => false;
         return next();
       }
-      
+
       // Ensure token contains only valid characters
       if (!/^[A-Za-z0-9._-]+$/.test(token)) {
         req.isAuthenticated = () => false;
         return next();
       }
-      
-    } catch (tokenError) {
+    } catch {
       req.isAuthenticated = () => false;
       return next();
     }
@@ -74,10 +73,10 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     }
 
     // Verify the JWT token with Supabase
-    const { data: { user }, error } = await runSupabaseWithRetry(
-      () => supabase.auth.getUser(token),
-      { opName: 'auth.getUser' },
-    );
+    const {
+      data: { user },
+      error,
+    } = await runSupabaseWithRetry(() => supabase.auth.getUser(token), { opName: 'auth.getUser' });
 
     if (error || !user) {
       // Add isAuthenticated method that returns false
@@ -96,8 +95,13 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
         full_name: meta.full_name || meta.name || null,
         avatar_url: meta.avatar_url || null,
       });
-    } catch (err) {
-      console.error('[AUTH MIDDLEWARE] ensureProfile failed:', err);
+    } catch (err: unknown) {
+      const now = Date.now();
+      if (now - lastEnsureProfileFailureLogMs >= ENSURE_PROFILE_FAIL_LOG_COOLDOWN_MS) {
+        lastEnsureProfileFailureLogMs = now;
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error('[AUTH MIDDLEWARE] ensureProfile failed for authUserId=', user.id, msg);
+      }
       profile = null;
     }
 
@@ -123,7 +127,11 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       req.isAuthenticated = () => false;
       return next();
     }
-    console.error('Auth middleware error:', error);
+    const now = Date.now();
+    if (now - lastAuthMiddlewareErrorLogMs >= AUTH_MIDDLEWARE_ERROR_LOG_COOLDOWN_MS) {
+      lastAuthMiddlewareErrorLogMs = now;
+      console.error('Auth middleware error:', error);
+    }
     // Add isAuthenticated method that returns false
     req.isAuthenticated = () => false;
     next();
@@ -138,13 +146,13 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
     return res.status(503).json({
       error: 'Authentication temporarily unavailable',
       code: 'SUPABASE_DEGRADED',
-      message: 'Auth service is degraded. Please retry shortly.'
+      message: 'Auth service is degraded. Please retry shortly.',
     });
   }
   if (!req.isAuthenticated || !req.isAuthenticated()) {
-    return res.status(401).json({ 
+    return res.status(401).json({
       error: 'Authentication required',
-      message: 'You must be logged in to access this resource'
+      message: 'You must be logged in to access this resource',
     });
   }
   next();
@@ -158,21 +166,21 @@ export const requireAdmin = (req: Request, res: Response, next: NextFunction) =>
     return res.status(503).json({
       error: 'Admin authentication temporarily unavailable',
       code: 'SUPABASE_DEGRADED',
-      message: 'Auth service is degraded. Please retry shortly.'
+      message: 'Auth service is degraded. Please retry shortly.',
     });
   }
   if (!req.isAuthenticated || !req.isAuthenticated()) {
-    return res.status(401).json({ 
+    return res.status(401).json({
       error: 'Authentication required',
-      message: 'You must be logged in to access this resource'
+      message: 'You must be logged in to access this resource',
     });
   }
 
-  // Check if user has admin role (you might need to adjust this based on your user schema)
+  // Check if the user has admin role (should be handled by auth middleware before this)
   if (!req.user?.is_admin) {
-    return res.status(403).json({ 
+    return res.status(403).json({
       error: 'Admin access required',
-      message: 'You need admin privileges to access this resource'
+      message: 'You need admin privileges to access this resource',
     });
   }
 

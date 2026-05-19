@@ -1,15 +1,15 @@
 import { Server as HttpServer } from 'http';
 import { Server, Socket } from 'socket.io';
 import { createClient } from '@supabase/supabase-js';
+import { getServerSupabaseApiUrl } from './lib/serverSupabaseEnv';
+import { serviceRoleSupabaseOptions } from './lib/serviceSupabaseOptions';
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
+const supabaseUrl = getServerSupabaseApiUrl();
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 let supabase: ReturnType<typeof createClient> | null = null;
 if (supabaseUrl && supabaseServiceKey) {
-  supabase = createClient(supabaseUrl, supabaseServiceKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
+  supabase = createClient(supabaseUrl, supabaseServiceKey, serviceRoleSupabaseOptions);
 }
 
 interface AuthenticatedSocket extends Socket {

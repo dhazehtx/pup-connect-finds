@@ -10,21 +10,33 @@ interface SEOHeadProps {
   type?: 'website' | 'article' | 'product';
 }
 
-const SEOHead = ({ 
-  title = 'MY PUP - Find Your Perfect Puppy',
-  description = 'Discover and connect with verified breeders. Find your perfect puppy with advanced search, location-based recommendations, and secure messaging.',
-  keywords = 'puppies, dogs, breeders, pet adoption, dog breeds, puppy marketplace',
-  image = '/placeholder.svg',
-  url = 'https://mypup.app',
-  type = 'website'
+const SITE_BRAND = 'Pet Adoption Web Services';
+const DEFAULT_PAGE_TITLE = 'Pet Adoption Web Services | petadoptionwebservices.com';
+const DEFAULT_DESCRIPTION =
+  'petadoptionwebservices.com — Connect with verified breeders, shelters, and trusted pet service providers on PAWS. Discover puppies, pet products, and services in one secure platform.';
+
+const SEOHead = ({
+  title = DEFAULT_PAGE_TITLE,
+  description = DEFAULT_DESCRIPTION,
+  keywords =
+    'petadoptionwebservices.com, Pet Adoption Web Services, PAWS, pet adoption, puppies, breeders, shelters, pet services',
+  image = '/logo/paws-logo.png',
+  url = 'https://petadoptionwebservices.com/',
+  type = 'website',
 }: SEOHeadProps) => {
-  const fullTitle = title.includes('MY PUP') ? title : `${title} | MY PUP`;
+  const fullTitle =
+    title.includes('petadoptionwebservices') ||
+    title.includes('Pet Adoption Web Services') ||
+    title.includes('PAWS')
+      ? title
+      : `${title} | petadoptionwebservices.com`;
 
   return (
     <Helmet>
       {/* Basic Meta Tags */}
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
+      <meta name="tagline" content="Find Your Perfect Puppy Companion" />
       <meta name="keywords" content={keywords} />
       <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
       
@@ -34,7 +46,7 @@ const SEOHead = ({
       <meta property="og:image" content={image} />
       <meta property="og:url" content={url} />
       <meta property="og:type" content={type} />
-      <meta property="og:site_name" content="MY PUP" />
+      <meta property="og:site_name" content={SITE_BRAND} />
       
       {/* Twitter Card Tags */}
       <meta name="twitter:card" content="summary_large_image" />
@@ -46,7 +58,7 @@ const SEOHead = ({
       <meta name="theme-color" content="#2563eb" />
       <meta name="apple-mobile-web-app-capable" content="yes" />
       <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-      <meta name="apple-mobile-web-app-title" content="MY PUP" />
+      <meta name="apple-mobile-web-app-title" content={SITE_BRAND} />
       
       {/* Performance & Security */}
       <meta httpEquiv="X-Content-Type-Options" content="nosniff" />
@@ -62,7 +74,7 @@ const SEOHead = ({
         {JSON.stringify({
           "@context": "https://schema.org",
           "@type": "WebApplication",
-          "name": "MY PUP",
+          "name": SITE_BRAND,
           "description": description,
           "url": url,
           "applicationCategory": "LifestyleApplication",

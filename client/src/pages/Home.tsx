@@ -22,7 +22,7 @@ const Home = () => {
   const location = useLocation();
 
   useEffect(() => {
-    document.title = 'PAWS — Pet Adoption & Web Services';
+    document.title = 'Pet Adoption Web Services | petadoptionwebservices.com';
     window.scrollTo(0, 0);
   }, []);
 
@@ -77,6 +77,10 @@ const Home = () => {
 
               <p className="greeting-brand-mark greeting-brand-mark--subtitle mt-3 max-w-md text-[14px] font-extralight leading-snug tracking-wide text-slate-500 sm:mt-3.5 sm:text-[15px]">
                 Pet Adoption & Web Services.
+              </p>
+
+              <p className="mt-2 max-w-md text-[13px] font-light italic leading-snug tracking-wide text-slate-500 sm:text-[14px]">
+                Find Your Perfect Puppy Companion
               </p>
 
               <p className="mt-4 max-w-lg text-[14px] font-medium leading-[1.65] text-slate-700 sm:mt-5">

@@ -1,7 +1,7 @@
 {
-  "name": "MY PUP - Dog Listing Platform",
-  "short_name": "MY PUP",
-  "description": "A comprehensive dog listing platform connecting dog lovers with breeders, rescues, and sellers",
+  "name": "Pet Adoption Web Services | petadoptionwebservices.com",
+  "short_name": "PAWS",
+  "description": "petadoptionwebservices.com — Connect with verified breeders, shelters, and trusted pet service providers on PAWS. Discover puppies, pet products, and services in one secure platform.",
   "start_url": "/",
   "display": "standalone",
   "theme_color": "#2563eb",

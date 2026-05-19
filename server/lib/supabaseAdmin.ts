@@ -1,7 +1,9 @@
 // server/lib/supabaseAdmin.ts
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { getServerSupabaseApiUrl } from "./serverSupabaseEnv";
+import { serviceRoleSupabaseOptions } from "./serviceSupabaseOptions";
 
-const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "";
+const url = getServerSupabaseApiUrl();
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
 if (!url || !serviceKey) {
@@ -12,8 +14,4 @@ if (!url || !serviceKey) {
 
 /** Service-role client; null when URL/key missing so the process can boot (e.g. Railway before env is set). */
 export const supabaseAdmin: SupabaseClient | null =
-  url && serviceKey
-    ? createClient(url, serviceKey, {
-        auth: { persistSession: false },
-      })
-    : null;
+  url && serviceKey ? createClient(url, serviceKey, serviceRoleSupabaseOptions) : null;

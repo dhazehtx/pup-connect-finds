@@ -1,12 +1,13 @@
 import { getServerDeploymentEnv } from './deploymentEnv';
 
-/** Same resolution order as existing server code: prefer VITE_ for parity with the client bundle. */
+/** Prefer explicit `SUPABASE_URL` on the server; fall back to `VITE_SUPABASE_URL` for legacy deploys. */
 export function resolveServerSupabaseUrl(): string | undefined {
-  return process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || undefined;
+  const v = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '').trim();
+  return v || undefined;
 }
 
 export function resolveServerSupabaseAdminUrl(): string | undefined {
-  return process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || undefined;
+  return resolveServerSupabaseUrl();
 }
 
 function safeUrlHost(url: string): string | null {

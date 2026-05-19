@@ -2,11 +2,15 @@ import { debugApiLog } from '../lib/debugApi';
 import { Router, Request, Response } from 'express';
 import { storage } from '../storage';
 import { authMiddleware } from '../middleware/auth';
-import { ensureProfile } from '../lib/ensureProfile';
+import { ensureProfile, ensureProfileDetailed } from '../lib/ensureProfile';
+import { debugApiEnabled } from '../lib/debugApi';
 import { getBlockedUserIds } from '../lib/isBlocked';
 import { getPublicVisibilityFlags, mergePrivacySettingsJson, parsePrivacySettingsObject } from '../lib/profilePrivacy';
+import { postgresErrorMeta } from '../lib/pgErrorMeta';
+import { sendRouteError, buildRouteCtx } from '../lib/routeErrorDetail';
 import { userFollows } from '../lib/follows';
 import { z } from 'zod';
+import { normalizeUsername, validateUsername } from '@shared/username';
 
 const router = Router();
 
@@ -56,7 +60,14 @@ function trustSignalsForProfile(p: {
 }
 
 const updateProfileSchema = z.object({
-  username: z.string().trim().min(1).max(50).optional(),
+  username: z
+    .string()
+    .trim()
+    .min(3)
+    .max(30)
+    .regex(/^[a-zA-Z0-9_.]+$/)
+    .optional()
+    .transform((v) => (v === undefined ? undefined : normalizeUsername(v))),
   full_name: z.string().trim().min(1).max(120).optional(),
   bio: z.string().trim().max(1000).optional(),
   avatar_url: z.string().trim().url().max(2048).nullable().optional(),
@@ -223,6 +234,31 @@ function shapeProfile(p: any) {
   };
 }
 
+function syncDebugEnabled(req: Request): boolean {
+  if (req.query.sync_debug === '1' || req.query.sync_debug === 'true') return true;
+  return debugApiEnabled();
+}
+
+function buildSyncDebugPayload(
+  req: Request,
+  queriedProfileId: string,
+  result: { profile: { id: string; username?: string | null }; created: boolean; hadExisting: boolean },
+  dbError: string | null = null,
+) {
+  return {
+    authUserId: req.user?.id ?? null,
+    queriedProfileId,
+    profileFound: true,
+    profileRowId: result.profile.id,
+    idsMatch: req.user?.id === result.profile.id,
+    ensured: true,
+    created: result.created,
+    hadExisting: result.hadExisting,
+    username: result.profile.username ?? null,
+    dbError,
+  };
+}
+
 function viewerSeesFullProfile(req: Request, profileUserId: string): boolean {
   if (!req.user?.id) return false;
   if (req.user.id === profileUserId) return true;
@@ -231,23 +267,54 @@ function viewerSeesFullProfile(req: Request, profileUserId: string): boolean {
 }
 
 router.get('/me', authMiddleware, async (req: Request, res: Response) => {
+  const authUserId = req.user?.id;
+  let step = 'ensureProfileDetailed';
   try {
-    if (!req.user?.id) {
+    if (!authUserId) {
       return res.status(401).json({ error: 'Authentication required' });
     }
-    const profile = await ensureProfile({
-      id: req.user.id,
-      email: req.user.email || null,
-      username: req.user.username || null,
-      full_name: req.user.full_name || req.user.name || null,
-      avatar_url: req.user.avatar_url || null,
+    const u = req.user;
+    const result = await ensureProfileDetailed({
+      id: authUserId,
+      email: u?.email || null,
+      username: u?.username || null,
+      full_name: u?.full_name || u?.name || null,
+      avatar_url: u?.avatar_url || null,
     });
-    debugApiLog('[PROOF:PROFILES]', JSON.stringify({ route: 'GET /me', userId: profile.id, ensured: true }));
-    res.json(shapeProfile(profile));
-  } catch (error: any) {
-    console.error('[profiles] GET /me failed:', error?.message || error);
-    debugApiLog('[PROOF:PROFILES]', JSON.stringify({ route: 'GET /me', userId: req.user?.id, ensured: false, error: error?.message }));
-    res.status(500).json({ error: 'Internal server error' });
+    debugApiLog('[PROOF:PROFILES]', JSON.stringify({ route: 'GET /me', userId: result.profile.id, created: result.created }));
+    step = 'shapeProfile';
+    const payload = shapeProfile(result.profile);
+    if (syncDebugEnabled(req)) {
+      return res.json({
+        ...payload,
+        _syncDebug: buildSyncDebugPayload(req, authUserId, result),
+      });
+    }
+    res.json(payload);
+  } catch (error: unknown) {
+    const pg = postgresErrorMeta(error);
+    debugApiLog('[PROOF:PROFILES]', JSON.stringify({ route: 'GET /me', userId: authUserId, ensured: false, step, error: pg.message }));
+    const extra: Record<string, unknown> = {};
+    if (syncDebugEnabled(req)) {
+      extra._syncDebug = {
+        authUserId: authUserId ?? null,
+        queriedProfileId: authUserId ?? null,
+        profileFound: false,
+        ensured: false,
+        step,
+        dbError: pg.message || (error instanceof Error ? error.message : 'unknown'),
+      };
+    }
+    sendRouteError(
+      req,
+      res,
+      500,
+      'Internal server error',
+      'PROFILES_ME_FAILED',
+      error,
+      buildRouteCtx(req, 'GET /api/profiles/me', step, 'profiles', res),
+      extra,
+    );
   }
 });
 
@@ -270,6 +337,18 @@ router.patch('/me', authMiddleware, async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'No valid updatable fields provided' });
     }
 
+    if (parsed.data.username !== undefined) {
+      const check = validateUsername(parsed.data.username);
+      if (!check.ok) {
+        return res.status(400).json({ error: check.error });
+      }
+      const taken = await storage.getProfileByUsername(check.username);
+      if (taken && taken.id !== req.user.id) {
+        return res.status(409).json({ error: 'Username is already taken' });
+      }
+      updates.username = check.username;
+    }
+
     if (parsed.data.privacy_settings !== undefined && parsed.data.privacy_settings !== null) {
       const current = await storage.getProfile(req.user.id);
       let patchObj: Record<string, unknown> = {};
@@ -289,8 +368,15 @@ router.patch('/me', authMiddleware, async (req: Request, res: Response) => {
     }
     res.json(shapeProfile(profile));
   } catch (error) {
-    console.error('Error updating profile:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    sendRouteError(
+      req,
+      res,
+      500,
+      'Internal server error',
+      'PROFILES_PATCH_ME_FAILED',
+      error,
+      buildRouteCtx(req, 'PATCH /api/profiles/me', 'updateProfile', 'profiles', res),
+    );
   }
 });
 
@@ -328,6 +414,24 @@ router.get('/search', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/username-available', async (req: Request, res: Response) => {
+  try {
+    const raw = (req.query.u as string) || '';
+    const validated = validateUsername(raw);
+    if (!validated.ok) {
+      return res.json({ available: false, reason: validated.error });
+    }
+    const taken = await storage.getProfileByUsername(validated.username);
+    if (taken) {
+      return res.json({ available: false, reason: 'Username is already taken' });
+    }
+    return res.json({ available: true, username: validated.username });
+  } catch (error) {
+    console.error('Error checking username availability:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 router.get('/username/:username', async (req: Request, res: Response) => {
   try {
     const profile = await storage.getProfileByUsername(req.params.username);
@@ -342,33 +446,65 @@ router.get('/username/:username', async (req: Request, res: Response) => {
   }
 });
 
-router.get('/:id', async (req: Request, res: Response) => {
+// authMiddleware attaches req.user from Bearer JWT (non-blocking when absent) so
+// GET /:id can ensureProfile for "my profile" the same way as GET /me.
+router.get('/:id', authMiddleware, async (req: Request, res: Response) => {
+  let step = req.user?.id === req.params.id ? 'ensureProfileDetailed' : 'getProfile';
   try {
     let profile;
     let ensured = false;
+    let syncResult: Awaited<ReturnType<typeof ensureProfileDetailed>> | null = null;
     if (req.user?.id === req.params.id) {
-      profile = await ensureProfile({
+      syncResult = await ensureProfileDetailed({
         id: req.user.id,
         email: req.user.email || null,
         username: req.user.username || null,
         full_name: req.user.full_name || req.user.name || null,
         avatar_url: req.user.avatar_url || null,
       });
+      profile = syncResult.profile;
       ensured = true;
     } else {
       profile = await storage.getProfile(req.params.id);
     }
 
     if (!profile) {
+      if (syncDebugEnabled(req)) {
+        return res.status(404).json({
+          error: 'Profile not found',
+          _syncDebug: {
+            authUserId: req.user?.id ?? null,
+            queriedProfileId: req.params.id,
+            profileFound: false,
+            ensured: false,
+            dbError: null,
+          },
+        });
+      }
       return res.status(404).json({ error: 'Profile not found' });
     }
     debugApiLog('[PROOF:PROFILES]', JSON.stringify({ route: 'GET /:id', userId: req.params.id, ensured }));
+    step = 'resolveProfilePayload';
     const payload = await resolveProfilePayload(req, profile);
+    if (syncDebugEnabled(req) && syncResult) {
+      return res.json({
+        ...payload,
+        _syncDebug: buildSyncDebugPayload(req, req.params.id, syncResult),
+      });
+    }
     res.json(payload);
-  } catch (error: any) {
-    console.error('[profiles] GET /:id failed:', error?.message || error);
-    debugApiLog('[PROOF:PROFILES]', JSON.stringify({ route: 'GET /:id', userId: req.params.id, ensured: false, error: error?.message }));
-    res.status(500).json({ error: 'Internal server error' });
+  } catch (error: unknown) {
+    const pg = postgresErrorMeta(error);
+    debugApiLog('[PROOF:PROFILES]', JSON.stringify({ route: 'GET /:id', userId: req.params.id, step, error: pg.message }));
+    sendRouteError(
+      req,
+      res,
+      500,
+      'Internal server error',
+      'PROFILES_GET_ID_FAILED',
+      error,
+      buildRouteCtx(req, 'GET /api/profiles/:id', step, 'profiles', res),
+    );
   }
 });
 

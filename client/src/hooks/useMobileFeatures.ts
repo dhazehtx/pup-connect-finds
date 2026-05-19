@@ -146,8 +146,8 @@ export const useMobileFeatures = () => {
     if ('share' in navigator) {
       try {
         await navigator.share({
-          title: 'My Pup - Dog Breeding Platform',
-          text: 'Check out this amazing dog breeding platform!',
+          title: 'PAWS – Pet Adoption & Web Services',
+          text: 'Connect with verified breeders, shelters, and trusted pet service providers on PAWS.',
           url: window.location.href,
         });
         toast({
@@ -189,7 +189,7 @@ export const useMobileFeatures = () => {
         });
         
         setTimeout(() => {
-          new Notification('Welcome to My Pup!', {
+          new Notification('Welcome to PAWS!', {
             body: 'You\'ll receive updates about new dogs and messages here.',
             icon: '/favicon.ico'
           });

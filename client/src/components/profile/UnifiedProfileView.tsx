@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/api';
@@ -46,6 +47,10 @@ import {
 } from '@/components/profile/ProfileAvatarPhotoControls';
 import BugReportButton from '@/components/bugs/BugReportButton';
 import LoadingState from '@/components/ui/loading-state';
+import { ProfileHeroBanner } from '@/components/profile/ProfileHeroBanner';
+import { ProfileStatRow } from '@/components/profile/ProfileStatRow';
+import { ProfileSkeleton } from '@/components/profile/ProfileSkeleton';
+import { PROFILE_AVATAR_SHELL } from '@/components/profile/profileAvatarClasses';
 import { useFollowSystem } from '@/hooks/useFollowSystem';
 import { usePosts } from '@/hooks/usePosts';
 import { useToast } from '@/hooks/use-toast';
@@ -115,6 +120,11 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
   const { toast } = useToast();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<{
+    kind: 'not_found' | 'unavailable' | 'auth';
+    status?: number;
+    message: string;
+  } | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [messagingLoading, setMessagingLoading] = useState(false);
   const [showFollowersModal, setShowFollowersModal] = useState(false);
@@ -128,28 +138,39 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
   const { postCount } = usePosts(profileId);
 
   useEffect(() => {
-    if (profileId) {
+    if (isCurrentUser ? user?.id : profileId) {
       fetchProfile();
     }
-  }, [profileId]);
+  }, [profileId, isCurrentUser, user?.id]);
 
   useEffect(() => {
-    if (profileId) {
+    if (isCurrentUser ? user?.id : profileId) {
       const timeoutId = setTimeout(() => {
         fetchProfile();
       }, 100);
       return () => clearTimeout(timeoutId);
     }
-  }, [profileId, location.pathname]);
+  }, [profileId, isCurrentUser, user?.id, location.pathname]);
 
   const fetchProfile = async () => {
     try {
-      if (!profileId) {
-        setLoading(false);
+      const targetId = isCurrentUser ? user?.id : profileId;
+      if (!targetId) {
         return;
       }
 
-      const data = await apiRequest(`/api/profiles/${profileId}`);
+      setLoading(true);
+      setLoadError(null);
+      // Own profile: /me runs ensureProfile so a missing DB row is created on first visit.
+      const profilePath = isCurrentUser
+        ? import.meta.env.DEV
+          ? '/api/profiles/me?sync_debug=1'
+          : '/api/profiles/me'
+        : `/api/profiles/${targetId}`;
+      const data = await apiRequest(profilePath);
+      if (import.meta.env.DEV && isCurrentUser && data?._syncDebug) {
+        console.debug('[profile-sync] profile fetch', profilePath, data._syncDebug);
+      }
 
       const profileData: Profile = {
         id: data.id,
@@ -171,12 +192,46 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
       };
 
       setProfile(profileData);
-    } catch (error) {
-      console.error('Error fetching profile:', error);
+    } catch (error: unknown) {
+      const err = error as { status?: number; message?: string };
+      const status =
+        typeof err.status === 'number'
+          ? err.status
+          : Number(err.message?.match(/failed (\d+)/)?.[1]) || undefined;
+
+      let kind: 'not_found' | 'unavailable' | 'auth' = 'unavailable';
+      let message = 'Could not load this profile. Please try again.';
+
+      if (status === 404) {
+        kind = 'not_found';
+        message = 'Profile not found';
+      } else if (status === 401 || status === 403) {
+        kind = 'auth';
+        message = 'Sign in to view this profile.';
+      } else if (status && status >= 500) {
+        message = 'Profile is temporarily unavailable. Please try again shortly.';
+      }
+
+      if (import.meta.env.DEV) {
+        console.error('[profile] fetch failed:', { status, message: err.message });
+      } else {
+        console.warn('[profile] fetch failed:', status || 'NETWORK');
+      }
+
+      setProfile(null);
+      setLoadError({ kind, status, message });
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!profile) return;
+    const label = profile.username?.trim()
+      ? `@${profile.username.trim()}`
+      : profile.full_name?.trim() || 'Profile';
+    document.title = `${label} — Pet Adoption Web Services`;
+  }, [profile]);
 
   const handleFollowToggle = async () => {
     if (!profileId) return;
@@ -265,14 +320,35 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
     }
   };
 
-  if (loading) {
-    return <LoadingState message="Loading profile..." />;
+  if (loading || ((isCurrentUser && !user?.id) || (!isCurrentUser && !profileId))) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-100/90 to-slate-50/80 dark:from-slate-950 dark:to-slate-950">
+        <div className="mx-auto w-full max-w-xl px-3 py-4 md:max-w-2xl">
+          <ProfileSkeleton />
+        </div>
+      </div>
+    );
   }
 
   if (!profile) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-slate-500 dark:text-slate-400">Profile not found</p>
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-4 text-center">
+        <p className="text-slate-600 dark:text-slate-300 font-medium">
+          {loadError?.message ?? 'Profile not found'}
+        </p>
+        {loadError?.status != null && (
+          <p className="text-xs font-mono text-slate-400">HTTP {loadError.status}</p>
+        )}
+        {loadError?.kind !== 'not_found' && (
+          <Button type="button" variant="outline" onClick={() => fetchProfile()}>
+            Retry
+          </Button>
+        )}
+        {loadError?.kind === 'auth' && (
+          <Button type="button" onClick={() => navigate('/greeting')}>
+            Sign in
+          </Button>
+        )}
       </div>
     );
   }
@@ -286,8 +362,8 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
   const completeness = getProfileCompleteness(profile);
 
   return (
-    <div className="min-h-screen bg-slate-50/80 dark:bg-slate-950">
-    <div className="mx-auto max-w-4xl space-y-8 p-4 pb-28 sm:p-6">
+    <div className="min-h-screen bg-gradient-to-b from-slate-100/90 via-slate-50/50 to-slate-100/80 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
+    <div className="mx-auto w-full max-w-xl space-y-3 px-3 py-3 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] sm:space-y-4 sm:px-4 md:max-w-2xl">
       {!user && !isCurrentUser && (
         <div
           className="mb-4 rounded-xl border border-blue-200/90 bg-blue-50/95 px-4 py-3 text-sm text-blue-950 shadow-sm dark:border-blue-900/60 dark:bg-blue-950/50 dark:text-blue-50"
@@ -300,37 +376,44 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
         </div>
       )}
       {isCurrentUser && (
-        <div
-          className="mb-4 rounded-xl border border-slate-200/90 bg-slate-50/90 px-4 py-3 shadow-sm dark:border-slate-700/90 dark:bg-slate-900/60 sm:px-5"
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`mb-3 overflow-hidden rounded-xl border px-3.5 py-2.5 shadow-sm backdrop-blur-sm dark:border-slate-700/80 dark:bg-slate-900/70 ${
+            completeness.percent >= 100
+              ? 'border-emerald-200/90 bg-emerald-50/90 shadow-emerald-500/10 dark:border-emerald-900/50 dark:bg-emerald-950/30'
+              : 'border-slate-200/90 bg-white/90 dark:bg-slate-900/60'
+          }`}
           role="status"
           aria-live="polite"
         >
-          <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-sm">
-            <span className="font-medium text-slate-800 dark:text-slate-100">
-              Profile {completeness.percent}% complete
-            </span>
-            {completeness.percent < 100 && (
-              <span className="text-xs font-medium text-blue-700 dark:text-blue-400">Keep going</span>
-            )}
+          <div className="flex items-center gap-3">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">Profile strength</span>
+                <span className="text-sm font-bold tabular-nums text-blue-600 dark:text-blue-400">{completeness.percent}%</span>
+              </div>
+              <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-200/90 dark:bg-slate-700">
+                <motion.div
+                  className={`h-full rounded-full ${completeness.percent >= 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-blue-600 to-indigo-500'}`}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${completeness.percent}%` }}
+                  transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                />
+              </div>
+              <p className="mt-1 truncate text-[11px] text-slate-500 dark:text-slate-400">{completeness.hint}</p>
+            </div>
           </div>
-          <div
-            className="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700"
-            aria-hidden
-          >
-            <div
-              className="h-full rounded-full bg-blue-600 transition-[width] duration-300 ease-out dark:bg-blue-500"
-              style={{ width: `${completeness.percent}%` }}
-            />
-          </div>
-          <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">{completeness.hint}</p>
-        </div>
+        </motion.div>
       )}
 
-      <Card className="relative overflow-hidden border border-slate-200/90 bg-white shadow-sm ring-1 ring-slate-200/50 transition-shadow duration-200 dark:border-slate-800 dark:bg-slate-950/95 dark:ring-slate-800/80">
-        <div
-          className="relative h-28 bg-gradient-to-br from-blue-600 via-sky-500 to-indigo-600 sm:h-32"
-          aria-hidden
-        />
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      >
+      <Card className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_40px_-16px_rgba(15,23,42,0.14)] ring-1 ring-inset ring-white/50 dark:border-slate-800/80 dark:bg-slate-950 dark:shadow-[0_12px_48px_-20px_rgba(0,0,0,0.5)] dark:ring-slate-800/40">
+        <ProfileHeroBanner />
         {isCurrentUser && (
           <div className="absolute right-3 top-3 z-20 sm:right-4 sm:top-4">
             <DropdownMenu>
@@ -383,11 +466,11 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
           </div>
         )}
 
-        <CardContent className="relative -mt-14 px-5 pb-8 pt-0 sm:px-8">
-          <div className="flex flex-col items-center gap-8 sm:flex-row sm:items-start sm:gap-10">
-            <div className="relative shrink-0">
+        <CardContent className="relative z-0 bg-white px-5 pb-6 pt-0 dark:bg-slate-950 sm:px-6">
+          <div className="relative z-10 -mt-16 flex items-end gap-4 md:-mt-20 md:gap-5">
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="shrink-0">
               {isCurrentUser ? (
-                <div className="group relative flex h-[9.25rem] w-[9.25rem] items-center justify-center overflow-hidden rounded-full border-[5px] border-white bg-gradient-to-br from-slate-100 to-slate-200/90 shadow-[0_12px_36px_-10px_rgba(15,23,42,0.38)] ring-2 ring-blue-100/90 transition-all duration-200 hover:ring-blue-400/90 dark:from-slate-800 dark:to-slate-900 dark:border-slate-950 dark:shadow-[0_12px_36px_-10px_rgba(0,0,0,0.55)] dark:ring-blue-900/50 sm:h-44 sm:w-44">
+                <div className={`group ${PROFILE_AVATAR_SHELL}`}>
                   <div
                     className="absolute inset-0 z-[1] cursor-pointer rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-950"
                     role="button"
@@ -402,10 +485,14 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
                     }}
                   />
                   {profile.avatar_url ? (
-                    <img src={profile.avatar_url} alt="" className="relative z-0 h-full w-full object-cover pointer-events-none" />
+                    <img
+                      src={profile.avatar_url}
+                      alt=""
+                      className="pointer-events-none relative z-0 h-full w-full object-cover"
+                    />
                   ) : (
                     <span
-                      className="relative z-0 flex h-full w-full select-none items-center justify-center text-4xl font-semibold tracking-tight text-slate-500 pointer-events-none dark:text-slate-400"
+                      className="pointer-events-none relative z-0 flex h-full w-full select-none items-center justify-center text-2xl font-semibold tracking-tight text-slate-500 sm:text-3xl dark:text-slate-400"
                       aria-hidden
                     >
                       {profileInitials(profile.full_name, profile.username)}
@@ -431,7 +518,7 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
                   )}
                   <ProfileAvatarPhotoControls
                     ref={avatarPhotoRef}
-                    variant="overlay"
+                    variant="picker-only"
                     onUploadingChange={setAvatarUploading}
                     onSuccess={(url) => {
                       setProfile((prev) => (prev ? { ...prev, avatar_url: url } : prev));
@@ -441,12 +528,12 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
                   />
                 </div>
               ) : (
-                <div className="relative flex h-[9.25rem] w-[9.25rem] items-center justify-center overflow-hidden rounded-full border-[5px] border-white bg-gradient-to-br from-slate-100 to-slate-200/90 shadow-[0_12px_36px_-10px_rgba(15,23,42,0.38)] ring-2 ring-blue-100/90 dark:from-slate-800 dark:to-slate-900 dark:border-slate-950 dark:shadow-[0_12px_36px_-10px_rgba(0,0,0,0.55)] dark:ring-blue-900/50 sm:h-44 sm:w-44">
+                <div className={PROFILE_AVATAR_SHELL}>
                   {profile.avatar_url ? (
                     <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" />
                   ) : (
                     <span
-                      className="flex h-full w-full select-none items-center justify-center text-4xl font-semibold tracking-tight text-slate-500 dark:text-slate-400"
+                      className="flex h-full w-full select-none items-center justify-center text-2xl font-semibold tracking-tight text-slate-500 sm:text-3xl dark:text-slate-400"
                       aria-hidden
                     >
                       {profileInitials(profile.full_name, profile.username)}
@@ -454,26 +541,48 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
                   )}
                 </div>
               )}
-            </div>
 
-            <div className="min-w-0 flex-1 space-y-4 text-center sm:pb-0 sm:text-left">
-              <div className="flex flex-col items-center gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-start sm:gap-x-2.5">
-                <h1 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-50 sm:text-2xl">
+            </motion.div>
+            <ProfileStatRow
+              className="min-w-0 flex-1 pb-0.5"
+              posts={postCount}
+              followers={followers.length}
+              following={following.length}
+              onPostsClick={() => setProfileTab('posts')}
+              onFollowersClick={() => setShowFollowersModal(true)}
+              onFollowingClick={() => setShowFollowingModal(true)}
+            />
+          </div>
+
+          <motion.div
+            className="relative z-10 mt-4 space-y-2 md:mt-5"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05, duration: 0.3 }}
+          >
+<div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 md:text-3xl">
                   {profile.full_name || 'Member'}
                 </h1>
                 {profile.verified && (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-blue-200/90 bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-800 dark:border-blue-800/70 dark:bg-blue-950/60 dark:text-blue-100">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-slate-100 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-300">
                     <BadgeCheck className="h-3.5 w-3.5 shrink-0" strokeWidth={2.5} aria-hidden />
                     Verified
+                  </span>
+                )}
+                {!profile.verified && profile.user_type === 'breeder' && (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-slate-100 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-300">
+                    <Sparkles className="h-3 w-3 shrink-0" aria-hidden />
+                    Breeder
                   </span>
                 )}
               </div>
 
               {profile.username && (
-                <p className="text-sm text-slate-500 dark:text-slate-400">@{profile.username}</p>
+                <p className="mt-0.5 text-sm font-medium tracking-normal text-slate-500 dark:text-slate-400">@{profile.username}</p>
               )}
 
-              <p className="text-xs text-slate-500 dark:text-slate-500">
+              <p className="text-xs leading-relaxed text-slate-500/90 dark:text-slate-400">
                 <span className="inline-flex items-center gap-1">
                   <Sparkles className="h-3 w-3 opacity-70" aria-hidden />
                   {userTypeLabel(profile.user_type)}
@@ -495,18 +604,18 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
                 profile.typical_response_time ||
                 (profile.verified && formatVerifiedSinceMonthYear(profile.verified_since))) && (
                 <div
-                  className="flex flex-wrap justify-center gap-2 text-[11px] leading-snug text-slate-600 dark:text-slate-400 sm:justify-start"
+                  className="flex flex-wrap justify-start gap-2 text-[11px] leading-snug text-slate-600 dark:text-slate-400 sm:justify-start"
                   aria-label="Trust and activity"
                 >
                   {formatLastActiveLabel(profile.last_active_at) && (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-slate-200/90 bg-white px-2.5 py-1 dark:border-slate-700 dark:bg-slate-900/80">
+                    <span className="inline-flex items-center gap-1 rounded-full border border-slate-100 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-400">
                       <Clock className="h-3 w-3 shrink-0 text-slate-500" aria-hidden />
                       {formatLastActiveLabel(profile.last_active_at)}
                     </span>
                   )}
                   {profile.typical_response_time && (
                     <span
-                      className="inline-flex items-center gap-1 rounded-full border border-slate-200/90 bg-white px-2.5 py-1 dark:border-slate-700 dark:bg-slate-900/80"
+                      className="inline-flex items-center gap-1 rounded-full border border-slate-100 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-400"
                       title="Typical time to reply to messages (estimate)."
                     >
                       <MessageCircle className="h-3 w-3 shrink-0 text-slate-500" aria-hidden />
@@ -525,7 +634,7 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
 
               <div className="mx-auto max-w-lg pt-1 sm:mx-0">
                 {profile.bio ? (
-                  <p className="text-[15px] leading-relaxed text-slate-700 dark:text-slate-300">{profile.bio}</p>
+                  <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">{profile.bio}</p>
                 ) : (
                   <p className="rounded-lg border border-dashed border-slate-200/90 px-3 py-3 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
                     {isCurrentUser
@@ -535,51 +644,36 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
                 )}
               </div>
 
-              <div className="mx-auto flex max-w-lg border-y border-slate-200/90 py-4 dark:border-slate-700/90 sm:mx-0">
-                <button
-                  type="button"
-                  className="min-h-11 min-w-0 flex-1 px-2 transition-colors duration-200 hover:bg-slate-50/80 dark:hover:bg-slate-900/50"
-                  onClick={() => setProfileTab('posts')}
-                >
-                  <div className="text-2xl font-semibold tabular-nums text-slate-900 dark:text-slate-50 sm:text-3xl">{postCount}</div>
-                  <div className="mt-1 text-[11px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                    Posts
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  className="min-h-11 min-w-0 flex-1 border-x border-slate-200/90 px-2 transition-colors duration-200 hover:bg-slate-50/80 dark:border-slate-700/90 dark:hover:bg-slate-900/50"
-                  onClick={() => setShowFollowersModal(true)}
-                >
-                  <div className="text-2xl font-semibold tabular-nums text-slate-900 dark:text-slate-50 sm:text-3xl">
-                    {followers.length}
-                  </div>
-                  <div className="mt-1 text-[11px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                    Followers
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  className="min-h-11 min-w-0 flex-1 px-2 transition-colors duration-200 hover:bg-slate-50/80 dark:hover:bg-slate-900/50"
-                  onClick={() => setShowFollowingModal(true)}
-                >
-                  <div className="text-2xl font-semibold tabular-nums text-slate-900 dark:text-slate-50 sm:text-3xl">
-                    {following.length}
-                  </div>
-                  <div className="mt-1 text-[11px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                    Following
-                  </div>
-                </button>
-              </div>
+              {(profile.location || profile.website_url) && (
+                <div className="flex flex-wrap gap-2 text-sm">
+                  {profile.location && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100/95 px-3 py-1 dark:bg-slate-800/90">
+                      <MapPin className="h-3.5 w-3.5 shrink-0 text-blue-600" aria-hidden />
+                      {profile.location}
+                    </span>
+                  )}
+                  {profile.website_url && (
+                    <a
+                      href={profile.website_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-full bg-slate-100/95 px-3 py-1 font-medium text-blue-600 hover:underline dark:bg-slate-800/90"
+                    >
+                      <Globe className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                      Website
+                    </a>
+                  )}
+                </div>
+              )}
 
-              <div className="flex w-full max-w-lg flex-col gap-2 sm:mx-0">
+              <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap">
                 {!isCurrentUser && (
                   <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
                     <Button
-                      size="lg"
+                      size="default"
                       onClick={handleFollowToggle}
                       variant={isFollowing ? 'outline' : 'default'}
-                      className="min-w-[8rem] flex-1 font-semibold shadow-sm transition-all duration-200 sm:flex-initial"
+                      className="h-10 min-w-[7.5rem] flex-1 rounded-xl font-semibold shadow-sm transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] sm:flex-initial"
                     >
                       {isFollowing ? (
                         <>
@@ -594,11 +688,11 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
                       )}
                     </Button>
                     <Button
-                      size="lg"
+                      size="default"
                       variant="outline"
                       disabled={messagingLoading}
                       onClick={handleMessage}
-                      className="min-w-[8rem] flex-1 font-semibold transition-all duration-200 sm:flex-initial"
+                      className="h-10 min-w-[7.5rem] flex-1 rounded-xl font-semibold border-slate-200/90 shadow-sm transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] sm:flex-initial"
                     >
                       <MessageCircle className="mr-2 h-4 w-4" />
                       {messagingLoading ? 'Opening…' : 'Message'}
@@ -606,58 +700,28 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
                   </div>
                 )}
                 {isCurrentUser && (
-                  <>
+                  <div className="flex w-full flex-col gap-2 sm:flex-row">
                     <Button
                       type="button"
-                      size="lg"
-                      variant="outline"
-                      className="w-full rounded-lg border-slate-300 bg-white font-semibold text-slate-800 shadow-sm transition-all duration-200 hover:border-slate-400 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-slate-500 dark:hover:bg-slate-800/80"
+                      size="default"
+                      className="h-10 flex-1 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 font-semibold text-white shadow-sm shadow-blue-500/20 transition-all duration-200 hover:scale-[1.01] hover:from-blue-500 hover:to-indigo-500 hover:shadow-md active:scale-[0.99]"
                       onClick={() => setShowSettings(true)}
                     >
                       Edit profile
                     </Button>
                     <BugReportButton
                       variant="outline"
-                      size="sm"
-                      className="w-full rounded-lg border-slate-200 bg-white font-medium text-slate-700 transition-all duration-200 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                      size="default"
+                      className="h-10 flex-1 rounded-xl border-slate-200/90 bg-white/90 font-medium shadow-sm backdrop-blur-sm dark:border-slate-700 dark:bg-slate-900/80"
                       iconClassName="text-blue-600"
                     />
-                  </>
+                  </div>
                 )}
               </div>
-            </div>
-          </div>
+          </motion.div>
         </CardContent>
       </Card>
-
-      <Card className="border-slate-200/90 bg-white shadow-sm transition-shadow duration-200 dark:border-slate-800 dark:bg-slate-950/70">
-        <CardContent className="space-y-4 p-5 sm:p-6">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Location &amp; links</h2>
-          <div className="flex flex-wrap justify-center gap-2.5 text-sm text-slate-600 dark:text-slate-300 sm:justify-start">
-            {profile.location && (
-              <div className="flex items-center gap-2 rounded-full bg-slate-100/95 px-3.5 py-1.5 dark:bg-slate-900/85">
-                <MapPin className="h-4 w-4 shrink-0 text-blue-600" aria-hidden />
-                <span>{profile.location}</span>
-              </div>
-            )}
-            {profile.website_url && (
-              <a
-                href={profile.website_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-full bg-slate-100/95 px-3.5 py-1.5 font-medium text-blue-600 hover:underline dark:bg-slate-900/85"
-              >
-                <Globe className="h-4 w-4 shrink-0" aria-hidden />
-                Website
-              </a>
-            )}
-            <div className="flex items-center gap-2 rounded-full bg-slate-100/95 px-3.5 py-1.5 transition-colors duration-200 dark:bg-slate-900/85">
-              <Calendar className="h-4 w-4 shrink-0 text-slate-500" aria-hidden />
-              Member since {new Date(profile.created_at).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      </motion.div>
 
       {!isCurrentUser && profileId && (
         <div className="space-y-4">
@@ -675,8 +739,8 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
       )}
 
       {profileId && (
-        <Tabs value={profileTab} onValueChange={setProfileTab} className="w-full">
-          <TabsList className="mb-0 grid h-auto w-full grid-cols-3 gap-0 rounded-none border-b border-slate-200/90 bg-transparent p-0 dark:border-slate-800">
+        <Tabs value={profileTab} onValueChange={setProfileTab} className="relative z-10 w-full">
+          <TabsList className="sticky top-0 z-10 mb-0 grid h-auto w-full grid-cols-3 gap-0 rounded-none border-b border-slate-200/90 bg-white/85 p-0 backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/85">
             <TabsTrigger
               value="posts"
               className="gap-1.5 rounded-none border-b-2 border-transparent py-3 text-sm font-semibold text-slate-600 transition-all duration-200 data-[state=active]:border-blue-600 data-[state=active]:bg-transparent data-[state=active]:text-blue-600 data-[state=active]:shadow-none dark:text-slate-400 dark:data-[state=active]:text-blue-400"
@@ -699,17 +763,15 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
               Reviews
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="posts" className="mt-6 outline-none transition-opacity duration-200">
-            <div className="rounded-2xl border border-slate-200/85 bg-white/90 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950/45 sm:p-6">
-              <ProfilePostsGrid userId={profileId} isOwnProfile={isCurrentUser} />
-            </div>
+          <TabsContent value="posts" className="relative z-10 mt-3 outline-none focus-visible:ring-0">
+            <ProfilePostsGrid userId={profileId} isOwnProfile={isCurrentUser} />
           </TabsContent>
-          <TabsContent value="services" className="mt-6 outline-none transition-opacity duration-200">
+          <TabsContent value="services" className="mt-3 outline-none transition-opacity duration-200">
             <div className="rounded-2xl border border-slate-200/85 bg-white/90 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950/45 sm:p-6">
               <ProfileServicesTab userId={profileId} isOwnProfile={isCurrentUser} />
             </div>
           </TabsContent>
-          <TabsContent value="reviews" className="mt-6 outline-none transition-opacity duration-200">
+          <TabsContent value="reviews" className="mt-3 outline-none transition-opacity duration-200">
             <div className="rounded-2xl border border-slate-200/85 bg-white/90 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950/45 sm:p-6">
               <ProviderReviewsSection providerId={profileId} isCurrentUser={isCurrentUser} />
             </div>
@@ -718,7 +780,7 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
       )}
 
       {isCurrentUser && (
-        <div className="mb-8 mt-8 flex justify-center px-2">
+        <div className="mb-2 mt-4 flex justify-center px-2">
           <Button
             type="button"
             variant="outline"

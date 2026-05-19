@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Trash2, AlertTriangle, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'wouter';
 
 const DeleteAccountButton: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -14,7 +14,7 @@ const DeleteAccountButton: React.FC = () => {
   const [showDialog, setShowDialog] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
 
   const handleDeleteAccount = async () => {
     if (!user?.id) {
@@ -59,7 +59,8 @@ const DeleteAccountButton: React.FC = () => {
         description: "Your account and all data have been permanently deleted",
       });
 
-      navigate('/greeting', { replace: true });
+      // Redirect to home page (logout will happen when user record is deleted)
+      setLocation('/');
       
     } catch (error: any) {
       console.error('Account deletion error:', error);

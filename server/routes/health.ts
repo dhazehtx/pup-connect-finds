@@ -1,7 +1,13 @@
 import type { Express } from "express";
+import { sql } from "drizzle-orm";
 import { db } from "../db";
+import { profiles } from "@shared/schema";
 import { checkSupabaseHealth, getSupabaseHealthSnapshot } from "../lib/supabaseResilience";
 import { validateStartupConfig } from "../lib/startupConfig";
+
+import { getServerSupabaseApiUrl } from "../lib/serverSupabaseEnv";
+import { diagnoseDatabaseUrl } from "../lib/databaseUrlDiagnostics";
+import { readDatabaseUrlEnv } from "../lib/readDatabaseUrlEnv";
 
 export function registerHealthRoutes(app: Express) {
   // Liveness only — no DB. Use for PaaS health checks (Railway/Render) so a cold DB
@@ -12,14 +18,14 @@ export function registerHealthRoutes(app: Express) {
       ts: new Date().toISOString(),
       uptimeSec: Math.round(process.uptime()),
       dbConfigured: Boolean(
-        process.env.DATABASE_URL?.trim() || process.env.NEON_DATABASE_URL?.trim(),
+        Boolean(readDatabaseUrlEnv()),
       ),
     });
   });
 
   app.get("/api/ops/supabase", async (_req, res) => {
     const snapshot = getSupabaseHealthSnapshot();
-    const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
+    const supabaseUrl = getServerSupabaseApiUrl();
     let host: string | null = null;
     try {
       host = supabaseUrl ? new URL(supabaseUrl).hostname : null;
@@ -40,6 +46,7 @@ export function registerHealthRoutes(app: Express) {
 
   app.get("/api/ops/config", (_req, res) => {
     const startup = validateStartupConfig();
+    const dbDiag = diagnoseDatabaseUrl(readDatabaseUrlEnv());
     res.json({
       ok: startup.ok,
       missingRequired: startup.missingRequired,
@@ -49,7 +56,16 @@ export function registerHealthRoutes(app: Express) {
         nodeEnv: process.env.NODE_ENV || "development",
         uptimeSec: Math.round(process.uptime()),
       },
+      database: dbDiag,
       supabase: getSupabaseHealthSnapshot(),
+    });
+  });
+
+  app.get("/api/ops/database", (_req, res) => {
+    const dbDiag = diagnoseDatabaseUrl(readDatabaseUrlEnv());
+    res.json({
+      ok: dbDiag.configured && dbDiag.issues.length === 0,
+      diagnostics: dbDiag,
     });
   });
 
@@ -81,8 +97,8 @@ export function registerHealthRoutes(app: Express) {
   // Basic health check
   app.get("/api/health", async (req, res) => {
     try {
-      // Check database connection
-      await db.execute('SELECT 1');
+      // Check database connection (Drizzle requires sql`` — raw strings are not valid)
+      await db.execute(sql`SELECT 1`);
       
       res.json({
         status: 'ok',
@@ -99,15 +115,21 @@ export function registerHealthRoutes(app: Express) {
           }
         }
       });
-    } catch (error) {
-      console.error('Health check failed:', error);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      const dbDiag = diagnoseDatabaseUrl(readDatabaseUrlEnv());
+      console.error('Health check failed:', message, dbDiag.issues.length ? dbDiag.issues : '');
       res.status(503).json({
         status: 'error',
         timestamp: new Date().toISOString(),
         error: 'Database connection failed',
+        hint:
+          'Use Supabase Transaction pooler URI (port 6543) in DATABASE_URL. See DEPLOYMENT.md.',
+        detail: process.env.NODE_ENV === 'production' ? undefined : message.slice(0, 200),
+        databaseDiagnostics: dbDiag,
         services: {
-          database: 'unhealthy'
-        }
+          database: 'unhealthy',
+        },
       });
     }
   });
@@ -117,8 +139,8 @@ export function registerHealthRoutes(app: Express) {
     try {
       const startTime = Date.now();
       
-      // Test database query
-      await db.execute('SELECT COUNT(*) FROM profiles');
+      // Test database query against real app schema
+      await db.select({ count: sql<number>`count(*)::int` }).from(profiles);
       const dbResponseTime = Date.now() - startTime;
       const supabaseSnapshot = getSupabaseHealthSnapshot();
 

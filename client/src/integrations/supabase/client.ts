@@ -1,5 +1,6 @@
 // Supabase browser client — lazy-init so dev/HMR never calls createClient with a bad URL at module-eval time.
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { normalizeSupabaseApiUrl } from '@shared/normalizeSupabaseUrl';
 import type { Database } from './types';
 
 const DEV_FALLBACK_URL = 'https://abcdefghijklmnop.supabase.co';
@@ -32,6 +33,9 @@ function buildClient(): SupabaseClient<Database> {
   let envKey = viteEnvString('VITE_SUPABASE_ANON_KEY');
   if (envUrl && !/^https?:\/\//i.test(envUrl)) {
     envUrl = '';
+  }
+  if (envUrl) {
+    envUrl = normalizeSupabaseApiUrl(envUrl);
   }
   const url = envUrl || DEV_FALLBACK_URL;
   const anonKey = envKey || DEV_FALLBACK_ANON_KEY;

@@ -1,26 +1,17 @@
 import { Request, Response, Router } from 'express';
-import { createClient } from '@supabase/supabase-js';
 import { db } from '../db';
 import { notifications, conversations, messages } from '../../shared/schema';
 import { eq, or, inArray } from 'drizzle-orm';
 import { storage } from '../storage';
+import { supabase } from '../lib/supabase';
 
 const router = Router();
 
-// Initialize Supabase client with service role for admin operations
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!supabaseUrl || !supabaseServiceKey) {
-  console.warn('Missing Supabase environment variables. GDPR features will not work properly.');
+if (!supabase) {
+  console.warn(
+    '[user routes] Missing SUPABASE_URL/VITE_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY. GDPR export features will not work.',
+  );
 }
-
-const supabase = supabaseUrl && supabaseServiceKey ? createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
-  }
-}) : null;
 
 // Export user data (GDPR compliance)
 router.get('/export-data', async (req: Request, res: Response) => {
@@ -140,6 +131,21 @@ router.delete('/delete-account', async (req: Request, res: Response) => {
     
     if (authError || !user) {
       return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    const password = typeof req.body?.password === 'string' ? req.body.password : '';
+    if (!password) {
+      return res.status(400).json({ error: 'Password is required to delete your account' });
+    }
+
+    const email = user.email;
+    if (!email) {
+      return res.status(400).json({ error: 'Account email not found' });
+    }
+
+    const { error: pwError } = await supabase.auth.signInWithPassword({ email, password });
+    if (pwError) {
+      return res.status(401).json({ error: 'Invalid password. Account was not deleted.' });
     }
 
     // Delete user data in order (respecting foreign key constraints)

@@ -17,6 +17,8 @@ attached_assets/.env
 .pw-browsers/
 test-results/
 playwright-report/
+reports/stabilization-*.json
+reports/manual-checklist.json
 
 # Accidental artifact (do not track)
 =

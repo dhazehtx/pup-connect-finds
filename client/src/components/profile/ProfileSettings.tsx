@@ -224,14 +224,14 @@ const ProfileSettings = ({ profile, onBack, onUpdate }: ProfileSettingsProps) =>
 
         <TabsContent value="account" className="mt-6 space-y-6 outline-none">
           <Card className="border-slate-200/90 shadow-sm dark:border-slate-800">
-            <CardHeader>
+        <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Camera className="h-5 w-5 text-blue-600" aria-hidden />
                 Profile
               </CardTitle>
               <CardDescription>Name, username, bio, and photo.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+        </CardHeader>
+        <CardContent className="space-y-4">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                 <div className="relative mx-auto h-28 w-28 shrink-0 overflow-hidden rounded-full border-4 border-white bg-gradient-to-br from-slate-100 to-slate-200/90 shadow-md ring-2 ring-slate-200/80 dark:border-slate-800 dark:from-slate-800 dark:to-slate-900 dark:ring-slate-700 sm:mx-0">
                   {formData.avatar_url ? (
@@ -273,55 +273,55 @@ const ProfileSettings = ({ profile, onBack, onUpdate }: ProfileSettingsProps) =>
                 </div>
               </div>
 
-              <div>
+          <div>
                 <Label htmlFor="full_name">Display name</Label>
-                <Input
-                  id="full_name"
-                  value={formData.full_name}
-                  onChange={(e) => handleInputChange('full_name', e.target.value)}
+            <Input
+              id="full_name"
+              value={formData.full_name}
+              onChange={(e) => handleInputChange('full_name', e.target.value)}
                   placeholder="Your name"
                   className="text-base font-semibold"
-                />
-              </div>
+            />
+          </div>
 
-              <div>
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  value={formData.username}
-                  onChange={(e) => handleInputChange('username', e.target.value)}
+          <div>
+            <Label htmlFor="username">Username</Label>
+            <Input
+              id="username"
+              value={formData.username}
+              onChange={(e) => handleInputChange('username', e.target.value)}
                   placeholder="username"
-                />
-              </div>
+            />
+          </div>
 
-              <div>
-                <Label htmlFor="bio">Bio</Label>
-                <Textarea
-                  id="bio"
-                  value={formData.bio}
-                  onChange={(e) => handleInputChange('bio', e.target.value)}
+          <div>
+            <Label htmlFor="bio">Bio</Label>
+            <Textarea
+              id="bio"
+              value={formData.bio}
+              onChange={(e) => handleInputChange('bio', e.target.value)}
                   placeholder="Tell people about you and your pups…"
                   rows={4}
                   className="resize-none"
-                />
-              </div>
+            />
+          </div>
 
-              <div>
-                <Label htmlFor="location">Location</Label>
-                <Input
-                  id="location"
-                  value={formData.location}
-                  onChange={(e) => handleInputChange('location', e.target.value)}
+          <div>
+            <Label htmlFor="location">Location</Label>
+            <Input
+              id="location"
+              value={formData.location}
+              onChange={(e) => handleInputChange('location', e.target.value)}
                   placeholder="City, state or region"
-                />
-              </div>
+            />
+          </div>
 
-              <div>
-                <Label htmlFor="website_url">Website</Label>
-                <Input
-                  id="website_url"
-                  value={formData.website_url}
-                  onChange={(e) => handleInputChange('website_url', e.target.value)}
+          <div>
+            <Label htmlFor="website_url">Website</Label>
+            <Input
+              id="website_url"
+              value={formData.website_url}
+              onChange={(e) => handleInputChange('website_url', e.target.value)}
                   placeholder="https://"
                 />
               </div>
@@ -420,8 +420,8 @@ const ProfileSettings = ({ profile, onBack, onUpdate }: ProfileSettingsProps) =>
                       id="pub-web"
                       checked={privacy.show_website_on_public_profile}
                       onCheckedChange={(v) => setPrivacy((p) => ({ ...p, show_website_on_public_profile: v }))}
-                    />
-                  </div>
+            />
+          </div>
                 </div>
               </div>
             </CardContent>
@@ -489,10 +489,10 @@ const ProfileSettings = ({ profile, onBack, onUpdate }: ProfileSettingsProps) =>
                   />
                 </div>
               ))}
-              <Button
+          <Button
                 type="button"
                 variant="secondary"
-                className="w-full"
+            className="w-full"
                 disabled={notifLoading}
                 onClick={() => void handleSaveNotifications()}
               >
@@ -541,9 +541,9 @@ const ProfileSettings = ({ profile, onBack, onUpdate }: ProfileSettingsProps) =>
                   </span>
                   <ExternalLink className="ml-auto h-4 w-4 opacity-50" />
                 </Link>
-              </Button>
-            </CardContent>
-          </Card>
+          </Button>
+        </CardContent>
+      </Card>
 
           <ProfileServiceVerificationBadges userId={profile.id} />
         </TabsContent>
