@@ -15,7 +15,7 @@ type Props = {
   /** Called with public URL after successful upload + server commit */
   onSuccess: (publicUrl: string) => void;
   /** Small circular button on top-right of avatar (Option A) */
-  variant: 'overlay' | 'inline';
+  variant: 'overlay' | 'inline' | 'picker-only';
   className?: string;
   disabled?: boolean;
   /** Lets parent show a full-avatar overlay while uploading (overlay variant). */
@@ -129,7 +129,7 @@ export const ProfileAvatarPhotoControls = forwardRef<ProfileAvatarPhotoControlsH
           }}
         />
       )}
-      {variant === 'overlay' ? (
+      {variant === 'picker-only' ? null : variant === 'overlay' ? (
         <button
           type="button"
           disabled={disabled || uploading}

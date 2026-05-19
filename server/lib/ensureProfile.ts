@@ -1,5 +1,11 @@
 import { storage } from '../storage';
 import type { Profile } from '@shared/schema';
+import { EmailService } from '../utils/emailService';
+
+function defaultUsernameFromEmail(email: string): string {
+  const local = email.split('@')[0] || 'user';
+  return local.replace(/[^a-zA-Z0-9._]/g, '_').slice(0, 30);
+}
 
 interface EnsureProfileInput {
   id: string;
@@ -37,4 +43,31 @@ export async function ensureProfile(input: EnsureProfileInput): Promise<Profile>
     console.error('[ensureProfile] Failed:', err);
     throw err;
   }
+}
+
+export async function ensureProfileDetailed(
+  input: EnsureProfileInput,
+): Promise<{ profile: Profile; created: boolean; hadExisting: boolean }> {
+  const existing = await storage.getProfile(input.id);
+  if (existing) {
+    return { profile: existing, created: false, hadExisting: true };
+  }
+
+  const username =
+    input.username?.trim() ||
+    (input.email ? defaultUsernameFromEmail(input.email) : `user_${input.id.slice(-6)}`);
+
+  const profile = await ensureProfile({
+    ...input,
+    username,
+  });
+
+  const created = !existing;
+  if (created && input.email) {
+    void EmailService.sendWelcomeEmail(input.email, username).catch((err) => {
+      console.warn('[ensureProfile] Welcome email failed (non-blocking):', err);
+    });
+  }
+
+  return { profile, created: true, hadExisting: false };
 }
