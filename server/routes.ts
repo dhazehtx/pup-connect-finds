@@ -118,6 +118,7 @@ import { isBlocked, blockedResponse, getBlockedUserIds } from "./lib/isBlocked";
 import { perUserRateLimit } from "./middleware/perUserRateLimit";
 import { getThumbUrlsForParents, attachThumbUrls } from "./lib/mediaHelpers";
 import { postgresErrorMeta } from "./lib/pgErrorMeta";
+import { ZodError } from "zod";
 
 async function cleanupParentMedia(parentType: string, parentId: string) {
   try {
@@ -1277,20 +1278,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/posts", sessionTimeout, requireNotSuspended, async (req, res) => {
+  app.post("/api/posts", requireAuth, requireNotSuspended, async (req, res) => {
+    const exposeDetail =
+      process.env.NODE_ENV !== "production" || process.env.DEBUG_API_ERRORS === "1";
     try {
-      const validatedData = insertPostSchema.parse(req.body);
+      const userId = req.user!.id;
+      const validatedData = insertPostSchema.parse({ ...req.body, user_id: userId });
       const post = await storage.createPost(validatedData);
-      debugApiLog("[PROOF:POSTS:CREATE]", { postId: post.id, userId: validatedData.user_id, ts: new Date().toISOString() });
-      
-      if (validatedData.user_id) {
-        await logPostAction(validatedData.user_id, 'create', post.id);
-      }
-      
+      debugApiLog("[PROOF:POSTS:CREATE]", { postId: post.id, userId, ts: new Date().toISOString() });
+
+      await logPostAction(userId, "create", post.id);
+
       res.json(post);
     } catch (error) {
       debugApiLog("[PROOF:POSTS:ERR]", { ts: new Date().toISOString(), error: String(error) });
-      res.status(500).json({ error: "POSTS_FAILED" });
+      if (error instanceof ZodError) {
+        return res.status(400).json({
+          error: "Invalid post data",
+          code: "POSTS_VALIDATION_FAILED",
+          ...(exposeDetail ? { detail: error.message } : {}),
+        });
+      }
+      const pg = postgresErrorMeta(error);
+      res.status(500).json({
+        error: "Failed to create post",
+        code: "POSTS_FAILED",
+        ...(exposeDetail ? { detail: error instanceof Error ? error.message : String(error), pg } : {}),
+      });
     }
   });
 
@@ -1323,7 +1337,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/comments", sessionTimeout, requireNotSuspended, perUserRateLimit('comments', 15), async (req, res) => {
+  app.post("/api/comments", requireAuth, requireNotSuspended, perUserRateLimit('comments', 15), async (req, res) => {
     try {
       const validatedData = insertCommentSchema.parse(req.body);
 

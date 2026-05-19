@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { parseApiErrorMessage } from '@/lib/parseApiError';
 
 interface UploadOptions {
   bucket: string;
@@ -70,25 +71,6 @@ function preflightCheck(
   }
 
   return { valid: true };
-}
-
-function parseApiErrorMessage(error: unknown): { message: string; code?: string } {
-  const raw = error instanceof Error ? error.message : String(error);
-  const codeFromErr = (error as { code?: string })?.code;
-  try {
-    const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[0]) as { error?: string; code?: string; detail?: string };
-      const parts = [parsed.error, parsed.detail].filter(Boolean);
-      return {
-        message: parts.join(' — ') || raw,
-        code: parsed.code || codeFromErr,
-      };
-    }
-  } catch {
-    /* ignore */
-  }
-  return { message: raw, code: codeFromErr };
 }
 
 export function useMediaUpload() {

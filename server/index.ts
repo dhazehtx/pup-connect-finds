@@ -113,12 +113,11 @@ app.use((req, res, next) => {
     const supabaseState = getSupabaseHealthSnapshot();
     if (supabaseState.mode === "degraded") {
       console.warn(
-        `[Startup] Skipping storage bucket ensure because Supabase is degraded. reason="${supabaseState.lastError || "unknown"}"`,
+        `[Startup] Supabase degraded (reason="${supabaseState.lastError || "unknown"}"); still attempting storage bucket ensure.`,
       );
-    } else {
-      await ensureProviderIdBucket();
-      await ensureMediaBuckets();
     }
+    await ensureProviderIdBucket();
+    await ensureMediaBuckets();
   } catch (error) {
     const supabaseState = getSupabaseHealthSnapshot();
     console.error(

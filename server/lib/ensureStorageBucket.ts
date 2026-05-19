@@ -153,11 +153,20 @@ async function ensureOneBucket(
 export async function ensureMediaBuckets(): Promise<void> {
   if (!supabaseAdmin) {
     console.warn('[Storage] Supabase admin not configured; skip media bucket ensure.');
+    for (const bucket of MEDIA_BUCKETS) {
+      console.warn(`[Storage] ${bucket.name} bucket: skipped (no admin client)`);
+    }
     return;
   }
 
   for (const bucket of MEDIA_BUCKETS) {
-    await ensureOneBucket(bucket.name, bucket.fileSizeLimit, bucket.allowedMimeTypes);
+    try {
+      await ensureOneBucket(bucket.name, bucket.fileSizeLimit, bucket.allowedMimeTypes);
+      console.log(`[Storage] ${bucket.name} bucket: ready`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error(`[Storage] ${bucket.name} bucket: error — ${msg}`);
+    }
   }
-  console.log('[Storage] Media buckets ready: avatars, posts, listings');
+  console.log('[Storage] Media bucket ensure finished (avatars, posts, listings)');
 }
