@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCreatePost } from '@/hooks/useCreatePost';
 import ImageCropper from '@/components/profile/ImageCropper';
+import { parseApiErrorMessage } from '@/lib/parseApiError';
 
 interface ModernPostCreatorProps {
   onClose: () => void;
@@ -117,9 +118,12 @@ const ModernPostCreator = ({ onClose, onPostCreated }: ModernPostCreatorProps) =
       onClose();
     } catch (error) {
       console.error('Error creating post:', error);
+      const parsed = parseApiErrorMessage(error);
       toast({
         title: 'Upload failed',
-        description: 'Failed to create your post. Please try again.',
+        description: parsed.code
+          ? `${parsed.message} (${parsed.code})`
+          : parsed.message || 'Failed to create your post. Please try again.',
         variant: 'destructive',
       });
     }

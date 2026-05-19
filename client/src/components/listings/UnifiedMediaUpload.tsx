@@ -28,28 +28,19 @@ const UnifiedMediaUpload = ({ onImagesChange, onVideoChange, listingId, classNam
     const imageFiles = files.filter((file) => file.type.startsWith('image/'));
     const videoFiles = files.filter((file) => file.type.startsWith('video/'));
 
+    if (videoFiles.length > 0) {
+      toast({
+        title: 'Photos only',
+        description: 'Listing media must be photos (JPEG, PNG, or WebP). Video is not supported yet.',
+        variant: 'destructive',
+      });
+      if (imageFiles.length === 0) return;
+    }
+
     if (imageUrls.length + imageFiles.length > 5) {
       toast({
         title: 'Too many files',
         description: 'You can upload up to 5 photos total.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (videoFiles.length > 1 || (videoUrl && videoFiles.length > 0)) {
-      toast({
-        title: 'Video limit exceeded',
-        description: 'You can upload only 1 video.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (videoFiles.some((file) => file.size > 50 * 1024 * 1024)) {
-      toast({
-        title: 'File too large',
-        description: 'Video must be smaller than 50MB',
         variant: 'destructive',
       });
       return;
@@ -78,39 +69,15 @@ const UnifiedMediaUpload = ({ onImagesChange, onVideoChange, listingId, classNam
         onImagesChange(updatedImageUrls);
       }
 
-      if (videoFiles.length > 0) {
-        const result = await upload(videoFiles[0], {
-          bucket: 'listings',
-          kind: 'listing',
-          parentId: listingId,
-        });
-        const url = result?.url || (result as { asset?: { publicUrl?: string } })?.asset?.publicUrl;
-        if (url) {
-          setVideoUrl(url);
-          onVideoChange(url);
-          uploadedCount += 1;
-        }
-      }
-
-      const attempted = imageFiles.length + videoFiles.length;
       if (uploadedCount > 0) {
         toast({
           title: 'Media uploaded',
           description: `${uploadedCount} file(s) ready for your listing`,
         });
-      } else if (attempted > 0) {
-        toast({
-          title: 'Upload failed',
-          description: 'Could not save media. Check your connection and try again.',
-          variant: 'destructive',
-        });
       }
+      // useMediaUpload already shows a detailed toast on sign/commit failure
     } catch {
-      toast({
-        title: 'Upload failed',
-        description: 'Failed to upload media. Please try again.',
-        variant: 'destructive',
-      });
+      // useMediaUpload already toasted; avoid duplicate generic message
     }
   };
 
@@ -134,14 +101,14 @@ const UnifiedMediaUpload = ({ onImagesChange, onVideoChange, listingId, classNam
           <Camera className="h-4 w-4 text-slate-700" />
           <label className="text-sm font-medium text-slate-900">Upload Media</label>
         </div>
-        <p className="text-xs text-slate-600">Add up to 5 photos or 1 video to showcase your pup</p>
+        <p className="text-xs text-slate-600">Add up to 5 photos to showcase your pup</p>
 
         <div className="rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 p-6">
           <input
             ref={fileInputRef}
             type="file"
             multiple
-            accept=".jpg,.jpeg,.png,.webp,.mp4,video/*,image/*"
+            accept=".jpg,.jpeg,.png,.webp,image/*"
             onChange={handleFileUpload}
             className="sr-only"
             id="unified-media-upload"
@@ -156,9 +123,9 @@ const UnifiedMediaUpload = ({ onImagesChange, onVideoChange, listingId, classNam
               className="border-2 border-slate-400 bg-white font-semibold text-slate-900 hover:bg-slate-100"
             >
               <Upload className="mr-2 h-4 w-4" />
-              {uploading ? 'Uploading…' : hasMedia ? 'Add more photos or video' : 'Choose photos or video'}
+              {uploading ? 'Uploading…' : hasMedia ? 'Add more photos' : 'Choose photos'}
             </Button>
-            <p className="text-center text-xs text-slate-500">JPEG, PNG, WebP, or MP4</p>
+            <p className="text-center text-xs text-slate-500">JPEG, PNG, or WebP</p>
           </div>
         </div>
 

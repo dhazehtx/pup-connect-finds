@@ -22,16 +22,17 @@ export function useCreatePost() {
         throw new Error('Failed to upload media');
       }
 
+      const trimmedCaption = caption.trim();
       const post = await apiRequest('/api/posts', {
         method: 'POST',
         body: {
           user_id: userId,
-          content: caption.trim() || 'Post',
-          caption: caption.trim() || null,
-          image_url: postType === 'photo' ? url : null,
-          video_url: postType === 'video' ? url : null,
-          images: postType === 'photo' ? [url] : undefined,
+          content: trimmedCaption || 'Post',
+          ...(trimmedCaption ? { caption: trimmedCaption } : {}),
           post_type: postType === 'video' ? 'video' : 'image',
+          ...(postType === 'photo'
+            ? { image_url: url, images: [url] }
+            : { video_url: url }),
         },
       });
 
