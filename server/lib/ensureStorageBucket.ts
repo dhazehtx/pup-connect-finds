@@ -81,3 +81,83 @@ export async function ensureProviderIdBucket(): Promise<string> {
 export function getProviderIdBucketName(): string {
   return BUCKET_NAME;
 }
+
+const MEDIA_BUCKETS: Array<{
+  name: string;
+  fileSizeLimit: number;
+  allowedMimeTypes: string[];
+}> = [
+  {
+    name: 'avatars',
+    fileSizeLimit: 5 * 1024 * 1024,
+    allowedMimeTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'],
+  },
+  {
+    name: 'posts',
+    fileSizeLimit: 100 * 1024 * 1024,
+    allowedMimeTypes: [
+      'image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif',
+      'video/mp4', 'video/quicktime', 'video/webm',
+    ],
+  },
+  {
+    name: 'listings',
+    fileSizeLimit: 10 * 1024 * 1024,
+    allowedMimeTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'],
+  },
+];
+
+async function ensureOneBucket(
+  bucketName: string,
+  fileSizeLimit: number,
+  allowedMimeTypes: string[],
+): Promise<void> {
+  if (!supabaseAdmin) return;
+
+  const { data: buckets, error: listError } = await runSupabaseWithRetry(
+    () => supabaseAdmin!.storage.listBuckets(),
+    { opName: 'storage.listBuckets' },
+  );
+
+  if (listError) {
+    console.error(`[Storage] Error listing buckets for ${bucketName}:`, listError);
+    throw new Error('Failed to list storage buckets');
+  }
+
+  const bucketConfig = { public: true, fileSizeLimit, allowedMimeTypes };
+  const exists = buckets?.some((b) => b.name === bucketName);
+
+  if (!exists) {
+    console.log(`[Storage] Creating bucket: ${bucketName}`);
+    const { error: createError } = await runSupabaseWithRetry(
+      () => supabaseAdmin!.storage.createBucket(bucketName, bucketConfig),
+      { opName: `storage.createBucket.${bucketName}` },
+    );
+    if (createError) {
+      console.error(`[Storage] Error creating bucket ${bucketName}:`, createError);
+      throw new Error(`Failed to create storage bucket ${bucketName}: ${createError.message}`);
+    }
+    console.log(`[Storage] Bucket created: ${bucketName}`);
+  } else {
+    const { error: updateError } = await runSupabaseWithRetry(
+      () => supabaseAdmin!.storage.updateBucket(bucketName, bucketConfig),
+      { opName: `storage.updateBucket.${bucketName}` },
+    );
+    if (updateError) {
+      console.warn(`[Storage] Could not update bucket ${bucketName}:`, updateError.message);
+    }
+  }
+}
+
+/** Ensures avatars, posts, and listings storage buckets exist (user media uploads). */
+export async function ensureMediaBuckets(): Promise<void> {
+  if (!supabaseAdmin) {
+    console.warn('[Storage] Supabase admin not configured; skip media bucket ensure.');
+    return;
+  }
+
+  for (const bucket of MEDIA_BUCKETS) {
+    await ensureOneBucket(bucket.name, bucket.fileSizeLimit, bucket.allowedMimeTypes);
+  }
+  console.log('[Storage] Media buckets ready: avatars, posts, listings');
+}

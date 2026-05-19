@@ -6,7 +6,7 @@ import { randomUUID } from "node:crypto";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { initializeSentry, Sentry, captureError } from "./utils/sentry";
-import { ensureProviderIdBucket } from "./lib/ensureStorageBucket";
+import { ensureProviderIdBucket, ensureMediaBuckets } from "./lib/ensureStorageBucket";
 import {
   runStartupSupabaseHealthCheck,
   startSupabaseHealthMonitor,
@@ -117,6 +117,7 @@ app.use((req, res, next) => {
       );
     } else {
       await ensureProviderIdBucket();
+      await ensureMediaBuckets();
     }
   } catch (error) {
     const supabaseState = getSupabaseHealthSnapshot();

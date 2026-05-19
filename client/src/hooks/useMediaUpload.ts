@@ -72,6 +72,25 @@ function preflightCheck(
   return { valid: true };
 }
 
+function parseApiErrorMessage(error: unknown): { message: string; code?: string } {
+  const raw = error instanceof Error ? error.message : String(error);
+  const codeFromErr = (error as { code?: string })?.code;
+  try {
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]) as { error?: string; code?: string; detail?: string };
+      const parts = [parsed.error, parsed.detail].filter(Boolean);
+      return {
+        message: parts.join(' — ') || raw,
+        code: parsed.code || codeFromErr,
+      };
+    }
+  } catch {
+    /* ignore */
+  }
+  return { message: raw, code: codeFromErr };
+}
+
 export function useMediaUpload() {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -134,12 +153,24 @@ export function useMediaUpload() {
             code?: string;
           };
           if (!signData.ok) {
-            if (signData.code === 'MEDIA_INVALID_TYPE' || signData.code === 'MEDIA_INVALID' || signData.code === 'MEDIA_TOO_LARGE' || signData.code === 'MEDIA_TOO_MANY') {
-              console.log('[PROOF:MEDIA:TOAST]', signData.code);
-              toast({ title: 'Upload rejected', description: signData.error, variant: 'destructive' });
+            const rejectCode = signData.code || 'MEDIA_SIGN_REJECTED';
+            if (
+              rejectCode === 'MEDIA_INVALID_TYPE' ||
+              rejectCode === 'MEDIA_INVALID' ||
+              rejectCode === 'MEDIA_TOO_LARGE' ||
+              rejectCode === 'MEDIA_TOO_MANY' ||
+              rejectCode === 'AUTH_REQUIRED' ||
+              rejectCode === 'SUPABASE_DEGRADED'
+            ) {
+              console.log('[PROOF:MEDIA:TOAST]', rejectCode);
+              toast({
+                title: 'Upload rejected',
+                description: signData.error || rejectCode,
+                variant: 'destructive',
+              });
               return null;
             }
-            throw new Error(signData.error || 'Failed to get upload URL');
+            throw new Error(signData.error || `Failed to get upload URL (${rejectCode})`);
           }
           const uploadUrl = signData.uploadUrl;
           const signedPath = signData.path;
@@ -185,7 +216,14 @@ export function useMediaUpload() {
               kind: options.kind,
               parentId: options.parentId,
             },
-          })) as UploadResult;
+          })) as UploadResult & { ok?: boolean; error?: string; code?: string };
+
+          if (commitData.ok === false || (!commitData.url && !commitData.asset?.publicUrl)) {
+            throw new Error(
+              commitData.error || commitData.code || 'Failed to save media metadata',
+            );
+          }
+
           setProgress(100);
 
           console.log('[PROOF:UPLOAD]', JSON.stringify({ parentType: options.kind, parentId: options.parentId || null, filename: file.name, pct: 100 }));
@@ -200,9 +238,12 @@ export function useMediaUpload() {
         }
       }
 
+      const parsed = parseApiErrorMessage(lastError);
       toast({
         title: 'Upload failed',
-        description: lastError?.message || 'Something went wrong during upload. Please try again.',
+        description: parsed.code
+          ? `${parsed.message} (${parsed.code})`
+          : parsed.message || 'Something went wrong during upload. Please try again.',
         variant: 'destructive',
       });
       return null;

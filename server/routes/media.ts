@@ -2,7 +2,7 @@ import { debugApiLog, debugApiWarn } from '../lib/debugApi';
 import { Router } from "express";
 import { db } from "../db";
 import { mediaAssets, profiles, posts, dogListings } from "@shared/schema";
-import { eq, and, isNull, notInArray, sql } from "drizzle-orm";
+import { eq, and, ne, or, isNull, inArray, sql } from "drizzle-orm";
 import { supabase } from "../lib/supabase";
 import { validateMediaUpload, ALL_ALLOWED_TYPES } from "../lib/mediaHelpers";
 import { isSupabaseDegraded, runSupabaseWithRetry } from "../lib/supabaseResilience";
@@ -74,7 +74,10 @@ router.post("/sign", async (req, res) => {
 
     if (error) {
       debugApiLog('[PROOF:MEDIA:SIGN:ERR]', JSON.stringify({ userId, bucket, error: error.message, ts: Date.now() }));
-      return res.status(500).json({ error: "Failed to create upload URL" });
+      return res.status(500).json({
+        error: error.message || "Failed to create upload URL",
+        code: "MEDIA_SIGN_FAILED",
+      });
     }
 
     debugApiLog('[PROOF:MEDIA:SIGN]', JSON.stringify({ actorUserId: userId, bucket, path, kind, ts: Date.now() }));
@@ -136,52 +139,39 @@ router.post("/commit", async (req, res) => {
       })
       .returning();
 
-    let thumbAsset = null;
-    if (mimeType && mimeType.startsWith('image/')) {
-      const thumbPath = path.replace(/\.([^.]+)$/, '_thumb.$1');
-      const { data: thumbUrlData } = supabase.storage.from(bucket).getPublicUrl(thumbPath);
-      const thumbPublicUrl = thumbUrlData?.publicUrl || (publicUrl ? publicUrl + '?width=480' : null);
-
-      [thumbAsset] = await db
-        .insert(mediaAssets)
-        .values({
-          owner_id: userId,
-          parent_type: parentType,
-          parent_id: parentId || null,
-          bucket,
-          path: thumbPath,
-          mime_type: mimeType,
-          size_bytes: null,
-          width: 480,
-          height: null,
-          variant: 'thumb',
-          public_url: thumbPublicUrl,
-          is_thumb: true,
-          parent_asset_id: asset.id,
-        })
-        .returning();
-
-      debugApiLog('[PROOF:MEDIA:THUMB]', JSON.stringify({ parentType: parentType, parentId: parentId || null, originalPath: path, thumbPath: thumbPath, originalId: asset.id, thumbId: thumbAsset.id, ts: Date.now() }));
-    }
+    const thumbUrl =
+      mimeType?.startsWith('image/') && publicUrl ? `${publicUrl}?width=480` : null;
 
     if (kind === 'avatar' && publicUrl) {
-      const oldAvatarAssets = await db.select().from(mediaAssets).where(
-        and(
-          eq(mediaAssets.owner_id, userId),
-          eq(mediaAssets.parent_type, 'avatar'),
-          sql`${mediaAssets.id} != ${asset.id}`,
-          sql`COALESCE(${mediaAssets.parent_asset_id}::text, '') != ${asset.id}`
-        )
-      );
-      if (oldAvatarAssets.length > 0) {
-        const oldPaths = oldAvatarAssets.map(a => a.path);
-        const oldBuckets = Array.from(new Set(oldAvatarAssets.map(a => a.bucket)));
-        for (const b of oldBuckets) {
-          await supabase.storage.from(b).remove(oldPaths.filter(p => oldAvatarAssets.find(a => a.path === p && a.bucket === b)));
+      try {
+        const oldAvatarAssets = await db.select().from(mediaAssets).where(
+          and(
+            eq(mediaAssets.owner_id, userId),
+            eq(mediaAssets.parent_type, 'avatar'),
+            ne(mediaAssets.id, asset.id),
+            or(
+              isNull(mediaAssets.parent_asset_id),
+              ne(mediaAssets.parent_asset_id, asset.id),
+            ),
+          ),
+        );
+        if (oldAvatarAssets.length > 0) {
+          const oldPaths = oldAvatarAssets.map((a) => a.path);
+          const oldBuckets = Array.from(new Set(oldAvatarAssets.map((a) => a.bucket)));
+          for (const b of oldBuckets) {
+            await supabase.storage.from(b).remove(
+              oldPaths.filter((p) => oldAvatarAssets.find((a) => a.path === p && a.bucket === b)),
+            );
+          }
+          const oldIds = oldAvatarAssets.map((a) => a.id);
+          if (oldIds.length > 0) {
+            await db.delete(mediaAssets).where(inArray(mediaAssets.id, oldIds));
+          }
+          debugApiLog('[PROOF:MEDIA:DELETE]', JSON.stringify({ parentType: 'avatar', parentId: userId, deletedCount: oldAvatarAssets.length, ts: Date.now() }));
         }
-        const oldIds = oldAvatarAssets.map(a => a.id);
-        await db.delete(mediaAssets).where(sql`${mediaAssets.id} = ANY(${oldIds})`);
-        debugApiLog('[PROOF:MEDIA:DELETE]', JSON.stringify({ parentType: 'avatar', parentId: userId, deletedCount: oldAvatarAssets.length, ts: Date.now() }));
+      } catch (cleanupErr: unknown) {
+        const msg = cleanupErr instanceof Error ? cleanupErr.message : String(cleanupErr);
+        console.warn('[MEDIA:COMMIT] avatar cleanup failed (continuing):', msg);
       }
       await db.update(profiles).set({ avatar_url: publicUrl }).where(eq(profiles.id, userId));
     }
@@ -214,7 +204,7 @@ router.post("/commit", async (req, res) => {
       kind,
       parentId: parentId || null,
       variant: 'original',
-      hasThumb: !!thumbAsset,
+      hasThumb: Boolean(thumbUrl),
       ts: Date.now()
     }));
 
@@ -229,7 +219,7 @@ router.post("/commit", async (req, res) => {
         parentType: asset.parent_type,
         parentId: asset.parent_id,
       },
-      thumbUrl: thumbAsset?.public_url || null,
+      thumbUrl,
       assetId: asset.id,
       url: publicUrl,
       path,
@@ -294,10 +284,8 @@ router.delete("/:assetId", async (req, res) => {
     }
 
     if (thumbs.length > 0) {
-      const thumbIds = thumbs.map(t => t.id);
-      await db.delete(mediaAssets).where(
-        sql`${mediaAssets.id} = ANY(${thumbIds})`
-      );
+      const thumbIds = thumbs.map((t) => t.id);
+      await db.delete(mediaAssets).where(inArray(mediaAssets.id, thumbIds));
     }
     await db.delete(mediaAssets).where(eq(mediaAssets.id, assetId));
 
@@ -337,10 +325,11 @@ router.post("/cleanup-parent", async (req, res) => {
       return res.json({ ok: true, deleted: 0 });
     }
 
-    const allAssetIds = assets.map(a => a.id);
-    const thumbs = await db.select().from(mediaAssets).where(
-      sql`${mediaAssets.parent_asset_id} = ANY(${allAssetIds})`
-    );
+    const allAssetIds = assets.map((a) => a.id);
+    const thumbs =
+      allAssetIds.length > 0
+        ? await db.select().from(mediaAssets).where(inArray(mediaAssets.parent_asset_id, allAssetIds))
+        : [];
 
     const allPaths = [...assets.map(a => a.path), ...thumbs.map(t => t.path)];
     const buckets = Array.from(new Set(assets.map(a => a.bucket)));
@@ -352,10 +341,8 @@ router.post("/cleanup-parent", async (req, res) => {
       }
     }
 
-    if (thumbs.length > 0) {
-      await db.delete(mediaAssets).where(
-        sql`${mediaAssets.parent_asset_id} = ANY(${allAssetIds})`
-      );
+    if (thumbs.length > 0 && allAssetIds.length > 0) {
+      await db.delete(mediaAssets).where(inArray(mediaAssets.parent_asset_id, allAssetIds));
     }
     await db.delete(mediaAssets).where(
       and(
@@ -405,8 +392,10 @@ router.post("/sweep-orphans", async (req, res) => {
       const allPaths = [asset.path, ...thumbs.map(t => t.path)];
       await supabase.storage.from(asset.bucket).remove(allPaths);
       if (thumbs.length > 0) {
-        const thumbIds = thumbs.map(t => t.id);
-        await db.delete(mediaAssets).where(sql`${mediaAssets.id} = ANY(${thumbIds})`);
+        const thumbIds = thumbs.map((t) => t.id);
+        if (thumbIds.length > 0) {
+          await db.delete(mediaAssets).where(inArray(mediaAssets.id, thumbIds));
+        }
       }
       await db.delete(mediaAssets).where(eq(mediaAssets.id, asset.id));
       return 1 + thumbs.length;

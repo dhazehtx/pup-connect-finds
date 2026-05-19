@@ -126,10 +126,11 @@ async function cleanupParentMedia(parentType: string, parentId: string) {
     );
     if (assets.length === 0) return;
 
-    const assetIds = assets.map(a => a.id);
-    const thumbs = await db.select().from(mediaAssets).where(
-      sql`${mediaAssets.parent_asset_id} = ANY(${assetIds})`
-    );
+    const assetIds = assets.map((a) => a.id);
+    const thumbs =
+      assetIds.length > 0
+        ? await db.select().from(mediaAssets).where(inArray(mediaAssets.parent_asset_id, assetIds))
+        : [];
 
     const allPaths = [...assets.map(a => a.path), ...thumbs.map(t => t.path)];
     const buckets = Array.from(new Set(assets.map(a => a.bucket)));
@@ -144,10 +145,8 @@ async function cleanupParentMedia(parentType: string, parentId: string) {
       }
     }
 
-    if (thumbs.length > 0) {
-      await db.delete(mediaAssets).where(
-        sql`${mediaAssets.parent_asset_id} = ANY(${assetIds})`
-      );
+    if (thumbs.length > 0 && assetIds.length > 0) {
+      await db.delete(mediaAssets).where(inArray(mediaAssets.parent_asset_id, assetIds));
     }
     await db.delete(mediaAssets).where(
       and(eq(mediaAssets.parent_type, parentType), eq(mediaAssets.parent_id, parentId))
