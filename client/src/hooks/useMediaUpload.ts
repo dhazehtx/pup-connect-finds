@@ -50,8 +50,12 @@ function preflightCheck(
   file: File,
   kind: 'avatar' | 'post' | 'listing'
 ): { valid: boolean; code?: string; message?: string } {
+  if (!file.type || file.size === 0) {
+    return { valid: false, code: 'MEDIA_EMPTY_FILE', message: 'The image file is empty. Try choosing the photo again.' };
+  }
+
   if (!ALL_ALLOWED_TYPES.includes(file.type)) {
-    return { valid: false, code: 'MEDIA_INVALID_TYPE', message: `Unsupported file type: ${file.type}. Use JPEG, PNG, WebP, GIF, or MP4.` };
+    return { valid: false, code: 'MEDIA_INVALID_TYPE', message: `Unsupported file type: ${file.type || 'unknown'}. Use JPEG, PNG, WebP, GIF, or MP4.` };
   }
 
   const isVideo = ALLOWED_VIDEO_TYPES.includes(file.type);
@@ -221,14 +225,17 @@ export function useMediaUpload() {
       }
 
       const parsed = parseApiErrorMessage(lastError);
+      const description = parsed.code
+        ? `${parsed.message} (${parsed.code})`
+        : parsed.message || 'Something went wrong during upload. Please try again.';
       toast({
         title: 'Upload failed',
-        description: parsed.code
-          ? `${parsed.message} (${parsed.code})`
-          : parsed.message || 'Something went wrong during upload. Please try again.',
+        description,
         variant: 'destructive',
       });
-      return null;
+      const err = lastError instanceof Error ? lastError : new Error(description);
+      (err as Error & { code?: string }).code = parsed.code;
+      throw err;
     } finally {
       abortRef.current = null;
       setUploading(false);

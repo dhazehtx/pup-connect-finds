@@ -108,10 +108,11 @@ const ImageCropper = ({
 
   const handleCropComplete = async () => {
     const croppedImage = await getCroppedImg();
-    if (croppedImage) {
-      onCropComplete(croppedImage);
-      onClose();
+    if (!croppedImage || croppedImage.size === 0) {
+      return;
     }
+    onCropComplete(croppedImage);
+    onClose();
   };
 
   return (

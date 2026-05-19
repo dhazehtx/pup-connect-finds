@@ -11,6 +11,39 @@ import { postgresErrorMeta } from "../lib/pgErrorMeta";
 const router = Router();
 
 const ALLOWED_BUCKETS = ['avatars', 'posts', 'listings', 'provider-id-docs'];
+const MEDIA_UPLOAD_BUCKETS = ['avatars', 'posts', 'listings'] as const;
+
+function isBucketMissingError(message: string): boolean {
+  const m = message.toLowerCase();
+  return (
+    m.includes('bucket not found') ||
+    m.includes('bucket does not exist') ||
+    (m.includes('not found') && m.includes('bucket'))
+  );
+}
+
+async function createSignedUploadUrlWithEnsure(bucket: string, path: string) {
+  let result = await runSupabaseWithRetry(
+    () => supabase!.storage.from(bucket).createSignedUploadUrl(path),
+    { opName: 'media.sign.createSignedUploadUrl' },
+  );
+
+  if (
+    result.error &&
+    MEDIA_UPLOAD_BUCKETS.includes(bucket as (typeof MEDIA_UPLOAD_BUCKETS)[number]) &&
+    isBucketMissingError(result.error.message)
+  ) {
+    debugApiLog('[PROOF:MEDIA:SIGN:ENSURE]', JSON.stringify({ bucket, path, ts: Date.now() }));
+    const { ensureMediaBuckets } = await import('../lib/ensureStorageBucket');
+    await ensureMediaBuckets();
+    result = await runSupabaseWithRetry(
+      () => supabase!.storage.from(bucket).createSignedUploadUrl(path),
+      { opName: 'media.sign.createSignedUploadUrl.retry' },
+    );
+  }
+
+  return result;
+}
 
 function requireMediaSupabase(res: import("express").Response): boolean {
   if (!supabase) {
@@ -67,16 +100,15 @@ router.post("/sign", async (req, res) => {
     const uniqueName = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
     const path = `${kind}/${uniqueName}`;
 
-    const { data, error } = await runSupabaseWithRetry(
-      () => supabase.storage.from(bucket).createSignedUploadUrl(path),
-      { opName: "media.sign.createSignedUploadUrl" },
-    );
+    const { data, error } = await createSignedUploadUrlWithEnsure(bucket, path);
 
     if (error) {
       debugApiLog('[PROOF:MEDIA:SIGN:ERR]', JSON.stringify({ userId, bucket, error: error.message, ts: Date.now() }));
+      const code = isBucketMissingError(error.message) ? 'MEDIA_BUCKET_NOT_FOUND' : 'MEDIA_SIGN_FAILED';
       return res.status(500).json({
         error: error.message || "Failed to create upload URL",
-        code: "MEDIA_SIGN_FAILED",
+        code,
+        bucket,
       });
     }
 
