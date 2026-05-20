@@ -269,6 +269,7 @@ const Auth = () => {
                 <Input
                   type="email"
                   placeholder="Email"
+                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className={`h-12 rounded-lg border-2 bg-white px-4 text-black placeholder:text-gray-500 focus:ring-2 focus:ring-opacity-20 ${errors.email ? 'border-red-500' : ''}`}
@@ -286,6 +287,7 @@ const Auth = () => {
                 <Input
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Password"
+                  autoComplete={activeTab === 'signup' ? 'new-password' : 'current-password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className={`h-12 rounded-lg border-2 bg-white px-4 pr-12 text-black placeholder:text-gray-500 focus:ring-2 focus:ring-opacity-20 ${errors.password ? 'border-red-500' : ''}`}

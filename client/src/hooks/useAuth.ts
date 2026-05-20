@@ -39,9 +39,12 @@ export const useAuthState = () => {
     try {
       const redirectUrl = `${window.location.origin}/`;
       
+      const normalizedEmail = email.trim().toLowerCase();
+      const trimmedPassword = password.trim();
+
       const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
+        email: normalizedEmail,
+        password: trimmedPassword,
         options: {
           emailRedirectTo: redirectUrl,
           data: userData
@@ -84,9 +87,12 @@ export const useAuthState = () => {
 
   const signIn = async (email: string, password: string) => {
     try {
+      const normalizedEmail = email.trim().toLowerCase();
+      const trimmedPassword = password.trim();
+
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
+        email: normalizedEmail,
+        password: trimmedPassword,
       });
 
       if (error) throw error;
@@ -102,7 +108,8 @@ export const useAuthState = () => {
       
       let errorMessage = 'Sign in failed';
       if (error.message?.includes('Invalid login credentials')) {
-        errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+        errorMessage =
+          'Invalid email or password. If this works in Safari, retype your password in Chrome or clear saved passwords for this site.';
       } else if (error.message?.includes('Email not confirmed')) {
         errorMessage = 'Please check your email and click the confirmation link before signing in.';
       } else if (error.message?.includes('Too many requests')) {

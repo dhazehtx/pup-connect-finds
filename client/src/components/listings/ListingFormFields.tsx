@@ -296,8 +296,9 @@ const ListingFormFields = ({ form }: ListingFormFieldsProps) => {
                 </div>
                 <FormControl>
                   <Switch
-                    checked={field.value}
+                    checked={field.value ?? false}
                     onCheckedChange={field.onChange}
+                    className="data-[state=checked]:bg-[#2C3EDC]"
                   />
                 </FormControl>
               </FormItem>
@@ -317,8 +318,9 @@ const ListingFormFields = ({ form }: ListingFormFieldsProps) => {
                 </div>
                 <FormControl>
                   <Switch
-                    checked={field.value}
+                    checked={field.value ?? false}
                     onCheckedChange={field.onChange}
+                    className="data-[state=checked]:bg-[#2C3EDC]"
                   />
                 </FormControl>
               </FormItem>
@@ -345,8 +347,9 @@ const ListingFormFields = ({ form }: ListingFormFieldsProps) => {
                 </div>
                 <FormControl>
                   <Switch
-                    checked={field.value}
+                    checked={field.value ?? false}
                     onCheckedChange={field.onChange}
+                    className="data-[state=checked]:bg-[#2C3EDC]"
                   />
                 </FormControl>
               </FormItem>
@@ -366,8 +369,9 @@ const ListingFormFields = ({ form }: ListingFormFieldsProps) => {
                 </div>
                 <FormControl>
                   <Switch
-                    checked={field.value}
+                    checked={field.value ?? false}
                     onCheckedChange={field.onChange}
+                    className="data-[state=checked]:bg-[#2C3EDC]"
                   />
                 </FormControl>
               </FormItem>
@@ -394,8 +398,9 @@ const ListingFormFields = ({ form }: ListingFormFieldsProps) => {
                 </div>
                 <FormControl>
                   <Switch
-                    checked={field.value}
+                    checked={field.value ?? false}
                     onCheckedChange={field.onChange}
+                    className="data-[state=checked]:bg-[#2C3EDC]"
                   />
                 </FormControl>
               </FormItem>
@@ -415,8 +420,9 @@ const ListingFormFields = ({ form }: ListingFormFieldsProps) => {
                 </div>
                 <FormControl>
                   <Switch
-                    checked={field.value}
+                    checked={field.value ?? false}
                     onCheckedChange={field.onChange}
+                    className="data-[state=checked]:bg-[#2C3EDC]"
                   />
                 </FormControl>
               </FormItem>
@@ -436,8 +442,9 @@ const ListingFormFields = ({ form }: ListingFormFieldsProps) => {
                 </div>
                 <FormControl>
                   <Switch
-                    checked={field.value}
+                    checked={field.value ?? false}
                     onCheckedChange={field.onChange}
+                    className="data-[state=checked]:bg-[#2C3EDC]"
                   />
                 </FormControl>
               </FormItem>

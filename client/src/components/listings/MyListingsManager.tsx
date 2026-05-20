@@ -103,12 +103,19 @@ const MyListingsManager = () => {
           <Card key={listing.id} className="hover:shadow-md transition-shadow">
             <CardContent className="p-4">
               <div className="flex gap-4">
-                {listing.image_url && (
+                {(listing.image_url || listing.images?.[0]) ? (
                   <img
-                    src={listing.image_url}
+                    src={listing.image_url || listing.images?.[0]}
                     alt={listing.dog_name}
                     className="w-24 h-24 rounded-lg object-cover flex-shrink-0"
                   />
+                ) : (
+                  <div
+                    className="w-24 h-24 rounded-lg bg-slate-100 flex-shrink-0 flex items-center justify-center text-slate-400 text-xs"
+                    aria-hidden
+                  >
+                    No photo
+                  </div>
                 )}
                 
                 <div className="flex-1 min-w-0">

@@ -18,24 +18,48 @@ function isBucketMissingError(message: string): boolean {
   return (
     m.includes('bucket not found') ||
     m.includes('bucket does not exist') ||
-    (m.includes('not found') && m.includes('bucket'))
+    m.includes('related resource does not exist') ||
+    (m.includes('not found') && m.includes('bucket')) ||
+    (m.includes('does not exist') && !m.includes('object'))
   );
 }
 
+function signErrorCode(message: string): string {
+  return isBucketMissingError(message) ? 'MEDIA_BUCKET_NOT_FOUND' : 'MEDIA_SIGN_FAILED';
+}
+
 async function createSignedUploadUrlWithEnsure(bucket: string, path: string) {
+  const isMediaBucket = MEDIA_UPLOAD_BUCKETS.includes(bucket as (typeof MEDIA_UPLOAD_BUCKETS)[number]);
+
+  if (isMediaBucket) {
+    try {
+      const { ensureMediaBucketByName } = await import('../lib/ensureStorageBucket');
+      await ensureMediaBucketByName(bucket);
+    } catch (ensureErr: unknown) {
+      const msg = ensureErr instanceof Error ? ensureErr.message : String(ensureErr);
+      debugApiWarn('[MEDIA:SIGN:ENSURE:WARN]', JSON.stringify({ bucket, error: msg, ts: Date.now() }));
+    }
+  }
+
   let result = await runSupabaseWithRetry(
     () => supabase!.storage.from(bucket).createSignedUploadUrl(path),
     { opName: 'media.sign.createSignedUploadUrl' },
   );
 
-  if (
-    result.error &&
-    MEDIA_UPLOAD_BUCKETS.includes(bucket as (typeof MEDIA_UPLOAD_BUCKETS)[number]) &&
-    isBucketMissingError(result.error.message)
-  ) {
-    debugApiLog('[PROOF:MEDIA:SIGN:ENSURE]', JSON.stringify({ bucket, path, ts: Date.now() }));
-    const { ensureMediaBuckets } = await import('../lib/ensureStorageBucket');
-    await ensureMediaBuckets();
+  if (result.error && isMediaBucket) {
+    debugApiLog('[PROOF:MEDIA:SIGN:ENSURE]', JSON.stringify({
+      bucket,
+      path,
+      error: result.error.message,
+      ts: Date.now(),
+    }));
+    try {
+      const { ensureMediaBuckets } = await import('../lib/ensureStorageBucket');
+      await ensureMediaBuckets();
+    } catch (ensureErr: unknown) {
+      const msg = ensureErr instanceof Error ? ensureErr.message : String(ensureErr);
+      debugApiWarn('[MEDIA:SIGN:ENSURE:RETRY:WARN]', JSON.stringify({ bucket, error: msg, ts: Date.now() }));
+    }
     result = await runSupabaseWithRetry(
       () => supabase!.storage.from(bucket).createSignedUploadUrl(path),
       { opName: 'media.sign.createSignedUploadUrl.retry' },
@@ -104,9 +128,13 @@ router.post("/sign", async (req, res) => {
 
     if (error) {
       debugApiLog('[PROOF:MEDIA:SIGN:ERR]', JSON.stringify({ userId, bucket, error: error.message, ts: Date.now() }));
-      const code = isBucketMissingError(error.message) ? 'MEDIA_BUCKET_NOT_FOUND' : 'MEDIA_SIGN_FAILED';
+      const code = signErrorCode(error.message);
+      const userMessage =
+        code === 'MEDIA_BUCKET_NOT_FOUND'
+          ? `Storage bucket "${bucket}" is not ready. Please try again in a minute.`
+          : error.message || 'Failed to create upload URL';
       return res.status(500).json({
-        error: error.message || "Failed to create upload URL",
+        error: userMessage,
         code,
         bucket,
       });

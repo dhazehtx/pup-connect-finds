@@ -91,6 +91,7 @@ const CreateListingForm = ({ onSuccess, className = "" }: CreateListingFormProps
         status: 'active', // Ensure status is set for backward compatibility
         listing_status: data.listing_status,
         images: data.images || [],
+        image_url: data.images?.[0] ?? null,
         video_url: data.video_url || '',
       };
       

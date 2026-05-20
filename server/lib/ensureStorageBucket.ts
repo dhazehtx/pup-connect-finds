@@ -149,6 +149,15 @@ async function ensureOneBucket(
   }
 }
 
+/** Ensures a single media bucket by name (avatars | posts | listings). */
+export async function ensureMediaBucketByName(bucketName: string): Promise<void> {
+  const config = MEDIA_BUCKETS.find((b) => b.name === bucketName);
+  if (!config) {
+    throw new Error(`Unknown media bucket: ${bucketName}`);
+  }
+  await ensureOneBucket(config.name, config.fileSizeLimit, config.allowedMimeTypes);
+}
+
 /** Ensures avatars, posts, and listings storage buckets exist (user media uploads). */
 export async function ensureMediaBuckets(): Promise<void> {
   if (!supabaseAdmin) {

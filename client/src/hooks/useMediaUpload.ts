@@ -46,19 +46,43 @@ const LIMITS = {
   listing: { maxBytes: 10 * 1024 * 1024, label: '10MB', maxCount: 20 },
 } as const;
 
+const EXT_MIME: Record<string, string> = {
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
+  gif: 'image/gif',
+  heic: 'image/heic',
+  heif: 'image/heif',
+  mp4: 'video/mp4',
+  mov: 'video/quicktime',
+  webm: 'video/webm',
+};
+
+function inferMimeFromFile(file: File): string {
+  if (file.type) return file.type;
+  const ext = file.name.split('.').pop()?.toLowerCase() || '';
+  return EXT_MIME[ext] || '';
+}
+
 function preflightCheck(
   file: File,
-  kind: 'avatar' | 'post' | 'listing'
+  kind: 'avatar' | 'post' | 'listing',
+  mimeType: string,
 ): { valid: boolean; code?: string; message?: string } {
-  if (!file.type || file.size === 0) {
-    return { valid: false, code: 'MEDIA_EMPTY_FILE', message: 'The image file is empty. Try choosing the photo again.' };
+  if (file.size === 0) {
+    return { valid: false, code: 'MEDIA_EMPTY_FILE', message: 'The file is empty. Try choosing it again.' };
   }
 
-  if (!ALL_ALLOWED_TYPES.includes(file.type)) {
-    return { valid: false, code: 'MEDIA_INVALID_TYPE', message: `Unsupported file type: ${file.type || 'unknown'}. Use JPEG, PNG, WebP, GIF, or MP4.` };
+  if (!mimeType) {
+    return { valid: false, code: 'MEDIA_INVALID_TYPE', message: 'Could not detect file type. Use JPEG, PNG, WebP, or MP4.' };
   }
 
-  const isVideo = ALLOWED_VIDEO_TYPES.includes(file.type);
+  if (!ALL_ALLOWED_TYPES.includes(mimeType)) {
+    return { valid: false, code: 'MEDIA_INVALID_TYPE', message: `Unsupported file type: ${mimeType}. Use JPEG, PNG, WebP, GIF, or MP4.` };
+  }
+
+  const isVideo = ALLOWED_VIDEO_TYPES.includes(mimeType);
 
   if (kind === 'avatar') {
     if (isVideo) return { valid: false, code: 'MEDIA_INVALID_TYPE', message: 'Avatars must be images, not videos.' };
@@ -93,7 +117,8 @@ export function useMediaUpload() {
   }, []);
 
   const upload = useCallback(async (file: File, options: UploadOptions): Promise<UploadResult | null> => {
-    const check = preflightCheck(file, options.kind);
+    const mimeType = inferMimeFromFile(file);
+    const check = preflightCheck(file, options.kind, mimeType);
     if (!check.valid) {
       console.log('[PROOF:MEDIA:TOAST]', check.code);
       toast({
@@ -125,7 +150,7 @@ export function useMediaUpload() {
             body: {
               bucket: options.bucket,
               fileName: file.name,
-              mimeType: file.type,
+              mimeType,
               kind: options.kind,
               sizeBytes: file.size,
               parentId: options.parentId,
@@ -146,17 +171,27 @@ export function useMediaUpload() {
               rejectCode === 'MEDIA_TOO_LARGE' ||
               rejectCode === 'MEDIA_TOO_MANY' ||
               rejectCode === 'AUTH_REQUIRED' ||
-              rejectCode === 'SUPABASE_DEGRADED'
+              rejectCode === 'SUPABASE_DEGRADED' ||
+              rejectCode === 'MEDIA_BUCKET_NOT_FOUND'
             ) {
               console.log('[PROOF:MEDIA:TOAST]', rejectCode);
+              const description =
+                rejectCode === 'MEDIA_BUCKET_NOT_FOUND'
+                  ? signData.error || 'Storage is not ready yet. Please try again in a minute.'
+                  : signData.error || rejectCode;
               toast({
-                title: 'Upload rejected',
-                description: signData.error || rejectCode,
+                title: rejectCode === 'MEDIA_BUCKET_NOT_FOUND' ? 'Storage not ready' : 'Upload rejected',
+                description,
                 variant: 'destructive',
               });
               return null;
             }
-            throw new Error(signData.error || `Failed to get upload URL (${rejectCode})`);
+            throw new Error(
+              JSON.stringify({
+                error: signData.error || `Failed to get upload URL (${rejectCode})`,
+                code: rejectCode,
+              }),
+            );
           }
           const uploadUrl = signData.uploadUrl;
           const signedPath = signData.path;
@@ -184,7 +219,7 @@ export function useMediaUpload() {
             xhr.onerror = () => reject(new Error('Upload network error'));
             xhr.onabort = () => reject(new Error('Upload cancelled'));
             xhr.open('PUT', uploadUrl);
-            xhr.setRequestHeader('Content-Type', file.type);
+            xhr.setRequestHeader('Content-Type', mimeType);
             xhr.send(file);
           });
 
@@ -197,7 +232,7 @@ export function useMediaUpload() {
             body: {
               bucket: signedBucket,
               path: signedPath,
-              mimeType: file.type,
+              mimeType,
               sizeBytes: file.size,
               kind: options.kind,
               parentId: options.parentId,
