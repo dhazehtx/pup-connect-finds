@@ -46,7 +46,7 @@ const Marketplace = () => {
   return (
     <div className="marketplace-page min-h-screen bg-slate-50/90 transition-colors duration-200 dark:bg-slate-950">
       <div className="container mx-auto px-4 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] pt-4 sm:px-6 sm:pt-6">
-        <div className="mb-6 text-center sm:mb-8 sm:text-left">
+        <div className="mb-6 hidden text-center md:block sm:mb-8 sm:text-left">
           <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
             Marketplace
           </h1>

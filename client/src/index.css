@@ -1120,10 +1120,11 @@ button[class*="privacy"],
   border-color: #0074d4 !important;
 }
 
-/* Force blue styling for selected tabs */
-[data-state="active"],
-.tab-active,
-[aria-selected="true"] {
+/* Force blue styling for selected tabs (scoped — avoid global aria-selected side effects) */
+.marketplace-tab[aria-selected="true"],
+.marketplace-tabs [role="tab"][aria-selected="true"],
+[data-state="active"].tab-active,
+.tab-active {
   color: #ffffff !important;
   background-color: #0074d4 !important;
 }

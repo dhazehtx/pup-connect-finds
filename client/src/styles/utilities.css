@@ -86,14 +86,6 @@
     color: var(--color-primary-600) !important;
   }
 
-  /* Replace all yellow/amber backgrounds with unified surface colors */
-  .bg-blue-50, .bg-blue-100, .bg-blue-200, .bg-blue-300, .bg-blue-400, .bg-blue-500,
-  .bg-blue-600, .bg-blue-700, .bg-blue-800, .bg-blue-900,
-  .bg-blue-50, .bg-blue-100, .bg-blue-200, .bg-blue-300, .bg-blue-400, .bg-blue-500,
-  .bg-blue-600, .bg-blue-700, .bg-blue-800, .bg-blue-900 {
-    background-color: var(--color-surface-card) !important;
-  }
-
   /* Force neutral backgrounds on previously problematic elements */
   .bg-purple-50, .bg-purple-100, .bg-muted, .bg-muted\/50 {
     background-color: var(--color-surface-card) !important;

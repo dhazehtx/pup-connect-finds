@@ -47,7 +47,7 @@ const wash = (chroma: AmbientChroma) =>
 /** Blurred puppy tiles + chromatic wash — use inside a `relative overflow-hidden` container */
 export function ChromaticAmbience() {
   return (
-    <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden>
+    <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden max-md:opacity-60" aria-hidden>
       {PUPPY_AMBIENT_TILES.map((tile, i) => (
         <div
           key={i}
