@@ -6,7 +6,7 @@ import {
   Lock,
   LogIn,
   PawPrint,
-  Search,
+  Compass,
   Shield,
   ShoppingBag,
   Star,
@@ -102,7 +102,7 @@ const Home = () => {
                 className="greeting-btn-primary greeting-btn-explore-gradient inline-flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-xl px-7 py-3.5 text-[16px] font-semibold transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
                 onClick={handleGuestAccess}
               >
-                <Search className="h-5 w-5 shrink-0 text-[#111827]" aria-hidden />
+                <Compass className="h-5 w-5 shrink-0" aria-hidden />
                 <span>Explore as Guest</span>
               </button>
 

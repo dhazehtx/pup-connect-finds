@@ -711,7 +711,7 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
                     </Button>
                     <BugReportButton
                       variant="outline"
-                      size="default"
+                      size="md"
                       className="h-10 flex-1 rounded-xl border-slate-200/90 bg-white/90 font-medium shadow-sm backdrop-blur-sm dark:border-slate-700 dark:bg-slate-900/80"
                       iconClassName="text-blue-600"
                     />

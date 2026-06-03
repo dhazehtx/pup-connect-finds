@@ -78,7 +78,7 @@ const StickyHeader = () => {
 
   /** Solid white on mobile (avoids muddy blur over greeting imagery); glass on desktop. */
   const headerSurface =
-    'border-b max-md:border-slate-200/80 max-md:bg-white max-md:backdrop-blur-none md:border-white/25 md:bg-white/70 md:backdrop-blur-md shadow-none dark:border-slate-700/40 dark:bg-slate-950/65';
+    'border-b max-md:border-slate-200/80 max-md:bg-white max-md:backdrop-blur-none md:border-white/25 md:bg-white/70 md:backdrop-blur-md shadow-none';
 
   const HeaderToolbar = ({ className }: { className?: string }) => (
     <div className={className}>

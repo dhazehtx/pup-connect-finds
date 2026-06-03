@@ -85,7 +85,7 @@ router.post('/front', upload.single('file'), async (req: Request, res: Response)
     // Upload using supabaseAdmin (service role) - bypasses RLS
     const { data, error } = await runSupabaseWithRetry(
       () =>
-        supabaseAdmin.storage
+        supabaseAdmin!.storage
           .from(BUCKET_NAME)
           .upload(filePath, req.file!.buffer, {
             contentType: req.file!.mimetype,
@@ -100,7 +100,7 @@ router.post('/front', upload.single('file'), async (req: Request, res: Response)
     }
 
     // Get public URL
-    const { data: urlData } = supabaseAdmin.storage
+    const { data: urlData } = supabaseAdmin!.storage
       .from(BUCKET_NAME)
       .getPublicUrl(filePath);
 
@@ -154,7 +154,7 @@ router.post('/back', upload.single('file'), async (req: Request, res: Response) 
     // Upload using supabaseAdmin (service role) - bypasses RLS
     const { data, error } = await runSupabaseWithRetry(
       () =>
-        supabaseAdmin.storage
+        supabaseAdmin!.storage
           .from(BUCKET_NAME)
           .upload(filePath, req.file!.buffer, {
             contentType: req.file!.mimetype,
@@ -169,7 +169,7 @@ router.post('/back', upload.single('file'), async (req: Request, res: Response) 
     }
 
     // Get public URL
-    const { data: urlData } = supabaseAdmin.storage
+    const { data: urlData } = supabaseAdmin!.storage
       .from(BUCKET_NAME)
       .getPublicUrl(filePath);
 

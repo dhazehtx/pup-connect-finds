@@ -1,8 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="color-scheme: light">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light" />
+    <script>
+      (function () {
+        var d = document.documentElement;
+        d.classList.remove("dark");
+        d.style.colorScheme = "light";
+        try {
+          localStorage.setItem("theme", "light");
+        } catch (e) {}
+      })();
+    </script>
     <title>Pet Adoption Web Services | petadoptionwebservices.com</title>
     <meta
       name="description"

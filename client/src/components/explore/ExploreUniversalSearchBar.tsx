@@ -77,7 +77,11 @@ export function ExploreUniversalSearchBar({
           )}
           aria-label="Search"
         >
-          <Search className={iconClass} strokeWidth={2.25} aria-hidden />
+          <Search
+            className={cn(iconClass, 'explore-search-icon shrink-0')}
+            strokeWidth={2.25}
+            aria-hidden
+          />
         </button>
       </div>
 

@@ -1,0 +1,96 @@
+/**
+ * PAWS Safari/mobile theme polish — loaded last to lock brand colors.
+ * Fixes invalid-token fallbacks, Lucide stroke icons, and surface consistency.
+ */
+
+html {
+  accent-color: #0074d4;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Solid white header on mobile; glass on desktop */
+header.sticky {
+  background-color: #ffffff !important;
+  border-bottom-color: #e2e8f0 !important;
+}
+
+@media (min-width: 768px) {
+  header.sticky {
+    background-color: rgba(255, 255, 255, 0.88) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
+/* Footer — neutral gradient only (no warm/yellow drift) */
+footer {
+  background: linear-gradient(to bottom, #f8fafc, #f1f5f9) !important;
+  border-top-color: #e2e8f0 !important;
+}
+
+/* Toast notifications — white card, slate border, blue accent */
+[data-radix-toast-viewport] [data-state="open"],
+[data-radix-toast-viewport] [data-state="closed"] {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+  box-shadow:
+    0 10px 15px -3px rgba(15, 23, 42, 0.08),
+    0 4px 6px -4px rgba(15, 23, 42, 0.06) !important;
+}
+
+/* Cards, posts, conversation panels — slate borders (not system yellow) */
+.rounded-lg.border,
+.rounded-xl.border,
+.rounded-2xl.border,
+.card,
+[class*="Card"].border,
+[data-radix-toast-viewport] ~ * .border {
+  border-color: #e2e8f0 !important;
+}
+
+/* Inputs — slate default border, royal-blue focus */
+input,
+textarea,
+select,
+[role="combobox"] {
+  border-color: #e2e8f0 !important;
+  background-color: #ffffff !important;
+}
+
+input:focus,
+input:focus-visible,
+textarea:focus,
+textarea:focus-visible,
+select:focus,
+select:focus-visible {
+  border-color: #0074d4 !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(0, 116, 212, 0.15) !important;
+}
+
+/* Bottom nav — Lucide stroke icons (prevents white filled squares) */
+.bottom-nav button svg,
+.bottom-nav__icon {
+  fill: none !important;
+  stroke: currentColor !important;
+  color: inherit !important;
+}
+
+/* Primary CTAs with icons — stroke-only Lucide icons */
+button[class*="bg-primary"] svg,
+button[class*="bg-blue"] svg,
+.greeting-page button.greeting-btn-primary svg,
+.greeting-page button.greeting-btn-explore-gradient svg {
+  fill: none !important;
+  stroke: currentColor !important;
+  color: #ffffff !important;
+}
+
+/* Explore/marketplace search icons inside buttons */
+button[type="submit"] svg.lucide-search,
+button[type="button"] svg.lucide-compass,
+button svg.lucide-search {
+  fill: none !important;
+  stroke: currentColor !important;
+}

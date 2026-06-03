@@ -3,6 +3,7 @@
 @import './styles/utilities.css';
 @import './styles/accessibility.css';
 @import './styles/mobile.css';
+@import './styles/safari-theme-polish.css';
 
 /* ============================================================
    NUCLEAR YELLOW ELIMINATION - HIGHEST PRIORITY
@@ -109,15 +110,15 @@ hr,
   background: #ffffff !important;
 }
 
-/* Override all possible yellow hex codes in inline styles */
+/* Override all possible yellow hex codes in inline styles (exclude #ffffff) */
 [style*="background"][style*="yellow"],
 [style*="background"][style*="amber"],
-[style*="background"][style*="#ff"],
-[style*="background"][style*="#FF"],
-[style*="background"][style*="rgb(255, 255"],
-[style*="background"][style*="rgb(255,255"],
 [style*="background-color"][style*="yellow"],
-[style*="background-color"][style*="amber"] {
+[style*="background-color"][style*="amber"],
+[style*="background"][style*="#ff0"],
+[style*="background"][style*="#FF0"],
+[style*="background"][style*="#ffff00"],
+[style*="background"][style*="#FFFF00"] {
   background-color: #ffffff !important;
   background: #ffffff !important;
 }
@@ -741,6 +742,12 @@ input[class*="border-amber"] {
   color: inherit !important;
 }
 
+.bottom-nav button svg,
+.bottom-nav__icon {
+  fill: none !important;
+  stroke: currentColor !important;
+}
+
 .bottom-nav button.bottom-nav__item--inactive {
   color: rgba(255, 255, 255, 0.82) !important;
 }
@@ -843,7 +850,9 @@ section.greeting-hero button.greeting-btn-primary.greeting-btn-explore-gradient:
     0 8px 18px -6px rgba(30, 64, 175, 0.3) !important;
 }
 .greeting-page button.greeting-btn-primary.greeting-btn-explore-gradient svg {
-  color: #111827 !important;
+  color: #ffffff !important;
+  fill: none !important;
+  stroke: currentColor !important;
 }
 .greeting-page button.greeting-btn-primary.greeting-btn-explore-gradient span {
   color: #ffffff !important;
@@ -1100,11 +1109,15 @@ button[class*="bg-gradient-to-r"]:hover {
   --yellow-900: #1f2937 !important;
 }
 
-/* Override any dynamic yellow borders or backgrounds */
+/* Override any dynamic yellow borders or backgrounds (specific hex only — not #ffffff) */
 [style*="yellow"],
 [style*="amber"],
-[style*="#FFFF"],
-[style*="#ffff"] {
+[style*="#ffff00"],
+[style*="#FFFF00"],
+[style*="#ff0"],
+[style*="#FF0"],
+[style*="#ffd700"],
+[style*="#FFD700"] {
   background-color: #ffffff !important;
   border-color: #e5e7eb !important;
 }
@@ -1230,7 +1243,8 @@ button .filter-icon,
 [class*="filter"] svg,
 [class*="filter"] .lucide {
   color: #000000 !important;
-  fill: #000000 !important;
+  fill: none !important;
+  stroke: currentColor !important;
 }
 
 

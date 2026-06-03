@@ -13,7 +13,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="mt-auto border-t border-slate-200/80 bg-gradient-to-b from-slate-50 via-slate-50 to-blue-50/30 text-slate-700">
+    <footer className="mt-auto hidden border-t border-slate-200/80 bg-gradient-to-b from-slate-50 via-slate-50 to-blue-50/30 text-slate-700 md:block">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-10">
           <div>

@@ -132,7 +132,8 @@ const ModernPostCreator = ({ onClose, onPostCreated }: ModernPostCreatorProps) =
   const triggerFileUpload = (type: 'photo' | 'video') => {
     if (fileInputRef.current) {
       fileInputRef.current.accept = type === 'photo' ? 'image/*' : 'video/*';
-      fileInputRef.current.onchange = (e) => handleFileSelect(e as React.ChangeEvent<HTMLInputElement>, type);
+      fileInputRef.current.onchange = (e) =>
+        handleFileSelect(e as unknown as React.ChangeEvent<HTMLInputElement>, type);
       fileInputRef.current.click();
     }
   };

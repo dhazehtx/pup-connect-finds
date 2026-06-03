@@ -25,42 +25,27 @@ interface ThemeProviderProps {
   children: React.ReactNode;
 }
 
+/** PAWS ships light-only; Tailwind `dark:` utilities must not activate from OS preference. */
+const LAUNCH_THEME: Theme = 'light';
+
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [theme, setThemeState] = useState<Theme>('light');
+  const [theme, setThemeState] = useState<Theme>(LAUNCH_THEME);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
 
-  // Load theme on mount
+  // Load theme on mount (preferences may still be read; UI always stays light)
   useEffect(() => {
     const loadTheme = async () => {
       try {
         if (user) {
-          // Load theme from user preferences if authenticated
-          const data = await apiRequest('/api/support/preferences');
-          const savedTheme = data.theme || 'light';
-          setThemeState(savedTheme);
-          applyTheme(savedTheme);
-        } else {
-          // Load theme from localStorage for unauthenticated users
-          const savedTheme = localStorage.getItem('theme') as Theme;
-          if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
-            setThemeState(savedTheme);
-            applyTheme(savedTheme);
-          } else {
-            // Default to system preference
-            const systemPreference = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-            setThemeState(systemPreference);
-            applyTheme(systemPreference);
-            localStorage.setItem('theme', systemPreference);
-          }
+          await apiRequest('/api/support/preferences');
         }
       } catch (error) {
         console.error('Error loading theme:', error);
-        // Fallback to localStorage or system preference
-        const savedTheme = localStorage.getItem('theme') as Theme || 'light';
-        setThemeState(savedTheme);
-        applyTheme(savedTheme);
       } finally {
+        setThemeState(LAUNCH_THEME);
+        applyTheme(LAUNCH_THEME);
+        localStorage.setItem('theme', LAUNCH_THEME);
         setIsLoading(false);
       }
     };
@@ -68,14 +53,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     loadTheme();
   }, [user]);
 
-  // Apply theme to document
-  const applyTheme = (newTheme: Theme) => {
+  const applyTheme = (_newTheme: Theme) => {
     const root = document.documentElement;
-    if (newTheme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
+    root.classList.remove('dark');
+    root.style.colorScheme = 'light';
   };
 
   // Save theme to backend or localStorage
@@ -95,34 +76,15 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     }
   };
 
-  const setTheme = async (newTheme: Theme) => {
-    setThemeState(newTheme);
-    applyTheme(newTheme);
-    await saveTheme(newTheme);
+  const setTheme = async (_newTheme: Theme) => {
+    setThemeState(LAUNCH_THEME);
+    applyTheme(LAUNCH_THEME);
+    await saveTheme(LAUNCH_THEME);
   };
 
   const toggleTheme = async () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    await setTheme(newTheme);
+    await setTheme(LAUNCH_THEME);
   };
-
-  // Listen for system theme changes
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
-    const handleSystemThemeChange = (e: MediaQueryListEvent) => {
-      // Only auto-update if no user preference is set
-      const hasUserPreference = user || localStorage.getItem('theme');
-      if (!hasUserPreference) {
-        const systemTheme = e.matches ? 'dark' : 'light';
-        setThemeState(systemTheme);
-        applyTheme(systemTheme);
-      }
-    };
-
-    mediaQuery.addEventListener('change', handleSystemThemeChange);
-    return () => mediaQuery.removeEventListener('change', handleSystemThemeChange);
-  }, [user]);
 
   const value: ThemeContextType = {
     theme,

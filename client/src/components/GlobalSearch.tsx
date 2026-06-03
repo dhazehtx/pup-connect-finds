@@ -51,6 +51,8 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
       navigate(`/listing/${result.id}`);
     } else if (result.type === 'profile') {
       navigate(`/profile/${result.id}`);
+    } else if (result.type === 'service') {
+      navigate(`/services/provider/${result.id}`);
     }
     
     setIsOpen(false);
@@ -126,7 +128,7 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
                         )}
                       </div>
                     </div>
-                  ) : (
+                  ) : result.type === 'profile' ? (
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
                         {result.avatar_url ? (
@@ -142,6 +144,28 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
                           {result.full_name || `@${result.username}`}
                         </h4>
                         <p className="text-sm text-gray-600 truncate">@{result.username}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
+                        {result.avatar_url ? (
+                          <img src={result.avatar_url} alt={result.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-gray-300 flex items-center justify-center">
+                            <User className="w-4 h-4 text-gray-500" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-gray-900 truncate">{result.name}</h4>
+                        <p className="text-sm text-gray-600 truncate">{result.service_type}</p>
+                        {result.location && (
+                          <p className="text-xs text-gray-500 flex items-center mt-1">
+                            <MapPin className="w-3 h-3 mr-1" />
+                            {result.location}
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}

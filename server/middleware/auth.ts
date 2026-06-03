@@ -76,7 +76,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     const {
       data: { user },
       error,
-    } = await runSupabaseWithRetry(() => supabase.auth.getUser(token), { opName: 'auth.getUser' });
+    } = await runSupabaseWithRetry(() => supabase!.auth.getUser(token), { opName: 'auth.getUser' });
 
     if (error || !user) {
       // Add isAuthenticated method that returns false

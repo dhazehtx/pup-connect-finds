@@ -93,18 +93,11 @@ function DemoProviderCard({ provider }: { provider: any }) {
           {/* Icon-based avatar - no human faces */}
           <div className="relative">
             <ServiceIcon type={provider.service_type} />
-            {provider.is_verified && (
-              <div className="absolute -bottom-1 -right-1">
-                <ServiceBadge
-                  serviceType={provider.service_type}
-                  verified={Boolean(provider.is_verified)}
-                  className="text-[10px] px-2 py-0.5"
-                />
-              </div>
-            )}
           </div>
-          
-          {provider.is_verified && <ServiceBadge serviceType={provider.service_type} verified />}
+
+          {provider.is_verified && (
+            <ServiceBadge serviceType={provider.service_type} verified />
+          )}
           
           <div>
             <h3 className="font-semibold text-lg">

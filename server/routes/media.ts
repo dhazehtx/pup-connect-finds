@@ -176,7 +176,7 @@ router.post("/commit", async (req, res) => {
       return res.status(400).json({ error: "bucket, path, and kind are required" });
     }
 
-    const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
+    const { data: urlData } = supabase!.storage.from(bucket).getPublicUrl(path);
     const publicUrl = urlData?.publicUrl || null;
 
     const parentType = kind === 'avatar' ? 'avatar' : kind === 'post' ? 'post' : kind === 'listing' ? 'listing' : kind;
@@ -219,7 +219,7 @@ router.post("/commit", async (req, res) => {
           const oldPaths = oldAvatarAssets.map((a) => a.path);
           const oldBuckets = Array.from(new Set(oldAvatarAssets.map((a) => a.bucket)));
           for (const b of oldBuckets) {
-            await supabase.storage.from(b).remove(
+            await supabase!.storage.from(b).remove(
               oldPaths.filter((p) => oldAvatarAssets.find((a) => a.path === p && a.bucket === b)),
             );
           }
@@ -335,7 +335,7 @@ router.delete("/:assetId", async (req, res) => {
     const pathsToDelete = [asset.path, ...thumbs.map(t => t.path)];
 
     const { error: storageError } = await runSupabaseWithRetry(
-      () => supabase.storage.from(asset.bucket).remove(pathsToDelete),
+      () => supabase!.storage.from(asset.bucket).remove(pathsToDelete),
       { opName: "media.delete.storage.remove" },
     );
 
@@ -397,7 +397,7 @@ router.post("/cleanup-parent", async (req, res) => {
     for (const bucket of buckets) {
       const bucketPaths = allPaths.filter(p => assets.find(a => a.path === p && a.bucket === bucket) || thumbs.find(t => t.path === p && t.bucket === bucket));
       if (bucketPaths.length > 0) {
-        await supabase.storage.from(bucket).remove(bucketPaths);
+        await supabase!.storage.from(bucket).remove(bucketPaths);
       }
     }
 
@@ -450,7 +450,7 @@ router.post("/sweep-orphans", async (req, res) => {
     const deleteOrphan = async (asset: typeof orphanPosts[0]) => {
       const thumbs = await db.select().from(mediaAssets).where(eq(mediaAssets.parent_asset_id, asset.id));
       const allPaths = [asset.path, ...thumbs.map(t => t.path)];
-      await supabase.storage.from(asset.bucket).remove(allPaths);
+      await supabase!.storage.from(asset.bucket).remove(allPaths);
       if (thumbs.length > 0) {
         const thumbIds = thumbs.map((t) => t.id);
         if (thumbIds.length > 0) {

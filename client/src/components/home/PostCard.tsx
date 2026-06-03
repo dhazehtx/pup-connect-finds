@@ -108,7 +108,7 @@ const PostCard = ({
 
   return (
     <>
-      <Card className="rounded-lg md:rounded-xl border shadow-sm md:shadow-md overflow-hidden">
+      <Card className="rounded-lg md:rounded-xl border border-slate-200 shadow-sm md:shadow-md overflow-hidden">
         <CardContent className="p-0">
           {/* Post Header */}
           <div className="p-3 md:p-4">

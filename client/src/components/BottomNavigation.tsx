@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Search, ShoppingBag, MessageCircle, User } from 'lucide-react';
+import { Home, Compass, ShoppingBag, MessageCircle, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { logNav } from '@/lib/adminLog';
 
@@ -81,7 +81,7 @@ const BottomNavigation = () => {
       }
     },
     {
-      icon: Search,
+      icon: Compass,
       label: 'Explore',
       path: '/explore',
       protected: false,
@@ -154,7 +154,11 @@ const BottomNavigation = () => {
                 style={{ WebkitTapHighlightColor: 'transparent' }}
               >
                 <div className="relative">
-                  <Icon className="h-[22px] w-[22px] shrink-0" strokeWidth={active ? 2.25 : 2} aria-hidden />
+                  <Icon
+                    className="bottom-nav__icon h-[22px] w-[22px] shrink-0"
+                    strokeWidth={active ? 2.25 : 2}
+                    aria-hidden
+                  />
                 </div>
                 <span
                   className="mt-0.5 text-[11px] font-medium leading-tight"
