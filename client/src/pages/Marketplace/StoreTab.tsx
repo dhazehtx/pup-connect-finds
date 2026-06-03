@@ -18,6 +18,11 @@ import ProductTags from '@/components/ProductTags';
 import StripeCheckoutDemo from '@/components/StripeCheckoutDemo';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { Link } from 'react-router-dom';
+import {
+  truncateProductDescription,
+  PRODUCT_DESCRIPTION_PREVIEW_LENGTH,
+} from '@/lib/productDescription';
+import { STORE_TAG_FILTERS_ENABLED } from '@/components/store/storeUiFlags';
 
 interface Product {
   id: string;
@@ -145,6 +150,9 @@ function ProductImageLightbox({
           <DialogTitle className="text-lg font-semibold leading-snug text-slate-900 sm:text-xl">
             {product.name}
           </DialogTitle>
+          <p className="mt-1 text-base font-semibold text-[#0074d4]">
+            ${parseFloat(product.unit_price).toFixed(2)}
+          </p>
           {slides.length > 1 && (
             <p className="mt-1.5 text-xs text-slate-500" aria-live="polite">
               Image {slideIndex + 1} of {slides.length} — use arrows or keyboard
@@ -208,6 +216,15 @@ function ProductImageLightbox({
               </>
             )}
           </div>
+
+          {product.description ? (
+            <div className="mt-4 max-h-[28dvh] overflow-y-auto rounded-xl border border-slate-100 bg-slate-50/80 px-4 py-3 text-left sm:mx-6 sm:mb-2">
+              <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Description</p>
+              <p className="mt-2 text-sm leading-relaxed text-slate-700 whitespace-pre-wrap">
+                {product.description}
+              </p>
+            </div>
+          ) : null}
         </div>
       </DialogContent>
     </Dialog>
@@ -463,17 +480,23 @@ const StoreTab = () => {
 
         {/* Products grid */}
         {!isLoading && !error && sortedProducts.length > 0 && (
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-            {sortedProducts.map((product) => (
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 lg:gap-5">
+            {sortedProducts.map((product) => {
+              const desc = truncateProductDescription(
+                product.description,
+                PRODUCT_DESCRIPTION_PREVIEW_LENGTH,
+              );
+              const showViewDetails = desc.isTruncated || getProductImageSlides(product).length > 0;
+
+              return (
               <div key={product.id} className="product-card" data-product-id={product.id}>
-                {/* Product Image */}
                 <div className="product-card__image">
                   {getProductImageSlides(product).length > 0 ? (
                     <button
                       type="button"
-                      className="block h-full w-full cursor-zoom-in border-0 bg-transparent p-0 text-left outline-none ring-offset-2 focus-visible:ring-2 focus-visible:ring-slate-400"
+                      className="block h-full w-full cursor-zoom-in border-0 bg-transparent p-0 text-left outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-0"
                       onClick={() => setLightboxProduct(product)}
-                      aria-label={`View larger images: ${product.name}`}
+                      aria-label={`View images: ${product.name}`}
                     >
                       <StoreProductImage name={product.name} src={product.image_url} />
                     </button>
@@ -482,38 +505,34 @@ const StoreTab = () => {
                   )}
                 </div>
 
-                {/* Product Info */}
                 <div className="product-card__body">
-                  {product.tags && product.tags.length > 0 && (
-                    <div className="mb-2 flex flex-wrap gap-1">
-                      {product.tags.map((tag) => (
-                        <Badge
-                          key={tag}
-                          variant="secondary"
-                          className="bg-[#0074d4]/10 text-[#0074d4] border-0 text-[10px] font-semibold uppercase tracking-wide"
-                        >
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
                   <h3 className="product-card__title">{product.name}</h3>
-                  
-                  {product.description && (
-                    <p className="product-card__description">{product.description}</p>
-                  )}
 
-                  {/* Price */}
                   <div className="product-card__price">
                     ${parseFloat(product.unit_price).toFixed(2)}
                   </div>
 
-                  {/* Action Buttons */}
+                  {desc.preview ? (
+                    <p className="product-card__description">{desc.preview}</p>
+                  ) : null}
+
+                  {showViewDetails ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="mb-1 h-8 w-full text-xs font-medium text-[#0074d4] hover:bg-blue-50 hover:text-[#005fa8]"
+                      onClick={() => setLightboxProduct(product)}
+                    >
+                      View details
+                    </Button>
+                  ) : null}
+
                   <div className="product-card__actions flex-col gap-2">
                     <Button
                       onClick={() => requireAuth(() => handleBuyNow(product))}
                       disabled={buyingItems.has(product.id)}
-                      className="w-full text-xs sm:text-sm h-10"
+                      className="w-full text-xs sm:text-sm"
                       data-testid={`button-buy-now-${product.id}`}
                     >
                       {buyingItems.has(product.id) ? (
@@ -529,7 +548,8 @@ const StoreTab = () => {
                     <Button
                       onClick={() => requireAuth(() => handleAddToCart(product))}
                       disabled={addingItems.has(product.id) || addedItems.has(product.id)}
-                      className="w-full text-xs sm:text-sm h-11 px-2 sm:px-4"
+                      variant="outline"
+                      className="w-full border-slate-200 text-xs sm:text-sm"
                       data-testid={`button-add-cart-${product.id}`}
                     >
                       {addingItems.has(product.id) ? (
@@ -557,7 +577,8 @@ const StoreTab = () => {
                   </div>
                 </div>
               </div>
-            ))}
+            );
+            })}
           </div>
         )}
 
@@ -575,10 +596,10 @@ const StoreTab = () => {
           </div>
         )}
 
-        {/* Tag Filter Section */}
-        {!isLoading && !error && (
-          <div className="mt-8">
-            <ProductTags 
+        {/* Tag filters — hidden until catalog grows (STORE_TAG_FILTERS_ENABLED) */}
+        {STORE_TAG_FILTERS_ENABLED && !isLoading && !error && (
+          <div className="mt-8" data-store-section="tag-filters">
+            <ProductTags
               selectedTag={selectedTag || undefined}
               onTagSelect={setSelectedTag}
             />

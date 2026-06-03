@@ -6,139 +6,32 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MapPin, Clock, Star, Shield, Filter, DollarSign } from 'lucide-react';
+import { DollarSign, Filter, MapPin, Shield } from 'lucide-react';
 import { ExploreUniversalSearchBar } from '@/components/explore/ExploreUniversalSearchBar';
 import { ServiceProviderCard } from '@/components/ServiceProviderCard';
-import { ServiceBadge } from '@/components/badges/ServiceBadge';
+import { MarketplaceProviderCard } from '@/components/services/MarketplaceProviderCard';
 import { BookServiceModal } from '@/components/BookServiceModal';
 import type { PetServiceProvider } from '@shared/schema';
 import { useProviders } from '@/hooks/useProviders';
 import { useSignedIn } from '@/hooks/useSignedIn';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
-import {
-  SERVICE_CATEGORY_FILTER_OPTIONS,
-  getServiceCategoryEmoji,
-  getServiceCategoryLabel,
-} from '@shared/serviceCategories';
-
-// Icon avatar colors for different service types (extends shared categories)
-const serviceIconColors: Record<string, string> = {
-  grooming: 'bg-blue-500',
-  walking: 'bg-green-500',
-  sitting: 'bg-purple-500',
-  training: 'bg-orange-500',
-  boarding: 'bg-indigo-500',
-  poop_scooping: 'bg-amber-600',
-  stud_services: 'bg-rose-600',
-  transportation: 'bg-sky-600',
-  veterinary: 'bg-red-500',
-  mobile_grooming: 'bg-teal-500',
-};
-
-// SVG icons for service types (non-human imagery)
-const ServiceIcon = ({ type }: { type: string }) => {
-  const colorClass = serviceIconColors[type] || 'bg-blue-500';
-  
-  return (
-    <div className={`h-16 w-16 rounded-full ${colorClass} flex items-center justify-center`}>
-      {type === 'grooming' && (
-        <svg className="h-8 w-8 text-white" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-          <text x="8" y="14" fontSize="8" fill="white">✂</text>
-        </svg>
-      )}
-      {type === 'walking' && (
-        <svg className="h-8 w-8 text-white" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/>
-        </svg>
-      )}
-      {type === 'sitting' && (
-        <svg className="h-8 w-8 text-white" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-        </svg>
-      )}
-      {type === 'training' && (
-        <svg className="h-8 w-8 text-white" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/>
-        </svg>
-      )}
-      {type === 'boarding' && (
-        <svg className="h-8 w-8 text-white" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z"/>
-        </svg>
-      )}
-      {type === 'mobile_grooming' && (
-        <svg className="h-8 w-8 text-white" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
-        </svg>
-      )}
-      {!['grooming', 'walking', 'sitting', 'training', 'boarding', 'mobile_grooming'].includes(type) && (
-        <span className="text-2xl">🐕</span>
-      )}
-    </div>
-  );
-};
+import { SERVICE_CATEGORY_FILTER_OPTIONS } from '@shared/serviceCategories';
 
 function DemoProviderCard({ provider }: { provider: any }) {
   const { requireAuth } = useRequireAuth();
-  
-  const handleSignIn = () => {
-    requireAuth(() => {});
-  };
 
   return (
-    <Card className="hover:shadow-lg transition-shadow duration-200 relative overflow-hidden">
-      <CardHeader className="pb-3">
-        <div className="flex flex-col items-center text-center space-y-3">
-          {/* Icon-based avatar - no human faces */}
-          <div className="relative">
-            <ServiceIcon type={provider.service_type} />
-          </div>
-
-          {provider.is_verified && (
-            <ServiceBadge serviceType={provider.service_type} verified />
-          )}
-          
-          <div>
-            <h3 className="font-semibold text-lg">
-              {provider.name || 'Service Provider'}
-            </h3>
-            <div className="flex items-center justify-center gap-1 text-sm text-slate-600">
-              <span>{getServiceCategoryEmoji(provider.service_type)}</span>
-              <span>{getServiceCategoryLabel(provider.service_type)}</span>
-            </div>
-          </div>
-        </div>
-      </CardHeader>
-
-      <CardContent className="space-y-4">
-        <p className="text-sm text-slate-600 text-center">
-          {provider.bio || provider.headline}
-        </p>
-
-        <div className="space-y-2">
-          {provider.location && (
-            <div className="flex items-center justify-center gap-2 text-sm text-slate-600">
-              <MapPin className="h-4 w-4" />
-              <span>{provider.location}</span>
-            </div>
-          )}
-          
-          <div className="flex items-center justify-center gap-2 text-sm font-medium">
-            <DollarSign className="h-4 w-4" />
-            <span>${provider.price}/hour</span>
-          </div>
-        </div>
-
-        <Button onClick={handleSignIn} className="w-full">
-          Sign in to book
-        </Button>
-
-        <div className="text-xs text-slate-500 text-center border-t pt-2">
-          {provider.since || 'Provider since 2024'}
-        </div>
-      </CardContent>
-    </Card>
+    <MarketplaceProviderCard
+      name={provider.name || 'Service Provider'}
+      serviceType={provider.service_type ?? 'grooming'}
+      bio={provider.bio || provider.headline}
+      location={provider.location}
+      price={provider.price}
+      isVerified={Boolean(provider.is_verified)}
+      since={provider.since || 'Provider since 2024'}
+      primaryLabel="Sign in to book"
+      onPrimaryAction={() => requireAuth(() => {})}
+    />
   );
 }
 
@@ -189,7 +82,6 @@ export function ServicesTab() {
   const serviceTypes = SERVICE_CATEGORY_FILTER_OPTIONS.map((c) => ({
     value: c.id,
     label: c.label,
-    icon: c.pillEmoji,
   }));
 
   // Filter real services only (never demo data for signed-in users)
@@ -279,7 +171,7 @@ export function ServicesTab() {
               placeholder="Search services, providers, or locations..."
               inputSize="lg"
               id="services-hero-search"
-              className="[&_input]:!bg-white [&_input]:!text-slate-900"
+              className="[&_input]:!bg-white [&_input]:!text-slate-900 [&_.paws-search-submit]:!bg-blue-600"
               data-testid="input-search-services"
             />
           </div>
@@ -311,7 +203,7 @@ export function ServicesTab() {
                   <SelectItem value="all" className="text-gray-900">All Services</SelectItem>
                   {serviceTypes.map(type => (
                     <SelectItem key={type.value} value={type.value} className="text-gray-900">
-                      {type.icon} {type.label}
+                      {type.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -395,7 +287,7 @@ export function ServicesTab() {
             className={`${PILL_BASE} ${filters.type === cat.id ? PILL_ACTIVE : PILL_INACTIVE}`}
             onClick={() => setFilters(prev => ({ ...prev, type: cat.id }))}
           >
-            {cat.pillEmoji} {cat.label}
+            {cat.label}
           </Button>
         ))}
         </div>
@@ -429,7 +321,7 @@ export function ServicesTab() {
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
               {[...Array(9)].map((_, i) => (
                 <Card key={i} className="animate-pulse">
                   <CardContent className="p-6">
@@ -441,7 +333,7 @@ export function ServicesTab() {
               ))}
             </div>
           ) : allServices.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
               {allServices.map((service: any) => (
                 service.isDemo ? (
                   <DemoProviderCard key={service.id} provider={service} />
@@ -456,7 +348,9 @@ export function ServicesTab() {
             </div>
           ) : (
             <div className="text-center py-12 bg-white rounded-xl">
-              <div className="text-6xl mb-4">🔍</div>
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                <Filter className="h-7 w-7" aria-hidden />
+              </div>
               <h3 className="text-xl font-semibold mb-2">No Services Found</h3>
               <p className="text-muted-foreground mb-4">
                 Be the first to offer services in your area!
@@ -479,7 +373,7 @@ export function ServicesTab() {
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
               {[...Array(6)].map((_, i) => (
                 <Card key={i} className="animate-pulse">
                   <CardContent className="p-6">
@@ -491,7 +385,7 @@ export function ServicesTab() {
               ))}
             </div>
           ) : featuredServices.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
               {featuredServices.map((service: any) => (
                 service.isDemo ? (
                   <DemoProviderCard key={service.id} provider={service} />
@@ -506,7 +400,9 @@ export function ServicesTab() {
             </div>
           ) : (
             <div className="text-center py-12 bg-white rounded-xl">
-              <div className="text-6xl mb-4">⭐</div>
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-blue-500">
+                <Shield className="h-7 w-7" aria-hidden />
+              </div>
               <h3 className="text-xl font-semibold mb-2">No Featured Services Yet</h3>
               <p className="text-muted-foreground mb-4">
                 Promote your service to appear here and reach more customers!

@@ -661,43 +661,50 @@ const PupBoxSubscription = () => {
             </Link>
           </div>
 
-          {/* FAQ */}
-          <div className="mt-10 max-w-3xl mx-auto">
-            <h2 className="mb-4 text-center text-xl font-bold text-slate-900">Pup Box FAQ</h2>
-            <Accordion type="single" collapsible className="w-full rounded-xl border border-slate-200 bg-white px-2">
-              <AccordionItem value="billing">
-                <AccordionTrigger className="text-left text-slate-900">
+          {/* Subscription Box FAQ */}
+          <div className="mt-12 max-w-2xl mx-auto px-1">
+            <h2 className="mb-2 text-center text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+              Subscription Box FAQ
+            </h2>
+            <p className="mb-6 text-center text-sm text-slate-500">
+              Billing, shipping, and what to expect from your box
+            </p>
+            <Accordion type="single" collapsible className="subscription-faq w-full">
+              <AccordionItem value="billing" className="subscription-faq__item border-b-0">
+                <AccordionTrigger className="subscription-faq__trigger">
                   When am I charged for a subscription?
                 </AccordionTrigger>
-                <AccordionContent className="text-slate-600">
+                <AccordionContent className="subscription-faq__content">
                   Subscription billing follows the schedule shown at checkout (typically monthly from your first
                   successful charge). You can cancel or adjust according to the options we expose in your account
                   and our returns policy.
                 </AccordionContent>
               </AccordionItem>
-              <AccordionItem value="skip">
-                <AccordionTrigger className="text-left text-slate-900">Can I skip a month?</AccordionTrigger>
-                <AccordionContent className="text-slate-600">
+              <AccordionItem value="skip" className="subscription-faq__item border-b-0">
+                <AccordionTrigger className="subscription-faq__trigger">
+                  Can I skip a month?
+                </AccordionTrigger>
+                <AccordionContent className="subscription-faq__content">
                   Skip/pause availability depends on your plan and Stripe configuration. If the app offers skip
                   controls, use those; otherwise contact support before your next ship date.
                 </AccordionContent>
               </AccordionItem>
-              <AccordionItem value="allergies">
-                <AccordionTrigger className="text-left text-slate-900">
+              <AccordionItem value="allergies" className="subscription-faq__item border-b-0">
+                <AccordionTrigger className="subscription-faq__trigger">
                   What if my dog has allergies or dietary needs?
                 </AccordionTrigger>
-                <AccordionContent className="text-slate-600">
-                  Review treat ingredients on the packaging when your box arrives. For strict dietary needs, Pup
-                  Box may not be suitable—consult your veterinarian and reach out to support for guidance.
+                <AccordionContent className="subscription-faq__content">
+                  Review treat ingredients on the packaging when your box arrives. For strict dietary needs, your
+                  subscription box may not be suitable—consult your veterinarian and reach out to support for guidance.
                 </AccordionContent>
               </AccordionItem>
-              <AccordionItem value="stripe">
-                <AccordionTrigger className="text-left text-slate-900">
+              <AccordionItem value="stripe" className="subscription-faq__item border-b-0">
+                <AccordionTrigger className="subscription-faq__trigger">
                   Why does checkout say Stripe?
                 </AccordionTrigger>
-                <AccordionContent className="text-slate-600">
+                <AccordionContent className="subscription-faq__content">
                   PAWS uses Stripe for secure payments. You will see Stripe branding during checkout; your order
-                  still ships as a PAWS Pup Box.
+                  still ships as a PAWS subscription box.
                 </AccordionContent>
               </AccordionItem>
             </Accordion>

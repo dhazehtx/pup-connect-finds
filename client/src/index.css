@@ -4,6 +4,8 @@
 @import './styles/accessibility.css';
 @import './styles/mobile.css';
 @import './styles/safari-theme-polish.css';
+@import './styles/store-subscription.css';
+@import './styles/marketplace-services.css';
 
 /* ============================================================
    NUCLEAR YELLOW ELIMINATION - HIGHEST PRIORITY
@@ -606,13 +608,15 @@ button.btn-primary:focus,
   box-shadow: 0 0 0 3px rgba(0, 116, 212, 0.4) !important;
 }
 
-/* Icons inside buttons - white (exclude greeting outline/ghost CTAs) */
+/* Icons inside buttons - white stroke icons (exclude greeting outline/ghost CTAs) */
 button[class*="bg-blue"] svg,
 button[class*="bg-primary"] svg,
 button.btn-primary svg,
 .btn-primary svg,
 .greeting-page button:not(.greeting-btn-secondary):not(.greeting-btn-ghost) svg {
   color: #FFFFFF !important;
+  fill: none !important;
+  stroke: currentColor !important;
   opacity: 1 !important;
 }
 
@@ -1236,12 +1240,12 @@ button[class*="privacy"],
   color: #1f2937 !important;
 }
 
-/* Fix filter symbol color to black */
-.filter-symbol,
-.filter-icon,
-button .filter-icon,
-[class*="filter"] svg,
-[class*="filter"] .lucide {
+/* Filter control icons only — do not use [class*="filter"] (matches backdrop-blur utilities) */
+.filter-symbol svg,
+.filter-icon svg,
+button .filter-icon svg,
+.filter-sheet svg.lucide-filter,
+button:has(svg.lucide-filter) svg.lucide-filter {
   color: #000000 !important;
   fill: none !important;
   stroke: currentColor !important;
@@ -1634,7 +1638,7 @@ button[type="submit"],
 /* Remove orange border from the tabs container */
 .services-tabs .inline-flex,
 .services-tabs div[class*="inline-flex"],
-.services-tabs div[class*="rounded-full"],
+.services-tabs div[class*="rounded-full"]:not(.service-category-icon),
 .services-tabs .tab-list,
 .services-tabs .TabsList {
   border: none !important;

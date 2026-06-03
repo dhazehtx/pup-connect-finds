@@ -1,3 +1,8 @@
+/**
+ * Tag filtering for the PAWS store. Hidden on the Store tab when
+ * `STORE_TAG_FILTERS_ENABLED` is false in `@/components/store/storeUiFlags`.
+ * Component kept intact for future reactivation.
+ */
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';

@@ -714,7 +714,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
       {/* Search Bar Row */}
       <Card className="mb-4">
         <CardHeader className="pb-3">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-start">
+          <div className="explore-filters-toolbar flex flex-col gap-3 lg:flex-row lg:items-center">
             <ExploreUniversalSearchBar
               className="min-w-0 w-full lg:flex-1"
               value={searchQuery}
@@ -722,7 +722,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
               trending={DEFAULT_EXPLORE_TRENDING}
               onTrendingPick={handleTrendingPick}
             />
-            <div className="flex flex-shrink-0 flex-wrap items-center gap-2 lg:pt-0.5">
+            <div className="flex flex-shrink-0 flex-wrap items-center gap-2.5 lg:pt-0">
               <Button
                 variant="outline"
                 className="relative"
@@ -1094,7 +1094,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
   const MobileFilters = () => (
     <Card className={className}>
       <CardHeader className="pb-3">
-        <div className="flex items-start gap-2">
+        <div className="explore-filters-toolbar flex items-center gap-2.5">
           <ExploreUniversalSearchBar
             className="min-w-0 flex-1"
             value={searchQuery}
@@ -1103,18 +1103,18 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
             onTrendingPick={handleTrendingPick}
           />
 
-          {/* Filter Button - Icon only on mobile */}
+          {/* Filter Button - Icon only on mobile; height matches search bar */}
           <Button 
             variant="outline" 
-            className="relative flex h-11 w-11 shrink-0 items-center justify-center p-0"
+            className="relative flex h-11 min-h-[44px] w-11 min-w-[44px] shrink-0 items-center justify-center rounded-full border-slate-200 p-0"
             onClick={() => setIsOpen(true)}
             style={{
               backgroundColor: '#ffffff',
               color: '#374151',
-              borderColor: '#d1d5db'
+              borderColor: '#e2e8f0',
             }}
           >
-            <Filter className="w-5 h-5" style={{ color: '#0074d4' }} />
+            <Filter className="h-5 w-5 shrink-0 text-[#0074d4]" strokeWidth={2.25} aria-hidden />
             {activeFiltersCount > 0 && (
               <Badge 
                 className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full p-0 text-xs"

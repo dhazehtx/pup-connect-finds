@@ -87,10 +87,34 @@ button[class*="bg-blue"] svg,
   color: #ffffff !important;
 }
 
-/* Explore/marketplace search icons inside buttons */
-button[type="submit"] svg.lucide-search,
-button[type="button"] svg.lucide-compass,
-button svg.lucide-search {
+/* Explore / Marketplace universal search bar */
+.paws-universal-search .paws-search-submit,
+.paws-universal-search .paws-search-submit svg,
+.paws-universal-search .paws-search-icon {
   fill: none !important;
   stroke: currentColor !important;
+  color: #ffffff !important;
+}
+
+.paws-universal-search .paws-search-submit svg {
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+  display: block !important;
+  opacity: 1 !important;
+}
+
+.paws-universal-search__bar input {
+  border: none !important;
+  box-shadow: none !important;
+  background-color: #f8fafc !important;
+}
+
+.paws-universal-search__bar input:focus,
+.paws-universal-search__bar input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.paws-universal-search__trending button {
+  -webkit-tap-highlight-color: transparent;
 }

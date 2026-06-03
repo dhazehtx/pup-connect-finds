@@ -1,6 +1,4 @@
 import * as React from 'react';
-import { Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
 export const EXPLORE_SEARCH_PLACEHOLDER = 'Search for puppies, breeds, or locations...';
@@ -10,10 +8,32 @@ export type ExploreTrendingItem =
   | { kind: 'sort'; label: string; sortBy: 'newest' };
 
 export const DEFAULT_EXPLORE_TRENDING: ExploreTrendingItem[] = [
-  { kind: 'query', label: '🐾 Golden Retrievers', query: 'Golden Retriever' },
-  { kind: 'query', label: '🐾 Near Houston', query: 'Houston' },
-  { kind: 'sort', label: '🐾 New Arrivals', sortBy: 'newest' },
+  { kind: 'query', label: 'Golden Retriever', query: 'Golden Retriever' },
+  { kind: 'query', label: 'Near Houston', query: 'Houston' },
+  { kind: 'sort', label: 'New Arrivals', sortBy: 'newest' },
 ];
+
+/** Stroke-only magnifier — avoids Lucide + global CSS fill conflicts on mobile Safari */
+function SearchMagnifierIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={cn('paws-search-icon block shrink-0', className)}
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.25"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <circle cx="11" cy="11" r="8" />
+      <path d="m21 21-4.35-4.35" />
+    </svg>
+  );
+}
 
 type ExploreUniversalSearchBarProps = {
   value: string;
@@ -31,7 +51,6 @@ type ExploreUniversalSearchBarProps = {
 
 /**
  * Pill search + brand blue action button (icon only in the button, not inside the field).
- * Use one wrapper so the bar reads as a single unit with shadow-sm.
  */
 export function ExploreUniversalSearchBar({
   value,
@@ -45,17 +64,17 @@ export function ExploreUniversalSearchBar({
   'data-testid': dataTestId,
 }: ExploreUniversalSearchBarProps) {
   const h = inputSize === 'lg' ? 'h-12 min-h-[48px]' : 'h-11 min-h-[44px]';
-  const iconClass = inputSize === 'lg' ? 'h-5 w-5' : 'h-5 w-5';
   const showTrending = Boolean(trending?.length && onTrendingPick && !value.trim());
 
   return (
-    <div className={cn('w-full min-w-0', className)} data-testid={dataTestId}>
+    <div className={cn('paws-universal-search w-full min-w-0', className)} data-testid={dataTestId}>
       <div
         className={cn(
-          'flex w-full min-w-0 overflow-hidden rounded-full border border-slate-200/90 bg-white shadow-sm transition-shadow focus-within:border-blue-300/80 focus-within:shadow-md focus-within:ring-2 focus-within:ring-blue-500/20',
+          'paws-universal-search__bar flex w-full min-w-0 items-stretch overflow-hidden rounded-full border border-slate-200/90 bg-white shadow-sm transition-shadow',
+          'focus-within:border-blue-300/80 focus-within:shadow-md focus-within:ring-2 focus-within:ring-blue-500/20',
         )}
       >
-        <Input
+        <input
           id={id}
           type="search"
           name="q"
@@ -66,34 +85,38 @@ export function ExploreUniversalSearchBar({
           onChange={(e) => onChange(e.target.value)}
           className={cn(
             h,
-            'min-w-0 flex-1 rounded-none border-0 bg-slate-50 px-4 py-0 text-sm text-slate-900 shadow-none ring-0 ring-offset-0 placeholder:text-slate-400 focus-visible:ring-0 dark:bg-slate-900/40 dark:text-slate-100 dark:placeholder:text-slate-500 sm:text-[15px]',
+            'min-w-0 flex-1 border-0 bg-slate-50/90 px-4 py-0 text-sm leading-none text-slate-900 shadow-none outline-none ring-0',
+            'placeholder:text-slate-400 focus:outline-none focus:ring-0 sm:text-[15px]',
           )}
         />
         <button
           type="button"
           className={cn(
-            'inline-flex shrink-0 items-center justify-center rounded-r-full bg-blue-600 px-4 text-white transition-colors hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950',
+            'paws-search-submit inline-flex shrink-0 items-center justify-center rounded-r-full bg-blue-600 text-white transition-colors',
+            'hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2',
             h,
+            inputSize === 'lg' ? 'min-w-[52px] px-4' : 'min-w-[48px] px-3.5',
           )}
           aria-label="Search"
         >
-          <Search
-            className={cn(iconClass, 'explore-search-icon shrink-0')}
-            strokeWidth={2.25}
-            aria-hidden
-          />
+          <SearchMagnifierIcon />
         </button>
       </div>
 
       {showTrending && (
-        <div className="mt-3 space-y-2">
-          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Trending searches</p>
-          <div className="flex flex-wrap gap-2">
+        <div className="paws-universal-search__trending mt-3.5 space-y-2.5">
+          <p className="text-xs font-medium text-slate-500">Trending searches</p>
+          <div className="flex flex-wrap gap-2.5">
             {trending!.map((item) => (
               <button
                 key={item.label}
                 type="button"
-                className="inline-flex max-w-full items-center gap-1 rounded-full border border-slate-200/90 bg-slate-50/95 px-3 py-1.5 text-left text-xs font-medium text-slate-700 transition hover:border-blue-200 hover:bg-blue-50/90 dark:border-slate-600 dark:bg-slate-800/80 dark:text-slate-200 dark:hover:border-blue-500/50 dark:hover:bg-slate-800 sm:text-sm"
+                className={cn(
+                  'inline-flex min-h-[40px] max-w-full items-center justify-center rounded-full border border-slate-200/90 bg-slate-50/95',
+                  'px-4 py-2 text-left text-sm font-medium leading-snug text-slate-700',
+                  'whitespace-normal text-wrap transition',
+                  'hover:border-blue-200 hover:bg-blue-50/90 active:bg-blue-100/80',
+                )}
                 onClick={() => onTrendingPick!(item)}
               >
                 {item.label}
