@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import { TrendingUp, TrendingDown, Users, DollarSign, Calendar, Target } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { Database } from '@/integrations/supabase/types';
 
@@ -73,19 +73,10 @@ const SubscriptionAnalytics: React.FC = () => {
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
-      const endDate = new Date();
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - parseInt(timeRange));
+      // Server-authoritative, admin-authorized read (no direct anon Supabase access).
+      const res = await apiRequest(`/api/admin/analytics/subscriptions?days=${encodeURIComponent(timeRange)}`);
+      const data = (res?.data ?? []) as SubscriptionAnalyticsRow[];
 
-      const { data, error } = await supabase
-        .from('subscription_analytics')
-        .select('*')
-        .gte('date', startDate.toISOString().split('T')[0])
-        .lte('date', endDate.toISOString().split('T')[0])
-        .order('date', { ascending: true });
-
-      if (error) throw error;
-      
       // Transform the data to match our interface
       const transformedData: AnalyticsData[] = (data || []).map((row: SubscriptionAnalyticsRow) => ({
         date: row.date,

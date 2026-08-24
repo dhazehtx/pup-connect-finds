@@ -28,11 +28,9 @@ interface DisputeTransaction {
   } | null;
   buyer_profile?: {
     full_name: string;
-    email: string;
   } | null;
   seller_profile?: {
     full_name: string;
-    email: string;
   } | null;
 }
 
@@ -65,12 +63,10 @@ const DisputeManagementDashboard = () => {
             breed
           ),
           buyer_profile:profiles!buyer_id (
-            full_name,
-            email
+            full_name
           ),
           seller_profile:profiles!seller_id (
-            full_name,
-            email
+            full_name
           )
         `)
         .eq('status', 'disputed')

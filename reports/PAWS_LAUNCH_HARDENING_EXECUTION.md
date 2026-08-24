@@ -226,6 +226,38 @@ The Playwright config starts the app via `npm run dev:3000` against the local `.
 
 ---
 
+# Post-checkpoint migration correction — ✅ COMPLETE
+
+The checkpoint found two ways the original migration could lock out legitimate workflows. Both are fixed in `supabase/migrations/20260824000000_rls_storage_privacy_hardening.sql` and the supporting app code.
+
+### A. Privilege-escalation protection — trigger removed, grants-only
+- **Removed** the `prevent_profile_privilege_escalation` trigger (it keyed on `auth.role() = 'service_role'`, which the Drizzle backend connection never satisfies, so it would have blocked admin provider-approval and ban/unban).
+- Enforcement is now **column-level `REVOKE UPDATE`** on `is_admin, verified, role, is_suspended, two_factor_secret, two_factor_enabled, backup_codes` from `anon, authenticated`. Browser/PostgREST clients fail closed; the Drizzle backend (privileged/owner role, not anon/authenticated) is unaffected, so `storage.updateProfile({verified})` and `db.update(profiles).set({is_suspended})` keep working. REVOKEs are per-column existence-guarded (safe against schema divergence).
+
+### B. Subscription analytics — moved behind an admin Express endpoint
+- Added `GET /api/admin/analytics/subscriptions` (already `authMiddleware` + `adminMiddleware` gated) reading `subscription_analytics` with the service role.
+- `SubscriptionAnalytics.tsx` now calls that endpoint via `apiRequest` instead of the anon Supabase read, so the migration's lockdown of `subscription_analytics`/`donations`/`promotions` no longer breaks the UI.
+
+### C. Residual profiles PII exposure (checkpoint Step 3) — closed at the DB
+- `REVOKE SELECT` on `email, phone, address, city, state, zip_code, verification_document, breeder_license, fraud_score, profile_status, is_admin, role, is_suspended, suspended_reason, suspended_at, last_login_ip, last_login_at, suspicious_activity_count, stripe_account_id, stripe_connected, two_factor_secret, two_factor_enabled, backup_codes, privacy_settings, social_providers` from `anon, authenticated`. Public marketplace fields (`username, full_name, avatar_url, verified, location, rating, total_reviews`) stay readable so seller cards / review authors keep working.
+- The only anon embed that read a sensitive column was `DisputeManagementDashboard.tsx` (buyer/seller `email`); removed `email` from those two embeds (and made it optional in `DisputeDetailsDialog`) so nothing depends on the now-revoked column.
+
+### D. Policy cleanup robust to name divergence (checkpoint Step 4)
+- Storage: after the named `DROP POLICY IF EXISTS`, a dynamic block drops **any** non-owner (`NOT LIKE '%auth.uid()%'`) `SELECT` policy referencing each bucket. INSERT/UPDATE/DELETE policies are untouched (uploads keep working).
+- Analytics tables: dynamic block enables RLS and drops **all** their policies (service role bypasses RLS; no client anon access exists).
+
+### Tests + validation
+`tests/checkpoint-migration-fixes.test.ts` (8): admin-only analytics endpoint (anon/non-admin → 403, admin → 200 data); migration has no trigger, uses column REVOKE, keeps public fields, is forward-only, privatizes both buckets. **Suite total 63 passing.** typecheck 0, lint 0 errors, production build passes.
+
+### Code-level workflow verification
+- **Provider approval:** `storage.updateProfile(userId, {verified:true})` (Drizzle) — unaffected by column REVOKE, no trigger → works. ✅
+- **Ban/unban:** `db.update(profiles).set({is_suspended})` (Drizzle) → works. ✅
+- **Self-set verified/is_admin/role/is_suspended:** blocked by column `REVOKE UPDATE` from anon/authenticated (client has zero direct anon profile writes). ✅
+- **Gov-ID + message-attachment storage:** `public=false` in both the migration and `ensureStorageBucket.ts`; signed-URL reads server-side. ✅
+- **2FA:** migration does NOT touch the 2FA path (it's a server-side Drizzle write via `/api/profiles/me`; column REVOKE only affects anon PostgREST). ⚠️ Separately, a **pre-existing** gap exists: `updateProfileSchema` in `server/routes/profiles.ts` does not whitelist `two_factor_secret`/`two_factor_enabled`/`backup_codes`, so that endpoint strips them — 2FA persistence was already incomplete before this work and is out of scope for the migration correction. Flagged for a follow-up (also decide whether raw TOTP secrets should be settable through a general profile PATCH vs. a dedicated 2FA endpoint / the `enable-two-factor` edge function).
+
+---
+
 # PAWS Launch-Hardening — FINAL REPORT
 
 **Automated validation:** unit/authz **55/55**, typecheck **PASS**, lint **PASS (0 err)**, build **PASS**, E2E **deferred to CI (data-safety)**.

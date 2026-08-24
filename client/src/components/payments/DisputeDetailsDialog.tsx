@@ -24,11 +24,11 @@ interface DisputeTransaction {
   } | null;
   buyer_profile?: {
     full_name: string;
-    email: string;
+    email?: string;
   } | null;
   seller_profile?: {
     full_name: string;
-    email: string;
+    email?: string;
   } | null;
 }
 
