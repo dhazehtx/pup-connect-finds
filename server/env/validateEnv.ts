@@ -21,10 +21,10 @@ export type EnvValidationResult =
 function collectIssues(): EnvValidationIssue[] {
   const issues: EnvValidationIssue[] = [];
 
-  if (!hasTruthy('DATABASE_URL') && !hasTruthy('NEON_DATABASE_URL')) {
+  if (!hasTruthy('DATABASE_URL')) {
     issues.push({
       id: 'database_url',
-      configure: 'DATABASE_URL or NEON_DATABASE_URL',
+      configure: 'DATABASE_URL (Supabase Postgres connection string)',
     });
   }
 

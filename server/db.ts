@@ -9,12 +9,11 @@ neonConfig.webSocketConstructor = ws;
 type AppDb = NeonDatabase<typeof schema>;
 
 const MISSING_DB_MSG =
-  "DATABASE_URL or NEON_DATABASE_URL must be set (same Postgres as Supabase: use the connection string from Supabase Project Settings → Database, or your Neon URL). Add it to .env in the repo root, or set the variable on your host (e.g. Railway → Variables).";
+  "DATABASE_URL is not set. The application database is the Supabase Postgres — set DATABASE_URL to the connection string from Supabase Project Settings → Database (Railway → Variables, or repo-root .env). NEON_DATABASE_URL is no longer used as a fallback; missing DATABASE_URL fails closed.";
 
+/** DATABASE_URL only. The stale Neon alias is never used as a runtime fallback. */
 function readDatabaseUrl(): string | undefined {
-  return (
-    process.env.DATABASE_URL?.trim() || process.env.NEON_DATABASE_URL?.trim()
-  );
+  return process.env.DATABASE_URL?.trim() || undefined;
 }
 
 let _pool: Pool | null = null;

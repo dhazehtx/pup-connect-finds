@@ -9,7 +9,8 @@ export function connectionStringReferencesProductionDb(connectionString: string)
 }
 
 function collectDatabaseUrls(): string[] {
-  const raw = [process.env.DATABASE_URL, process.env.NEON_DATABASE_URL].filter(
+  // DATABASE_URL only — NEON_DATABASE_URL is no longer a runtime DB source.
+  const raw = [process.env.DATABASE_URL].filter(
     (s): s is string => typeof s === 'string' && s.trim().length > 0,
   );
   return raw;
@@ -26,7 +27,7 @@ export function assertEnvironmentSafety(): void {
     if (connectionStringReferencesProductionDb(url)) {
       throw new Error(
         '[env] assertEnvironmentSafety: NODE_ENV=staging cannot use a production database URL. ' +
-          'Set DATABASE_URL / NEON_DATABASE_URL to a dedicated staging database (no "prod" / "production" in the connection string).',
+          'Set DATABASE_URL to a dedicated staging database (no "prod" / "production" in the connection string).',
       );
     }
   }
@@ -34,7 +35,7 @@ export function assertEnvironmentSafety(): void {
 
 /** Hostname (and optional db name) for logs — never logs password or full URL. */
 export function describeDatabaseForLog(): { configured: boolean; host?: string; database?: string } {
-  const url = process.env.DATABASE_URL || process.env.NEON_DATABASE_URL;
+  const url = process.env.DATABASE_URL;
   if (!url?.trim()) {
     return { configured: false };
   }

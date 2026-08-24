@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import { Pool } from "@neondatabase/serverless";
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL || process.env.NEON_DATABASE_URL });
+// DATABASE_URL only — no NEON fallback (consistent with server/db.ts fail-closed behavior).
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 export async function POST(req: Request, res: Response) {
   try {

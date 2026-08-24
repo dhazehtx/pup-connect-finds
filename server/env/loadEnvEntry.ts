@@ -6,9 +6,7 @@ import { loadEnv } from './loadEnv';
 
 loadEnv();
 
-/** Single pool of env names: Drizzle uses DATABASE_URL; some hosts use NEON_DATABASE_URL. */
-const dbUrl =
-  process.env.DATABASE_URL?.trim() || process.env.NEON_DATABASE_URL?.trim();
-if (dbUrl && !process.env.DATABASE_URL?.trim()) {
-  process.env.DATABASE_URL = dbUrl;
-}
+// NOTE: `NEON_DATABASE_URL` is intentionally NOT promoted into `DATABASE_URL`.
+// The application database is the Supabase Postgres and access must go through an
+// explicit `DATABASE_URL`. The stale/disabled Neon endpoint must never be selected
+// silently — missing `DATABASE_URL` fails closed in server/db.ts.
