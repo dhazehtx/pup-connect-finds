@@ -15,6 +15,15 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
  */
 export async function getPayoutLink(req: Request, res: Response) {
   try {
+    // --- Auth first (fail-fast). Server-authoritative identity only.
+    const userId = (req as any).user?.id;
+    if (!userId) {
+      return res.status(401).json({
+        ok: false,
+        error: { message: "Authentication required." },
+      });
+    }
+
     // --- Basic sanity checks
     const configuredOrigin = process.env.PUBLIC_APP_URL || process.env.BASE_URL || "";
     const requestHost = req.get("x-forwarded-host") || req.get("host") || "";
@@ -31,15 +40,6 @@ export async function getPayoutLink(req: Request, res: Response) {
       throw new Error(
         "Missing or invalid PUBLIC_APP_URL/BASE_URL. Set a public https URL for return/refresh."
       );
-    }
-
-    // Get user ID (dev bypass: session, body, or query)
-    const userId = (req as any).user?.id || req.body?.userId || req.query?.userId;
-    if (!userId) {
-      return res.status(400).json({
-        ok: false,
-        error: { message: "Missing userId (auth required before payout link)." },
-      });
     }
 
     console.log("[PAYOUT LINK] Getting fresh link for userId:", userId);

@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Heart, Mail, User, Eye, EyeOff, Shield, Lock, Apple } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { BRAND } from '@shared/brand';
 
 const ProfileAuthScreen = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -80,7 +81,7 @@ const ProfileAuthScreen = () => {
             <Heart size={32} className="text-primary-foreground" />
           </div>
           <h1 className="text-3xl font-bold text-foreground mb-2">
-            {isSignUp ? 'Sign up for MY PUP' : 'Log in to MY PUP'}
+            {isSignUp ? `Sign up for ${BRAND.name}` : `Log in to ${BRAND.name}`}
           </h1>
         </div>
 
@@ -187,7 +188,7 @@ const ProfileAuthScreen = () => {
             className="text-sm text-gray-600 hover:text-foreground hover:bg-transparent underline"
             disabled={loading}
           >
-            {isSignUp ? 'Already have an account? Log in here.' : "Don't have an account? Sign up for MY PUP"}
+            {isSignUp ? 'Already have an account? Log in here.' : `Don't have an account? Sign up for ${BRAND.name}`}
           </Button>
         </div>
 

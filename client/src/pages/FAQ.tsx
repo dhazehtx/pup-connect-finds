@@ -28,17 +28,17 @@ const FAQ = () => {
       faqs: [
         {
           id: 'what-is-mypup',
-          question: 'What is MY PUP?',
-          answer: 'MY PUP is a trusted platform that connects loving families with verified breeders and their puppies. We ensure safe, transparent transactions and provide educational resources for responsible dog ownership.'
+          question: 'What is PAWS?',
+          answer: 'PAWS is a trusted platform that connects loving families with verified breeders and their puppies. We ensure safe, transparent transactions and provide educational resources for responsible dog ownership.'
         },
         {
           id: 'how-it-works',
-          question: 'How does MY PUP work?',
+          question: 'How does PAWS work?',
           answer: 'Browse verified listings, contact breeders directly, arrange meetings, and complete secure transactions. Our platform includes safety measures, breeder verification, and ongoing support.'
         },
         {
           id: 'is-it-free',
-          question: 'Is MY PUP free to use?',
+          question: 'Is PAWS free to use?',
           answer: 'Yes, browsing and contacting breeders is free for families. We offer premium features for enhanced search and breeder tools for listing management.'
         }
       ]
@@ -125,7 +125,7 @@ const FAQ = () => {
       <div className="bg-gradient-to-r from-royal-blue to-deep-navy text-cloud-white py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl font-bold mb-4">Frequently Asked Questions</h1>
-          <p className="text-xl opacity-90">Find answers to common questions about MY PUP</p>
+          <p className="text-xl opacity-90">Find answers to common questions about PAWS</p>
         </div>
       </div>
 

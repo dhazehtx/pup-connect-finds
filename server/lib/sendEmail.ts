@@ -2,8 +2,10 @@
  * Email sending via SendGrid (or no-op if SENDGRID_API_KEY is not set).
  * Set SENDGRID_API_KEY and SENDGRID_FROM (e.g. noreply@yourapp.com) in env.
  */
+import { getBrand } from './brand';
+
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
-const SENDGRID_FROM = process.env.SENDGRID_FROM || 'noreply@pupconnect.com';
+const SENDGRID_FROM = getBrand().fromEmail;
 
 export interface SendEmailOptions {
   to: string;

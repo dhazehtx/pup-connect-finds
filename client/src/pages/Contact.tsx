@@ -8,8 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { MessageCircle, Mail, LifeBuoy, Clock, Send, ChevronRight, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { APP_SHELL_CONTAINER_CLASS } from '@/lib/appShell';
+import { BRAND } from '@shared/brand';
 
-const SUPPORT_EMAIL_PLACEHOLDER = 'support@paws.app';
+const SUPPORT_EMAIL_PLACEHOLDER = BRAND.supportEmail;
 
 const Contact = () => {
   const { toast } = useToast();

@@ -1070,7 +1070,7 @@ const Legal = () => {
                 attorney for specific legal questions related to pet purchases, breeding operations, or business licensing.
               </p>
               <p className="text-gray-700">
-                MY PUP is not responsible for any legal issues arising from the use of this information. 
+                PAWS is not responsible for any legal issues arising from the use of this information. 
                 Users should verify current laws and regulations in their jurisdiction before making any decisions.
               </p>
             </div>

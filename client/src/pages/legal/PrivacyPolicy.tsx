@@ -242,9 +242,9 @@ function PrivacyPolicy() {
             If you have questions about this privacy policy or your data:
           </p>
           <ul className="space-y-1">
-            <li><strong>Email:</strong> privacy@mypup.com</li>
-            <li><strong>Support:</strong> support@mypup.com</li>
-            <li><strong>Data Protection Officer:</strong> dpo@mypup.com</li>
+            <li><strong>Email:</strong> privacy@petadoptionwebservices.com</li>
+            <li><strong>Support:</strong> support@petadoptionwebservices.com</li>
+            <li><strong>Data Protection Officer:</strong> dpo@petadoptionwebservices.com</li>
           </ul>
         </CardContent>
       </Card>
@@ -252,7 +252,7 @@ function PrivacyPolicy() {
       <Separator className="my-8" />
       
       <div className="text-center text-sm text-muted-foreground">
-        <p>This privacy policy explains how My Pup collects, uses, and protects your information.</p>
+        <p>This privacy policy explains how PAWS collects, uses, and protects your information.</p>
       </div>
     </div>
   );

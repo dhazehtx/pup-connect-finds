@@ -2,6 +2,7 @@
 import React from 'react';
 import { CardHeader, CardTitle } from '@/components/ui/card';
 import { Heart } from 'lucide-react';
+import { BRAND } from '@shared/brand';
 
 interface AuthHeaderProps {
   isSignUp: boolean;
@@ -14,7 +15,7 @@ const AuthHeader = ({ isSignUp }: AuthHeaderProps) => {
         <Heart size={32} className="text-cloud-white" />
       </div>
       <CardTitle className="text-2xl font-bold text-deep-navy">
-        {isSignUp ? 'Join My Pup' : 'Welcome Back'}
+        {isSignUp ? `Join ` : 'Welcome Back'}
       </CardTitle>
       <p className="text-deep-navy/70">
         {isSignUp 

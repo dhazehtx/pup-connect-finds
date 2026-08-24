@@ -57,7 +57,7 @@ const StripeCheckoutDemo = () => {
           {/* Heading */}
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-1">Stripe Checkout Demo</h2>
-            <p className="text-sm text-gray-600">My Pup Service Example</p>
+            <p className="text-sm text-gray-600">PAWS Service Example</p>
           </div>
 
           {/* Price Display */}

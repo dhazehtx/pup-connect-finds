@@ -114,7 +114,7 @@ const Navbar = () => {
       {showGuestPrompt && (
         <GuestPrompt
           action="create content"
-          description="To create content, you need to create a MY PUP account."
+          description="To create content, you need to create a PAWS account."
           onCancel={() => setShowGuestPrompt(false)}
         />
       )}

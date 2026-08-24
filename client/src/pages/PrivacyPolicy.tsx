@@ -49,7 +49,7 @@ const PrivacyPolicy = () => {
             <div>
               <h2 className="text-xl font-semibold text-gray-900 mb-3">Contact Us</h2>
               <p className="text-gray-600">
-                If you have any questions about this Privacy Policy, please contact us at privacy@mypup.com.
+                If you have any questions about this Privacy Policy, please contact us at privacy@petadoptionwebservices.com.
               </p>
             </div>
           </CardContent>

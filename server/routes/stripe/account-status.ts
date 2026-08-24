@@ -13,10 +13,22 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
  */
 export async function getAccountStatus(req: Request, res: Response) {
   try {
-    const { acctId, userId } = req.params;
+    const { acctId } = req.params;
+    // Server-authoritative identity only — ignore the :userId path param.
+    const userId = (req as any).user?.id;
 
-    if (!acctId || !userId) {
-      return res.status(400).json({ error: 'Missing acctId or userId' });
+    if (!acctId) {
+      return res.status(400).json({ error: 'Missing acctId' });
+    }
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    // Ensure the account being polled actually belongs to this user before
+    // writing connection status onto their profile.
+    const profile = await storage.getProfile(userId);
+    if (profile?.stripe_account_id && profile.stripe_account_id !== acctId) {
+      return res.status(403).json({ error: 'Forbidden' });
     }
 
     console.log('[STRIPE ACCOUNT STATUS] Checking account:', acctId, 'for user:', userId);

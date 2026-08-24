@@ -23,7 +23,7 @@ const PlatformSettings = () => {
   const { toast } = useToast();
   
   const [generalSettings, setGeneralSettings] = useState({
-    platformName: 'MY PUP',
+    platformName: 'PAWS',
     platformDescription: 'The premier marketplace for connecting dog lovers',
     maintenanceMode: false,
     allowNewRegistrations: true,

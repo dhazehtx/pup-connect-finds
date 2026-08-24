@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -136,17 +137,15 @@ export const useDogListings = () => {
 
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('dog_listings')
-        .insert([{
+      // Authoritative write path: server → Neon/Drizzle (same DB the explore feed
+      // reads from), with ownership enforced server-side. No browser-direct writes.
+      const data = await apiRequest('/api/listings', {
+        method: 'POST',
+        body: {
           ...listingData,
-          user_id: user.id,
-          listing_status: listingData.listing_status || 'active'
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
+          listing_status: listingData.listing_status || 'active',
+        },
+      });
 
       toast({
         title: "Success!",
@@ -183,15 +182,11 @@ export const useDogListings = () => {
 
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('dog_listings')
-        .update(updates)
-        .eq('id', listingId)
-        .eq('user_id', user.id)
-        .select()
-        .single();
-
-      if (error) throw error;
+      // Authoritative write path: server enforces ownership (403 if not owner).
+      const data = await apiRequest(`/api/listings/${listingId}`, {
+        method: 'PUT',
+        body: updates,
+      });
 
       toast({
         title: "Success!",
@@ -225,13 +220,8 @@ export const useDogListings = () => {
 
     try {
       setLoading(true);
-      const { error } = await supabase
-        .from('dog_listings')
-        .delete()
-        .eq('id', listingId)
-        .eq('user_id', user.id);
-
-      if (error) throw error;
+      // Authoritative write path: server enforces ownership and soft-deletes (trash).
+      await apiRequest(`/api/listings/${listingId}`, { method: 'DELETE' });
 
       toast({
         title: "Success!",

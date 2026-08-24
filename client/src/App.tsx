@@ -333,6 +333,7 @@ function App() {
                       </Suspense>
                     </RequireAuth>
                   } />
+                  {import.meta.env.DEV && (
                   <Route path="/fraud-demo" element={
                     <RequireAuth>
                       <Suspense fallback={<LoadingPage message="Loading..." />}>
@@ -340,6 +341,7 @@ function App() {
                       </Suspense>
                     </RequireAuth>
                   } />
+                  )}
                   <Route path="/refund-center" element={
                     <RequireAuth>
                       <Suspense fallback={<LoadingPage message="Loading..." />}>
@@ -354,11 +356,13 @@ function App() {
                       </Suspense>
                     </RequireAuth>
                   } />
+                  {import.meta.env.DEV && (
                   <Route path="/rate-limit-demo" element={
                     <Suspense fallback={<LoadingPage message="Loading Rate Limit Demo..." />}>
                       <RateLimitDemo />
                     </Suspense>
                   } />
+                  )}
                   <Route path="/admin/errors" element={
                     <ProtectedRoute>
                       <Suspense fallback={<LoadingPage message="Loading Error Monitoring..." />}>

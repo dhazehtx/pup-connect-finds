@@ -4,7 +4,8 @@ import { getStripe } from '../../lib/stripeLazy';
 
 export async function verifyPayout(req: Request, res: Response) {
   try {
-    const userId = (req as any).user?.id || req.body?.userId || req.query?.userId;
+    // Server-authoritative identity only — never trust body/query userId.
+    const userId = (req as any).user?.id;
     if (!userId) {
       return res.status(401).json({
         ok: false,

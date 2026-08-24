@@ -30,6 +30,31 @@ const upload = multer({
   }
 });
 
+const BUCKET_NAME = 'provider-id-docs';
+const SIGNED_URL_TTL_SECONDS = 60 * 60; // 1 hour — preview only; store the PATH, not the URL.
+
+/**
+ * Generate a short-lived signed URL for a just-uploaded ID document. The bucket
+ * is private, so this is the only way to view it. Callers should persist `path`
+ * (not the signed URL) and re-sign on read.
+ */
+async function signIdDoc(path: string): Promise<string | null> {
+  try {
+    const { data, error } = await runSupabaseWithRetry(
+      () => supabaseAdmin!.storage.from(BUCKET_NAME).createSignedUrl(path, SIGNED_URL_TTL_SECONDS),
+      { opName: 'upload-id.createSignedUrl' },
+    );
+    if (error) {
+      console.error('[UPLOAD-ID] Signed URL error:', error);
+      return null;
+    }
+    return data?.signedUrl ?? null;
+  } catch (err) {
+    console.error('[UPLOAD-ID] Signed URL exception:', err);
+    return null;
+  }
+}
+
 async function getUserIdFromToken(req: Request): Promise<string | null> {
   try {
     const auth = req.headers.authorization || '';
@@ -77,7 +102,6 @@ router.post('/front', upload.single('file'), async (req: Request, res: Response)
       return res.status(400).json({ error: 'No file provided' });
     }
 
-    const BUCKET_NAME = 'provider-id-docs';
     const filePath = `users/${userId}/id/${Date.now()}_front_${req.file.originalname}`;
 
     console.log('[UPLOAD-ID] Uploading front image:', { userId, filePath, size: req.file.size });
@@ -99,16 +123,14 @@ router.post('/front', upload.single('file'), async (req: Request, res: Response)
       return res.status(500).json({ error: `Upload failed: ${error.message}` });
     }
 
-    // Get public URL
-    const { data: urlData } = supabaseAdmin!.storage
-      .from(BUCKET_NAME)
-      .getPublicUrl(filePath);
+    // Private bucket: hand back a short-lived signed URL for preview. Persist `path`.
+    const signedUrl = await signIdDoc(filePath);
 
     console.log('[UPLOAD-ID] Front image uploaded successfully');
 
     return res.status(200).json({
       success: true,
-      url: urlData.publicUrl,
+      url: signedUrl,
       path: filePath
     });
   } catch (error: any) {
@@ -146,7 +168,6 @@ router.post('/back', upload.single('file'), async (req: Request, res: Response) 
       return res.status(400).json({ error: 'No file provided' });
     }
 
-    const BUCKET_NAME = 'provider-id-docs';
     const filePath = `users/${userId}/id/${Date.now()}_back_${req.file.originalname}`;
 
     console.log('[UPLOAD-ID] Uploading back image:', { userId, filePath, size: req.file.size });
@@ -168,16 +189,14 @@ router.post('/back', upload.single('file'), async (req: Request, res: Response) 
       return res.status(500).json({ error: `Upload failed: ${error.message}` });
     }
 
-    // Get public URL
-    const { data: urlData } = supabaseAdmin!.storage
-      .from(BUCKET_NAME)
-      .getPublicUrl(filePath);
+    // Private bucket: hand back a short-lived signed URL for preview. Persist `path`.
+    const signedUrl = await signIdDoc(filePath);
 
     console.log('[UPLOAD-ID] Back image uploaded successfully');
 
     return res.status(200).json({
       success: true,
-      url: urlData.publicUrl,
+      url: signedUrl,
       path: filePath
     });
   } catch (error: any) {

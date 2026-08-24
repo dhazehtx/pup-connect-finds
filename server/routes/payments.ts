@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import type Stripe from 'stripe';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware, requireAuth } from '../middleware/auth';
 import { generalRateLimit } from '../middleware/rateLimiting';
 import { asyncHandler } from '../middleware/errorHandler';
 import { storage } from '../storage';
@@ -28,7 +28,7 @@ function toCents(amount: number): number {
  * Create a PaymentIntent with platform fee and provider routing
  * POST /api/payments/create-intent
  */
-router.post('/create-intent', authMiddleware, generalRateLimit, asyncHandler(async (req: any, res: any) => {
+router.post('/create-intent', authMiddleware, requireAuth, generalRateLimit, asyncHandler(async (req: any, res: any) => {
   const {
     amount,                 // e.g. 100.00 (USD)
     currency = "usd",
@@ -159,7 +159,7 @@ router.post('/create-intent', authMiddleware, generalRateLimit, asyncHandler(asy
  * Confirm a PaymentIntent (for cases where confirmation is deferred)
  * POST /api/payments/confirm-intent
  */
-router.post('/confirm-intent', authMiddleware, generalRateLimit, asyncHandler(async (req: any, res: any) => {
+router.post('/confirm-intent', authMiddleware, requireAuth, generalRateLimit, asyncHandler(async (req: any, res: any) => {
   const { paymentIntentId, paymentMethodId } = req.body;
 
   if (!paymentIntentId) {
@@ -207,16 +207,22 @@ router.post('/confirm-intent', authMiddleware, generalRateLimit, asyncHandler(as
  * Get PaymentIntent status
  * GET /api/payments/intent/:id
  */
-router.get('/intent/:id', authMiddleware, generalRateLimit, asyncHandler(async (req: any, res: any) => {
+router.get('/intent/:id', authMiddleware, requireAuth, generalRateLimit, asyncHandler(async (req: any, res: any) => {
   const { id } = req.params;
 
   try {
     const paymentIntent = await getStripe().paymentIntents.retrieve(id);
 
-    res.json({ 
-      success: true, 
-      paymentIntent: { 
-        id: paymentIntent.id, 
+    // Ownership: only the user the PI is stamped with (or an admin) may read it.
+    const piUserId = paymentIntent.metadata?.user_id || '';
+    if (piUserId && piUserId !== req.user?.id && !req.user?.is_admin) {
+      return res.status(403).json({ success: false, message: 'Forbidden' });
+    }
+
+    res.json({
+      success: true,
+      paymentIntent: {
+        id: paymentIntent.id,
         status: paymentIntent.status,
         amount: paymentIntent.amount,
         application_fee_amount: paymentIntent.application_fee_amount,

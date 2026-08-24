@@ -10,8 +10,8 @@ const GettingStarted = () => {
 
   const articles = [
     {
-      title: 'Creating Your MY PUP Account',
-      content: 'Learn how to sign up and set up your profile on MY PUP.',
+      title: 'Creating Your PAWS Account',
+      content: 'Learn how to sign up and set up your profile on PAWS.',
       steps: [
         'Click "Sign Up" in the top navigation',
         'Enter your email and create a secure password',
@@ -22,7 +22,7 @@ const GettingStarted = () => {
     },
     {
       title: 'Navigating the Platform',
-      content: 'Get familiar with the main features and layout of MY PUP.',
+      content: 'Get familiar with the main features and layout of PAWS.',
       steps: [
         'Use the search bar to find specific breeds or locations',
         'Browse listings using filters for age, price, and location',
@@ -71,7 +71,7 @@ const GettingStarted = () => {
             <Book className="h-8 w-8 mr-3" />
             <h1 className="text-3xl font-bold">Getting Started</h1>
           </div>
-          <p className="text-xl opacity-90">Everything you need to know to begin your MY PUP journey</p>
+          <p className="text-xl opacity-90">Everything you need to know to begin your PAWS journey</p>
         </div>
       </div>
 

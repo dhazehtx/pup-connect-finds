@@ -6,7 +6,7 @@ export const helpCategories = [
     title: 'Getting Started',
     icon: Book,
     articles: 15,
-    description: 'Learn the basics of using MY PUP',
+    description: 'Learn the basics of using PAWS',
     path: '/help/getting-started'
   },
   {
@@ -34,7 +34,7 @@ export const helpCategories = [
 
 export const faqs = [
   {
-    question: 'How do I create an account on MY PUP?',
+    question: 'How do I create an account on PAWS?',
     answer: 'Creating an account is easy! Click the "Sign Up" button in the top right corner, enter your email and create a password. You can also sign up using your Google or Facebook account for faster registration.'
   },
   {

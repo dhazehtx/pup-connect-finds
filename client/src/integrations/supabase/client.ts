@@ -16,6 +16,31 @@ function viteEnvString(key: 'VITE_SUPABASE_URL' | 'VITE_SUPABASE_ANON_KEY'): str
   return t;
 }
 
+/**
+ * Pure resolver for the Supabase browser config. In production, missing env is a
+ * hard error (fail closed) — we must never silently point real users at the demo
+ * project. In dev, fall back to the demo placeholders. Exported for testing.
+ */
+export function resolveSupabaseConfig(input: {
+  envUrl: string;
+  envKey: string;
+  isProd: boolean;
+}): { url: string; anonKey: string; usedFallback: boolean } {
+  const { envUrl, envKey, isProd } = input;
+  if ((!envUrl || !envKey) && isProd) {
+    throw new Error(
+      '[supabase] Missing VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY in a production build. ' +
+        'Set both at build time — refusing to fall back to the demo project.',
+    );
+  }
+  const usedFallback = !envUrl || !envKey;
+  return {
+    url: envUrl || DEV_FALLBACK_URL,
+    anonKey: envKey || DEV_FALLBACK_ANON_KEY,
+    usedFallback,
+  };
+}
+
 function createWithOptions(url: string, anonKey: string): SupabaseClient<Database> {
   return createClient<Database>(url, anonKey, {
     auth: {
@@ -37,12 +62,17 @@ function buildClient(): SupabaseClient<Database> {
   if (envUrl) {
     envUrl = normalizeSupabaseApiUrl(envUrl);
   }
-  const url = envUrl || DEV_FALLBACK_URL;
-  const anonKey = envKey || DEV_FALLBACK_ANON_KEY;
+  // Production must fail closed: never silently fall back to the shared demo
+  // project (that would send real users' data to a throwaway Supabase instance).
+  const { url, anonKey, usedFallback } = resolveSupabaseConfig({
+    envUrl,
+    envKey,
+    isProd: Boolean(import.meta.env.PROD),
+  });
 
-  if (!envUrl || !envKey) {
+  if (usedFallback) {
     console.warn(
-      '[supabase] VITE_SUPABASE_URL and/or VITE_SUPABASE_ANON_KEY missing — using placeholders. Add both to repo-root `.env`.',
+      '[supabase] VITE_SUPABASE_URL and/or VITE_SUPABASE_ANON_KEY missing — using DEV placeholders. Add both to repo-root `.env`.',
     );
   }
 

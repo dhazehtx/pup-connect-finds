@@ -16,7 +16,7 @@ const CustomerReviewsJoinCTA = () => {
           </h3>
           <p className="text-black/70 mb-6 max-w-2xl mx-auto">
             Ready to find your perfect puppy companion? Browse our verified breeders 
-            and discover why families trust MY PUP to help them find their new best friend.
+            and discover why families trust PAWS to help them find their new best friend.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 

@@ -76,14 +76,10 @@ router.post('/frontend', asyncHandler(async (req: Request, res: Response) => {
  * Get logs for debugging (admin only)
  */
 router.get('/recent', asyncHandler(async (req: Request, res: Response) => {
-  // Check if user is admin
+  // Admin status comes only from trusted server/DB state — no hardcoded
+  // username/email allowlists (those bypass real access control).
   const user = (req as any).user;
-  const isAdmin = user && (
-    user.is_admin === true || 
-    user.username === 'danieluke97' || 
-    user.email === 'danieluke97@yahoo.com' ||
-    user.username === 'Royalbabybullz'
-  );
+  const isAdmin = user?.is_admin === true;
 
   if (!(req as any).isAuthenticated?.() || !isAdmin) {
     return res.status(403).json({ error: 'Admin access required' });

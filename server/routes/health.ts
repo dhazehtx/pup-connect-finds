@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { sql } from "drizzle-orm";
 import { db } from "../db";
 import { profiles } from "@shared/schema";
@@ -8,6 +8,22 @@ import { validateStartupConfig } from "../lib/startupConfig";
 import { getServerSupabaseApiUrl } from "../lib/serverSupabaseEnv";
 import { diagnoseDatabaseUrl } from "../lib/databaseUrlDiagnostics";
 import { readDatabaseUrlEnv } from "../lib/readDatabaseUrlEnv";
+
+/**
+ * Diagnostic endpoints (/api/ops/*, /api/health/detailed) expose infrastructure
+ * topology (DB host, env presence, config). Never public. Allow an authenticated
+ * admin session, or a matching OPS_SECRET header (so ops can inspect config even
+ * when the DB/auth path is degraded). Fails closed.
+ */
+function opsGuard(req: Request, res: Response, next: NextFunction) {
+  const opsSecret = process.env.OPS_SECRET?.trim();
+  if (opsSecret) {
+    const header = (req.get("x-ops-secret") || "").trim();
+    if (header && header === opsSecret) return next();
+  }
+  if ((req as any).user?.is_admin) return next();
+  return res.status(403).json({ error: "Forbidden", code: "OPS_FORBIDDEN" });
+}
 
 export function registerHealthRoutes(app: Express) {
   // Liveness only — no DB. Use for PaaS health checks (Railway/Render) so a cold DB
@@ -23,7 +39,7 @@ export function registerHealthRoutes(app: Express) {
     });
   });
 
-  app.get("/api/ops/supabase", async (_req, res) => {
+  app.get("/api/ops/supabase", opsGuard, async (_req, res) => {
     const snapshot = getSupabaseHealthSnapshot();
     const supabaseUrl = getServerSupabaseApiUrl();
     let host: string | null = null;
@@ -44,7 +60,7 @@ export function registerHealthRoutes(app: Express) {
     });
   });
 
-  app.get("/api/ops/config", (_req, res) => {
+  app.get("/api/ops/config", opsGuard, (_req, res) => {
     const startup = validateStartupConfig();
     const dbDiag = diagnoseDatabaseUrl(readDatabaseUrlEnv());
     res.json({
@@ -61,7 +77,7 @@ export function registerHealthRoutes(app: Express) {
     });
   });
 
-  app.get("/api/ops/database", (_req, res) => {
+  app.get("/api/ops/database", opsGuard, (_req, res) => {
     const dbDiag = diagnoseDatabaseUrl(readDatabaseUrlEnv());
     res.json({
       ok: dbDiag.configured && dbDiag.issues.length === 0,
@@ -135,7 +151,7 @@ export function registerHealthRoutes(app: Express) {
   });
 
   // Detailed health check for monitoring systems
-  app.get("/api/health/detailed", async (req, res) => {
+  app.get("/api/health/detailed", opsGuard, async (req, res) => {
     try {
       const startTime = Date.now();
       

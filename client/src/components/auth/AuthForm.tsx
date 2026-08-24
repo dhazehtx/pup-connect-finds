@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Heart, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { BRAND } from '@shared/brand';
 
 const AuthForm = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -119,9 +120,9 @@ const AuthForm = () => {
         <CardHeader className="text-center pb-2">
           <div className="flex items-center justify-center mb-4">
             <Heart className="h-8 w-8 text-blue-600 mr-2" />
-            <span className="text-2xl font-bold text-gray-900">MY PUP</span>
+            <span className="text-2xl font-bold text-gray-900">{BRAND.name}</span>
           </div>
-          <CardTitle className="text-xl">Welcome to My Pup</CardTitle>
+          <CardTitle className="text-xl">Welcome to {BRAND.name}</CardTitle>
           <p className="text-gray-600 text-sm">Find your perfect furry companion</p>
         </CardHeader>
         

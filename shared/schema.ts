@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, uuid, decimal, jsonb, unique, uniqueIndex, index, real } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, uuid, decimal, jsonb, unique, uniqueIndex, index, real, doublePrecision } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -1709,3 +1709,49 @@ export const dealDisputes = pgTable("deal_disputes", {
 export const insertDealDisputeSchema = createInsertSchema(dealDisputes).omit({ id: true, created_at: true });
 export type DealDispute = typeof dealDisputes.$inferSelect;
 export type InsertDealDispute = z.infer<typeof insertDealDisputeSchema>;
+
+// AI Match quality monitoring (tables created by migrations/20260331_ai_match_quality_monitoring.sql).
+// Drizzle definitions were missing at baseline; added so the server bundle compiles.
+export const aiMatchQualityEvents = pgTable("ai_match_quality_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  match_ranking: text("match_ranking").notNull(),
+  had_query_embedding: boolean("had_query_embedding").notNull().default(false),
+  result_count: integer("result_count").notNull().default(0),
+  top_match_score: doublePrecision("top_match_score"),
+  listing_threshold: doublePrecision("listing_threshold"),
+  duration_ms: integer("duration_ms"),
+  model: text("model"),
+  created_at: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  idxCreatedAt: index("idx_ai_match_quality_events_created_at").on(table.created_at),
+  idxRanking: index("idx_ai_match_quality_events_match_ranking").on(table.match_ranking),
+}));
+
+export const aiMatchQualityDailyMetrics = pgTable("ai_match_quality_daily_metrics", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  metric_day: timestamp("metric_day", { withTimezone: true }).notNull(),
+  total_requests: integer("total_requests").notNull().default(0),
+  visual_requests: integer("visual_requests").notNull().default(0),
+  fallback_requests: integer("fallback_requests").notNull().default(0),
+  empty_requests: integer("empty_requests").notNull().default(0),
+  avg_top_match_score: doublePrecision("avg_top_match_score"),
+  fallback_rate: doublePrecision("fallback_rate"),
+  empty_rate: doublePrecision("empty_rate"),
+  created_at: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updated_at: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  uqDay: uniqueIndex("uq_ai_match_quality_daily_metrics_day").on(table.metric_day),
+}));
+
+export const aiMatchQualityAlerts = pgTable("ai_match_quality_alerts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  metric_day: timestamp("metric_day", { withTimezone: true }).notNull(),
+  alert_type: text("alert_type").notNull(),
+  severity: text("severity").notNull().default("warn"),
+  message: text("message").notNull(),
+  details: jsonb("details"),
+  created_at: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  uqDayType: uniqueIndex("uq_ai_match_quality_alerts_day_type").on(table.metric_day, table.alert_type),
+  idxMetricDay: index("idx_ai_match_quality_alerts_metric_day").on(table.metric_day),
+}));

@@ -67,7 +67,7 @@ export const useProfileSharing = () => {
   const shareViaEmail = async (profileId: string, email: string) => {
     try {
       const shareUrl = await generateShareLink(profileId, 30); // 30 days expiry
-      const subject = 'Check out this profile on MY PUP';
+      const subject = 'Check out this profile on PAWS';
       const body = `I wanted to share this profile with you: ${shareUrl}`;
       
       const mailtoUrl = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -85,7 +85,7 @@ export const useProfileSharing = () => {
   const shareViaSocial = async (profileId: string, platform: 'facebook' | 'twitter' | 'linkedin') => {
     try {
       const shareUrl = await generateShareLink(profileId);
-      const text = 'Check out this profile on MY PUP';
+      const text = 'Check out this profile on PAWS';
       
       let socialUrl = '';
       switch (platform) {

@@ -59,7 +59,7 @@ const ContactUs = () => {
       icon: <Mail className="h-6 w-6" />,
       title: 'Email Support',
       description: 'Get help via email',
-      contact: 'support@mypup.com',
+      contact: 'support@petadoptionwebservices.com',
       responseTime: 'Usually responds within 2 hours'
     },
     {
@@ -251,7 +251,7 @@ const ContactUs = () => {
                   For all emergency situations, safety concerns, or urgent fraud reports, please contact us immediately via email at:
                 </p>
                 <div className="bg-white p-3 rounded-lg border border-royal-blue">
-                  <p className="text-royal-blue font-medium">emergency@mypup.com</p>
+                  <p className="text-royal-blue font-medium">emergency@petadoptionwebservices.com</p>
                 </div>
                 <p className="text-sm text-black/60 mt-3">
                   We monitor emergency emails 24/7 and will respond immediately to urgent matters.

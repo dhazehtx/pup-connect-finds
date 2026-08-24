@@ -1,11 +1,13 @@
+import { BRAND } from "@shared/brand";
+
 export function LegalBlurb({
   variant = "generic",
 }: { variant?: "stripe" | "booking" | "generic" }) {
   const copy = {
     stripe:
-      "My Pup is a marketplace. We don't provide pet services or insurance and don't supervise users. By continuing, you accept animal-related risks and agree services are between you and the other party. See our",
+      `${BRAND.name} is a marketplace. We don't provide pet services or insurance and don't supervise users. By continuing, you accept animal-related risks and agree services are between you and the other party. See our`,
     booking:
-      "Services are provided by independent users, not My Pup. You assume animal-related risks and agree disputes are between the parties. See our",
+      `Services are provided by independent users, not ${BRAND.name}. You assume animal-related risks and agree disputes are between the parties. See our`,
     generic:
       "By continuing, you agree to the",
   }[variant];

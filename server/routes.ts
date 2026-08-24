@@ -80,6 +80,7 @@ import { sessionTimeout, lightSessionCheck } from './middleware/sessionTimeout';
 // Authentication middleware
 import { authMiddleware, requireAuth } from './middleware/auth';
 import { requireAdmin, requireNotSuspended } from './middleware/requireAdmin';
+import { requireOwner, requireSelf } from './middleware/ownership';
 
 // Admin logging utilities
 import { logPostAction, logCommentAction, logSubscriptionAction } from './utils/adminLogger';
@@ -88,6 +89,9 @@ import { logPostAction, logCommentAction, logSubscriptionAction } from './utils/
 import { registerGDPRRoutes } from './routes/gdpr';
 import searchRouter from './routes/search';
 import userRouter from './routes/user';
+import lostPetAlertsRouter from './routes/lost-pet-alerts';
+import searchMissionsRouter from './routes/search-missions';
+import lostDogNdisRouter from './routes/lost-dog-ndis';
 
 // Security and performance middleware
 import { compressionMiddleware } from './middleware/compression';
@@ -98,6 +102,8 @@ import { contentModerationMiddleware } from './utils/aiModeration';
 
 import { getStripe } from './lib/stripeLazy';
 import { processCheckoutSessionCompleted } from './lib/checkoutSessionWebhook';
+import { STRIPE_WEBHOOK_SECRET as CONFIG_STRIPE_WEBHOOK_SECRET, IS_PROD as STRIPE_IS_PROD } from './lib/config';
+import { resolveOneTimeAmountCents } from './lib/paymentCatalog';
 
 import { 
   insertProfileSchema, 
@@ -208,7 +214,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { default: adminProfileSyncRouter } = await import('./routes/admin/profile-sync.js');
   app.use('/api/admin/profile-sync', adminProfileSyncRouter);
   app.use('/api/webhook', webhookRouter);
-  app.use('/api/qa', qaRouter);
+  // QA routes are mounted before the global auth middleware, so attach it here
+  // explicitly; the router itself gates reads/writes with requireAuth/requireAdmin.
+  app.use('/api/qa', authMiddleware, qaRouter);
   
   // Verification routes (temporarily public to bypass auth issues)
   app.use('/api/verification', verificationRouter);
@@ -220,11 +228,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ID document upload endpoints (uses service role to bypass RLS)
   app.use('/api/upload-id', uploadIdRouter);
   
-  // Provider ID verification routes (temporarily public to bypass auth issues)
+  // Provider ID verification routes.
+  // NOTE: these are a MOCK vendor flow (mock_vendor, hardcoded provider id) that
+  // lets a caller self-drive id_status='passed'. That is unsafe in production, so
+  // it is disabled there. A real vendor webhook must verify a vendor signature.
   const { linkIdMedia } = await import('./routes/providers/id/link-media.js');
   const { handleSimpleWebhook } = await import('./routes/providers/id/webhook.js');
-  app.post('/api/providers/id/link-media', linkIdMedia);
-  app.post('/api/providers/id/webhook', handleSimpleWebhook);
+  const blockMockIdVerifyInProd = (_req: any, res: any, next: any) => {
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(404).json({ error: 'Not available' });
+    }
+    next();
+  };
+  app.post('/api/providers/id/link-media', blockMockIdVerifyInProd, linkIdMedia);
+  app.post('/api/providers/id/webhook', blockMockIdVerifyInProd, handleSimpleWebhook);
 
   // Stripe onboarding return route (public - no auth required)
   app.get('/services/onboarding', (req, res) => {
@@ -506,20 +523,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/listings", listingRateLimit, async (req, res) => {
+  app.post("/api/listings", requireAuth, requireNotSuspended, listingRateLimit, async (req, res) => {
     try {
-      const validatedData = insertDogListingSchema.parse(req.body);
+      // Server-authoritative owner: never trust a client-supplied user_id/seller_id.
+      const validatedData = insertDogListingSchema.parse({
+        ...req.body,
+        user_id: req.user!.id,
+        seller_id: req.user!.id,
+      });
       const listing = await storage.createDogListing(validatedData);
       res.json(listing);
     } catch (error) {
       console.error("Error creating listing:", error);
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Invalid listing data", code: "LISTING_VALIDATION_FAILED" });
+      }
       res.status(500).json({ error: "Internal server error" });
     }
   });
 
-  app.put("/api/listings/:id", async (req, res) => {
+  app.put("/api/listings/:id", requireAuth, requireOwner('listing'), async (req, res) => {
     try {
-      const validatedData = insertDogListingSchema.partial().parse(req.body);
+      // Strip identity/ownership fields — ownership is fixed at creation.
+      const { user_id: _u, seller_id: _s, ...rest } = (req.body ?? {}) as Record<string, unknown>;
+      const validatedData = insertDogListingSchema.partial().parse(rest);
       const listing = await storage.updateDogListing(req.params.id, validatedData);
       if (!listing) {
         return res.status(404).json({ error: "Listing not found" });
@@ -527,12 +554,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(listing);
     } catch (error) {
       console.error("Error updating listing:", error);
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Invalid listing data", code: "LISTING_VALIDATION_FAILED" });
+      }
       res.status(500).json({ error: "Internal server error" });
     }
   });
 
   // Soft-delete listing (move to trash)
-  app.delete("/api/listings/:id", async (req, res) => {
+  app.delete("/api/listings/:id", requireAuth, requireOwner('listing'), async (req, res) => {
     try {
       const listingId = req.params.id;
       const userId = req.user?.id;
@@ -570,7 +600,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Restore listing from trash
-  app.post("/api/listings/:id/restore", async (req, res) => {
+  app.post("/api/listings/:id/restore", requireAuth, requireOwner('listing'), async (req, res) => {
     try {
       const listingId = req.params.id;
       const userId = req.user?.id;
@@ -605,7 +635,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Conversation routes
-  app.get("/api/conversations/:userId", async (req, res) => {
+  app.get("/api/conversations/:userId", requireAuth, requireSelf((req) => req.params.userId), async (req, res) => {
     try {
       const conversations = await storage.getUserConversations(req.params.userId);
       res.json(conversations);
@@ -779,20 +809,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/conversations", requireNotSuspended, async (req, res) => {
+  app.post("/api/conversations", requireAuth, requireNotSuspended, async (req, res) => {
     try {
-      const validatedData = insertConversationSchema.parse(req.body);
+      // The authed user is always the buyer side of a conversation they create.
+      const validatedData = insertConversationSchema.parse({ ...req.body, buyer_id: req.user!.id });
       const conversation = await storage.createConversation(validatedData);
       res.json(conversation);
     } catch (error) {
       console.error("Error creating conversation:", error);
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Invalid conversation data", code: "CONV_VALIDATION_FAILED" });
+      }
       res.status(500).json({ error: "Internal server error" });
     }
   });
 
   // Message routes
-  app.get("/api/conversations/:id/messages", async (req, res) => {
+  app.get("/api/conversations/:id/messages", requireAuth, async (req, res) => {
     try {
+      const isParticipant = await storage.isConversationParticipant(req.params.id, req.user!.id);
+      if (!isParticipant) {
+        return res.status(403).json({ error: "Forbidden", code: "NOT_PARTICIPANT" });
+      }
       const limit = parseInt(req.query.limit as string) || 50;
       const before = req.query.before as string | undefined;
       const msgs = before
@@ -819,6 +857,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { data: { user }, error: authError } = await supabase.auth.getUser(token);
       if (authError || !user) {
         return res.status(401).json({ error: 'Invalid token' });
+      }
+      const isParticipant = await storage.isConversationParticipant(req.params.id, user.id);
+      if (!isParticipant) {
+        return res.status(403).json({ error: 'Forbidden', code: 'NOT_PARTICIPANT' });
       }
       const limit = parseInt(req.query.limit as string) || 50;
       const before = req.query.before as string | undefined;
@@ -869,6 +911,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'conversation_id and content are required' });
       }
 
+      const isParticipant = await storage.isConversationParticipant(conversation_id, user.id);
+      if (!isParticipant) {
+        return res.status(403).json({ error: 'Forbidden', code: 'NOT_PARTICIPANT' });
+      }
+
       const conv = await storage.getConversation(conversation_id);
       if (conv) {
         const otherId = conv.buyer_id === user.id ? conv.seller_id : conv.buyer_id;
@@ -903,6 +950,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { data: { user }, error: authError } = await supabase.auth.getUser(token);
       if (authError || !user) {
         return res.status(401).json({ error: 'Invalid token' });
+      }
+      const isParticipant = await storage.isConversationParticipant(req.params.id, user.id);
+      if (!isParticipant) {
+        return res.status(403).json({ error: 'Forbidden', code: 'NOT_PARTICIPANT' });
       }
       await storage.markMessagesAsRead(req.params.id, user.id);
       res.json({ success: true });
@@ -960,18 +1011,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/messages", requireNotSuspended, messagingRateLimit, perUserRateLimit('messages', 10), async (req, res) => {
+  app.post("/api/messages", requireAuth, requireNotSuspended, messagingRateLimit, perUserRateLimit('messages', 10), async (req, res) => {
     try {
-      const validatedData = insertMessageSchema.parse(req.body);
+      // Sender identity is server-authoritative: never trust a client-supplied sender_id.
+      const senderId = req.user!.id;
+      const validatedData = insertMessageSchema.parse({ ...req.body, sender_id: senderId });
 
-      if (validatedData.conversation_id && validatedData.sender_id) {
-        const conv = await storage.getConversation(validatedData.conversation_id);
-        if (conv) {
-          const otherId = conv.buyer_id === validatedData.sender_id ? conv.seller_id : conv.buyer_id;
-          if (otherId && await isBlocked(validatedData.sender_id, otherId)) {
-            debugApiLog('[PROOF:BLOCK]', JSON.stringify({ senderId: validatedData.sender_id, otherId, action: 'message_send_blocked', ts: Date.now() }));
-            return blockedResponse(res);
-          }
+      if (!validatedData.conversation_id) {
+        return res.status(400).json({ error: 'conversation_id is required', code: 'MSG_BAD_REQUEST' });
+      }
+
+      // Only participants of the conversation may post to it.
+      const isParticipant = await storage.isConversationParticipant(validatedData.conversation_id, senderId);
+      if (!isParticipant) {
+        return res.status(403).json({ error: 'Forbidden', code: 'NOT_PARTICIPANT' });
+      }
+
+      const conv = await storage.getConversation(validatedData.conversation_id);
+      if (conv) {
+        const otherId = conv.buyer_id === senderId ? conv.seller_id : conv.buyer_id;
+        if (otherId && await isBlocked(senderId, otherId)) {
+          debugApiLog('[PROOF:BLOCK]', JSON.stringify({ senderId, otherId, action: 'message_send_blocked', ts: Date.now() }));
+          return blockedResponse(res);
         }
       }
 
@@ -984,7 +1045,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Favorites routes
-  app.get("/api/favorites/:userId", async (req, res) => {
+  app.get("/api/favorites/:userId", requireAuth, requireSelf((req) => req.params.userId), async (req, res) => {
     try {
       const favorites = await storage.getUserFavorites(req.params.userId);
       res.json(favorites);
@@ -994,18 +1055,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/favorites", async (req, res) => {
+  app.post("/api/favorites", requireAuth, async (req, res) => {
     try {
-      const validatedData = insertFavoriteSchema.parse(req.body);
+      // Server-authoritative owner: favorites always belong to the authed user.
+      const validatedData = insertFavoriteSchema.parse({ ...req.body, user_id: req.user!.id });
       const favorite = await storage.addFavorite(validatedData);
       res.json(favorite);
     } catch (error) {
       console.error("Error adding favorite:", error);
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Invalid favorite data", code: "FAVORITE_VALIDATION_FAILED" });
+      }
       res.status(500).json({ error: "Internal server error" });
     }
   });
 
-  app.delete("/api/favorites/:userId/:listingId", async (req, res) => {
+  app.delete("/api/favorites/:userId/:listingId", requireAuth, requireSelf((req) => req.params.userId), async (req, res) => {
     try {
       const success = await storage.removeFavorite(req.params.userId, req.params.listingId);
       if (!success) {
@@ -1040,7 +1105,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/favorites/ids/:userId", async (req, res) => {
+  app.get("/api/favorites/ids/:userId", requireAuth, requireSelf((req) => req.params.userId), async (req, res) => {
     try {
       const ids = await storage.getUserFavoriteIds(req.params.userId);
       res.json({ ids });
@@ -1161,13 +1226,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/reviews", async (req, res) => {
+  app.post("/api/reviews", requireAuth, requireNotSuspended, async (req, res) => {
     try {
-      const validatedData = insertReviewSchema.parse(req.body);
+      // Server-authoritative reviewer: never trust a client-supplied reviewer_id.
+      const validatedData = insertReviewSchema.parse({ ...req.body, reviewer_id: req.user!.id });
       const review = await storage.createReview(validatedData);
       res.json(review);
     } catch (error) {
       console.error("Error creating review:", error);
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Invalid review data", code: "REVIEW_VALIDATION_FAILED" });
+      }
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -1385,9 +1454,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update post
-  app.patch("/api/posts/:id", async (req, res) => {
+  app.patch("/api/posts/:id", requireAuth, requireOwner('post'), async (req, res) => {
     try {
-      const updated = await storage.updatePost(req.params.id, req.body);
+      // Ownership fields cannot be reassigned via update.
+      const { user_id: _pu, ...postUpdate } = (req.body ?? {}) as Record<string, unknown>;
+      const updated = await storage.updatePost(req.params.id, postUpdate);
       if (!updated) return res.status(404).json({ error: "POST_NOT_FOUND" });
       debugApiLog("[PROOF:POSTS:UPDATE]", { postId: req.params.id, ts: new Date().toISOString() });
       res.json(updated);
@@ -1398,7 +1469,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Soft-delete post (move to trash)
-  app.delete("/api/posts/:id", async (req, res) => {
+  app.delete("/api/posts/:id", requireAuth, requireOwner('post'), async (req, res) => {
     try {
       const postId = req.params.id;
       const userId = req.user?.id;
@@ -1436,7 +1507,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Restore post from trash
-  app.post("/api/posts/:id/restore", async (req, res) => {
+  app.post("/api/posts/:id/restore", requireAuth, requireOwner('post'), async (req, res) => {
     try {
       const postId = req.params.id;
       const userId = req.user?.id;
@@ -1471,7 +1542,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update comment
-  app.patch("/api/comments/:id", async (req, res) => {
+  app.patch("/api/comments/:id", requireAuth, requireOwner('comment'), async (req, res) => {
     try {
       const { content } = req.body;
       if (!content) return res.status(400).json({ error: "COMMENT_BAD_REQUEST" });
@@ -1486,7 +1557,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Delete comment
-  app.delete("/api/comments/:id", async (req, res) => {
+  app.delete("/api/comments/:id", requireAuth, requireOwner('comment'), async (req, res) => {
     try {
       const deleted = await storage.deleteComment(req.params.id);
       if (!deleted) return res.status(404).json({ error: "COMMENT_NOT_FOUND" });
@@ -1522,9 +1593,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/comment-replies", async (req, res) => {
+  app.post("/api/comment-replies", requireAuth, requireNotSuspended, async (req, res) => {
     try {
-      const validatedData = insertCommentReplySchema.parse(req.body);
+      // Server-authoritative author: never trust a client-supplied user_id.
+      const validatedData = insertCommentReplySchema.parse({ ...req.body, user_id: req.user!.id });
       const reply = await storage.createCommentReply(validatedData);
       debugApiLog("[PROOF:REPLIES:CREATE]", { replyId: reply.id, commentId: validatedData.comment_id, userId: validatedData.user_id, ts: new Date().toISOString() });
       res.json(reply);
@@ -1565,7 +1637,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   // AI Image Analysis route (replaces Supabase Edge Function)
-  app.post("/api/ai/image-analysis", async (req, res) => {
+  app.post("/api/ai/image-analysis", requireAuth, async (req, res) => {
     try {
       const { imageUrl, listingId, analysisType = 'breed_detection' } = req.body;
       
@@ -1648,9 +1720,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Marketplace bulk operations (replaces advanced-search Edge Function)
-  app.post("/api/marketplace/bulk-update", async (req, res) => {
+  app.post("/api/marketplace/bulk-update", requireAuth, async (req, res) => {
     try {
-      const { listing_ids, updates, user_id } = req.body;
+      const { listing_ids, updates } = req.body;
+      // Server-authoritative owner: verify ownership against the authed user only.
+      const user_id = req.user!.id;
+
+      if (!Array.isArray(listing_ids) || listing_ids.length === 0) {
+        return res.status(400).json({ error: 'listing_ids is required' });
+      }
 
       // Verify user owns all listings
       const userListings = await storage.getDogListings({ userId: user_id });
@@ -1680,22 +1758,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Payment transaction routes
-  app.post("/api/transactions", async (req, res) => {
+  app.post("/api/transactions", requireAuth, async (req, res) => {
     try {
-      const validatedData = insertTransactionSchema.parse(req.body);
+      // Owner is server-authoritative. Authoritative money flows go through Stripe
+      // webhooks; this endpoint may only record a transaction for the caller.
+      const validatedData = insertTransactionSchema.parse({ ...req.body, user_id: req.user!.id });
       const transaction = await storage.createTransaction(validatedData);
       res.json(transaction);
     } catch (error) {
       console.error("Error creating transaction:", error);
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Invalid transaction data", code: "TX_VALIDATION_FAILED" });
+      }
       res.status(500).json({ error: "Internal server error" });
     }
   });
 
-  app.get("/api/transactions/:id", async (req, res) => {
+  app.get("/api/transactions/:id", requireAuth, async (req, res) => {
     try {
       const transaction = await storage.getTransaction(req.params.id);
       if (!transaction) {
         return res.status(404).json({ error: "Transaction not found" });
+      }
+      const uid = req.user!.id;
+      const owns = transaction.user_id === uid || transaction.buyer_id === uid || transaction.seller_id === uid;
+      if (!owns && !req.user!.is_admin) {
+        return res.status(403).json({ error: "Forbidden", code: "NOT_OWNER" });
       }
       res.json(transaction);
     } catch (error) {
@@ -1707,17 +1795,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Stripe Payment Routes
   
   // Create payment intent for one-time purchases (Pup Box, Rehoming Feature)
-  app.post("/api/payments/create-payment-intent", async (req, res) => {
+  app.post("/api/payments/create-payment-intent", requireAuth, async (req, res) => {
     try {
-      const { amount, currency = 'usd', productType, userId, metadata } = req.body;
-      
-      if (!amount || !productType || !userId) {
-        return res.status(400).json({ error: 'Missing required fields: amount, productType, userId' });
+      const { currency = 'usd', productType, metadata } = req.body;
+      // Server-authoritative actor: never trust a client-supplied userId.
+      const userId = req.user!.id;
+
+      if (!productType) {
+        return res.status(400).json({ error: 'Missing required field: productType' });
+      }
+
+      // Server-authoritative amount: resolve the price from the server catalog.
+      // A client-supplied `amount` is ignored entirely.
+      const amountCents = resolveOneTimeAmountCents(productType);
+      if (amountCents == null) {
+        return res.status(400).json({
+          error: 'Unknown or unconfigured product',
+          code: 'PRODUCT_NOT_PRICED',
+        });
       }
 
       // Create payment intent
       const paymentIntent = await getStripe().paymentIntents.create({
-        amount: Math.round(amount * 100), // Convert to cents
+        amount: amountCents,
         currency,
         automatic_payment_methods: {
           enabled: true,
@@ -1740,12 +1840,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create subscription for Premium Plan
-  app.post("/api/payments/create-subscription", async (req, res) => {
+  app.post("/api/payments/create-subscription", requireAuth, async (req, res) => {
     try {
-      const { userId, email, priceId = 'price_premium_monthly' } = req.body;
-      
-      if (!userId || !email) {
-        return res.status(400).json({ error: 'Missing required fields: userId, email' });
+      const { priceId = 'price_premium_monthly' } = req.body;
+      // Server-authoritative actor + email from the verified session/profile.
+      const userId = req.user!.id;
+      const email = req.user!.email || (await storage.getProfile(userId))?.email;
+
+      if (!email) {
+        return res.status(400).json({ error: 'Account email not found' });
       }
 
       // Create or retrieve customer
@@ -1803,9 +1906,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const sig = req.headers['stripe-signature'];
     let event;
 
+    // Signature verification is mandatory; missing secret => fail closed.
+    if (!CONFIG_STRIPE_WEBHOOK_SECRET) {
+      console.error('[WEBHOOK] STRIPE_WEBHOOK_SECRET not configured — refusing unverified webhook.');
+      return res.status(503).json({ error: 'Webhook not configured' });
+    }
+
     try {
       const rawBody = req.rawBody || req.body;
-      event = getStripe().webhooks.constructEvent(rawBody, sig as string, process.env.STRIPE_WEBHOOK_SECRET!);
+      event = getStripe().webhooks.constructEvent(rawBody, sig as string, CONFIG_STRIPE_WEBHOOK_SECRET);
     } catch (error) {
       debugApiLog('[PROOF:WEBHOOK:SIG_FAIL]', error);
       return res.status(400).send('Webhook signature verification failed');
@@ -1910,13 +2019,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/payments/webhook", stripeWebhookHandler);
 
   // GDPR Data Export Route
-  app.get("/api/export-data", async (req, res) => {
+  app.get("/api/export-data", requireAuth, async (req, res) => {
     try {
-      const userId = req.query.userId as string;
-      
-      if (!userId) {
-        return res.status(400).json({ error: 'User ID is required' });
-      }
+      // Server-authoritative: a user may only export their own account.
+      const userId = req.user!.id;
 
       // Get user profile
       const profile = await storage.getProfile(userId);
@@ -2007,14 +2113,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // GDPR Account Deletion Route
-  app.delete("/api/delete-account", async (req, res) => {
+  // NOTE: The canonical, password-verified deletion handler is registered earlier
+  // via registerGDPRRoutes(app); Express routes it first so this handler is a
+  // defense-in-depth fallback. It is still hardened to derive identity from the
+  // authenticated session and only ever delete the caller's own account.
+  app.delete("/api/delete-account", requireAuth, async (req, res) => {
     try {
-      const userId = req.body.userId as string;
+      const userId = req.user!.id;
       const confirmDelete = req.body.confirmDelete as boolean;
-      
-      if (!userId) {
-        return res.status(400).json({ error: 'User ID is required' });
-      }
 
       if (!confirmDelete) {
         return res.status(400).json({ error: 'Account deletion must be confirmed' });
@@ -2083,19 +2189,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin Logs API - Get last 100 entries for admin dashboard
-  app.get("/api/admin/logs", async (req, res) => {
+  app.get("/api/admin/logs", requireAuth, requireAdmin, async (req, res) => {
     try {
-      // Check if user is admin
-      const userId = req.query.userId as string;
-      if (!userId) {
-        return res.status(401).json({ error: 'Authentication required' });
-      }
-
-      const userProfile = await storage.getProfile(userId);
-      if (!userProfile?.is_admin) {
-        return res.status(403).json({ error: 'Admin access required' });
-      }
-
+      // Admin identity is the verified session; never trust a client-supplied userId.
       const logs = await storage.getAdminLogs(100);
       res.json(logs);
     } catch (error) {
@@ -2105,13 +2201,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create Stripe checkout session for subscriptions
-  app.post("/api/create-subscription-checkout", async (req, res) => {
+  app.post("/api/create-subscription-checkout", requireAuth, async (req, res) => {
     try {
-      const { userId, productType, priceId, trialDays = 0 } = req.body;
-
-      if (!userId) {
-        return res.status(400).json({ error: 'User ID is required' });
-      }
+      const { productType, priceId, trialDays = 0 } = req.body;
+      // Server-authoritative actor: never trust a client-supplied userId.
+      const userId = req.user!.id;
 
       // Get or create Stripe customer
       let customer;
@@ -2169,10 +2263,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user's subscription status
-  app.get("/api/payments/subscription-status/:userId", async (req, res) => {
+  app.get("/api/payments/subscription-status/:userId", requireAuth, requireSelf((req) => req.params.userId), async (req, res) => {
     try {
       const { userId } = req.params;
-      
+
       // Get latest subscription transaction for user
       const subscriptions = await storage.getUserTransactions(userId, 'subscription');
       const activeSubscription = subscriptions.find(sub => 
@@ -2208,12 +2302,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Cancel subscription
-  app.post("/api/payments/cancel-subscription", async (req, res) => {
+  app.post("/api/payments/cancel-subscription", requireAuth, async (req, res) => {
     try {
-      const { userId, subscriptionId } = req.body;
-      
-      if (!userId || !subscriptionId) {
-        return res.status(400).json({ error: 'Missing required fields' });
+      const { subscriptionId } = req.body;
+      // Server-authoritative actor: never trust a client-supplied userId.
+      const userId = req.user!.id;
+
+      if (!subscriptionId) {
+        return res.status(400).json({ error: 'Missing required field: subscriptionId' });
+      }
+
+      // Verify the subscription actually belongs to this user before mutating it.
+      const existing = await getStripe().subscriptions.retrieve(subscriptionId);
+      if (existing.metadata?.userId && existing.metadata.userId !== userId && !req.user!.is_admin) {
+        return res.status(403).json({ error: 'Forbidden', code: 'NOT_OWNER' });
       }
 
       // Cancel subscription at period end
@@ -2240,7 +2342,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user's payment history
-  app.get("/api/payments/history/:userId", async (req, res) => {
+  app.get("/api/payments/history/:userId", requireAuth, requireSelf((req) => req.params.userId), async (req, res) => {
     try {
       const { userId } = req.params;
       const transactions = await storage.getUserTransactions(userId);
@@ -2441,6 +2543,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register blocks routes
   app.use('/api/blocks', blocksRouter);
 
+  // Lost & Found (Session 3: wired — routers were implemented but previously unmounted).
+  // Public GETs are open; all mutations self-guard with authMiddleware + req.user.id.
+  app.use('/api/lost-pet-alerts', lostPetAlertsRouter);
+  app.use('/api/search-missions', searchMissionsRouter);
+  app.use('/api/lost-dog', lostDogNdisRouter);
+
   // Register payments routes for Stripe Connect PaymentIntents
   app.use('/api/payments', paymentsRouter);
 
@@ -2504,47 +2612,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register new Stripe verification system routes
   app.use('/api/verification/start', startVerificationRouter);
   
-  // New Stripe Connect endpoints (Step 1 + Step 3 polling)
-  app.post('/create-connect-account', async (req, res) => {
+  // New Stripe Connect endpoints (Step 1 + Step 3 polling).
+  // These live at the root path (outside the /api authMiddleware), so attach auth
+  // explicitly. Identity is derived server-side from the session, not the body/param.
+  app.post('/create-connect-account', authMiddleware, requireAuth, async (req, res) => {
     const { createConnectAccount } = await import('./routes/stripe/create-connect-account');
     return createConnectAccount(req, res);
   });
-  
-  app.get('/stripe/account-status/:acctId/:userId', async (req, res) => {
+
+  app.get('/stripe/account-status/:acctId/:userId', authMiddleware, requireAuth, async (req, res) => {
     const { getAccountStatus } = await import('./routes/stripe/account-status');
     return getAccountStatus(req, res);
   });
   
-  // Payout routes - Health check
+  // Payout routes - Health check (public: reveals no user data)
   app.get('/api/payout/start', async (req, res) => {
     const { getPayoutStart } = await import('./routes/payout/start');
     return getPayoutStart(req, res);
   });
 
-  app.post('/api/payout/start', async (req, res) => {
+  // All payout mutations/reads require authentication; identity is derived
+  // server-side from the verified session (see handlers) — never from body/query.
+  app.post('/api/payout/start', requireAuth, async (req, res) => {
     const { startPayout } = await import('./routes/payout/start');
     return startPayout(req, res);
   });
-  
-  app.post('/api/payout/status', async (req, res) => {
+
+  app.post('/api/payout/status', requireAuth, async (req, res) => {
     const { checkPayoutStatus } = await import('./routes/payout/status');
     return checkPayoutStatus(req, res);
   });
-  
-  app.post('/api/payout/verify', verifyPayout);
-  
+
+  app.post('/api/payout/verify', requireAuth, verifyPayout);
+
   // New authenticated payout endpoints
-  app.post('/api/payout/link', async (req, res) => {
+  app.post('/api/payout/link', requireAuth, async (req, res) => {
     const { getPayoutLink } = await import('./routes/payout/link');
     return getPayoutLink(req, res);
   });
-  
-  app.get('/api/payout/status', async (req, res) => {
+
+  app.get('/api/payout/status', requireAuth, async (req, res) => {
     const { getPayoutStatus } = await import('./routes/payout/status');
     return getPayoutStatus(req, res);
   });
-  
-  app.post('/api/payout/dashboard-link', async (req, res) => {
+
+  app.post('/api/payout/dashboard-link', requireAuth, async (req, res) => {
     const { getDashboardLink } = await import('./routes/payout/dashboard-link');
     return getDashboardLink(req, res);
   });

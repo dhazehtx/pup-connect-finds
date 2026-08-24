@@ -20,7 +20,7 @@ function CommunityGuidelines() {
         </CardHeader>
         <CardContent>
           <p className="text-blue-800">
-            My Pup is dedicated to connecting responsible pet owners, ethical breeders, and trusted service providers 
+            PAWS is dedicated to connecting responsible pet owners, ethical breeders, and trusted service providers 
             in a safe, supportive community. These guidelines help ensure every interaction is positive and every pet is treated with care.
           </p>
         </CardContent>
@@ -149,7 +149,7 @@ function CommunityGuidelines() {
           <h4 className="font-semibold mt-4">How to Report:</h4>
           <ul className="list-disc list-inside space-y-2 ml-4">
             <li>Use the "Report" button on any listing or profile</li>
-            <li>Contact our support team at support@mypup.com</li>
+            <li>Contact our support team at support@petadoptionwebservices.com</li>
             <li>For emergencies, contact local authorities immediately</li>
             <li>Provide detailed information to help us investigate</li>
           </ul>
@@ -181,7 +181,7 @@ function CommunityGuidelines() {
             If you believe your content was removed or account was suspended in error:
           </p>
           <ol className="list-decimal list-inside space-y-2 ml-4">
-            <li>Email appeals@mypup.com with your username and details</li>
+            <li>Email appeals@petadoptionwebservices.com with your username and details</li>
             <li>Provide evidence supporting your appeal</li>
             <li>Our team will review within 3-5 business days</li>
             <li>You'll receive a response with our final decision</li>

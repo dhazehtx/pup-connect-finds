@@ -33,7 +33,7 @@ const Success = () => {
         
         <CardContent className="text-center space-y-4">
           <p className="text-gray-600">
-            Thank you for subscribing to MY PUP! Your subscription is now active.
+            Thank you for subscribing to PAWS! Your subscription is now active.
           </p>
           
           <div className="space-y-2">

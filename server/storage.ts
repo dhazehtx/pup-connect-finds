@@ -640,6 +640,29 @@ export class DatabaseStorage implements IStorage {
       .orderBy(messages.created_at);
   }
 
+  /**
+   * True if `userId` is a participant of the conversation. Checks both the
+   * conversation_participants join table and the legacy buyer_id/seller_id
+   * columns so message-read authorization is robust across both schemas.
+   */
+  async isConversationParticipant(conversationId: string, userId: string): Promise<boolean> {
+    if (!conversationId || !userId) return false;
+    const parts = await db.select({ user_id: conversationParticipants.user_id })
+      .from(conversationParticipants)
+      .where(and(
+        eq(conversationParticipants.conversation_id, conversationId),
+        eq(conversationParticipants.user_id, userId),
+      ))
+      .limit(1);
+    if (parts.length > 0) return true;
+    const [conv] = await db.select({ buyer_id: conversations.buyer_id, seller_id: conversations.seller_id })
+      .from(conversations)
+      .where(eq(conversations.id, conversationId))
+      .limit(1);
+    if (!conv) return false;
+    return conv.buyer_id === userId || conv.seller_id === userId;
+  }
+
   async getConversationMessagesPaginated(conversationId: string, limit: number = 50, before?: string): Promise<Message[]> {
     if (before) {
       return await db.select().from(messages)

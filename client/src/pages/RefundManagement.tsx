@@ -155,7 +155,7 @@ export const RefundManagement: React.FC = () => {
               <Alert className="bg-blue-100 border-blue-300">
                 <AlertDescription className="text-blue-800">
                   <strong>Need Help?</strong> If you have questions about the refund process or need assistance with your request, 
-                  please contact our support team at support@mypup.com or use the help center.
+                  please contact our support team at support@petadoptionwebservices.com or use the help center.
                 </AlertDescription>
               </Alert>
             </CardContent>

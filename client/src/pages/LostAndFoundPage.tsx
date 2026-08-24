@@ -214,7 +214,7 @@ function buildLostFoundPayload(form: LostFoundFormState, vetVerification: { veri
   return payload;
 }
 
-const DEFAULT_LF_TITLE = 'Lost & Found — My Pup';
+const DEFAULT_LF_TITLE = 'Lost & Found — PAWS';
 
 function setLostFoundPageMeta(opts: { title: string; description: string; image?: string; pageUrl: string }) {
   if (typeof document === 'undefined') return;
@@ -858,8 +858,8 @@ export default function LostAndFoundPage() {
         if (cancelled || !data?.alert) return;
         const a = data.alert as any;
         const kind = a.alert_type === 'lost' ? 'Lost' : 'Found';
-        const title = `${kind} dog${a.pet_name ? `: ${a.pet_name}` : ''} — My Pup`;
-        const desc = [a.breed, a.last_seen_address || a.city].filter(Boolean).join(' · ') || 'Lost & Found on My Pup';
+        const title = `${kind} dog${a.pet_name ? `: ${a.pet_name}` : ''} — PAWS`;
+        const desc = [a.breed, a.last_seen_address || a.city].filter(Boolean).join(' · ') || 'Lost & Found on PAWS';
         const img = (a.image_url || '').trim();
         setLostFoundPageMeta({
           title,
@@ -962,7 +962,7 @@ export default function LostAndFoundPage() {
         ? `Notes: ${String(a.description).trim().slice(0, 400)}${String(a.description).length > 400 ? '…' : ''}`
         : null,
       '',
-      `Details & contact (My Pup): ${getSocialShareUrl(a)}`,
+      `Details & contact (PAWS): ${getSocialShareUrl(a)}`,
     ]
       .filter((line): line is string => line !== null)
       .join('\n');
@@ -979,7 +979,7 @@ export default function LostAndFoundPage() {
         a.pet_name ? `Name (if known): ${a.pet_name}` : null,
         `Where: ${a.last_seen_address || a.city || 'Unknown'}`,
         '',
-        'Posted on My Pup — proof of ownership required before release.',
+        'Posted on PAWS — proof of ownership required before release.',
         '',
         `View details: ${url}`,
       ]
@@ -2004,7 +2004,7 @@ export default function LostAndFoundPage() {
               </li>
               <li className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 shrink-0 text-blue-600" />
-                Post on My Pup
+                Post on PAWS
               </li>
             </ul>
           </CardContent>
@@ -2409,7 +2409,7 @@ export default function LostAndFoundPage() {
                     onChange={(e) => setForm((f) => ({ ...f, microchip_scan_result: e.target.value }))}
                     placeholder="e.g. 982000123456789"
                   />
-                  <p className="text-xs text-gray-500">We&apos;ll try to notify the registered owner if they&apos;re on My Pup.</p>
+                  <p className="text-xs text-gray-500">We&apos;ll try to notify the registered owner if they&apos;re on PAWS.</p>
                 </div>
               )}
               <div className="space-y-1">
@@ -2652,7 +2652,7 @@ export default function LostAndFoundPage() {
           <DialogHeader>
             <DialogTitle>Import Lost Dog Post</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-gray-600">Paste a link from Facebook, Nextdoor, or Ring to create a Lost Dog listing on My Pup.</p>
+          <p className="text-sm text-gray-600">Paste a link from Facebook, Nextdoor, or Ring to create a Lost Dog listing on PAWS.</p>
           <div className="space-y-2">
             <Label>Link</Label>
             <Input
@@ -2723,7 +2723,7 @@ export default function LostAndFoundPage() {
                     })
                   }
                 >
-                  {importPublishMutation.isPending ? 'Publishing…' : 'Publish to My Pup'}
+                  {importPublishMutation.isPending ? 'Publishing…' : 'Publish to PAWS'}
                 </Button>
               </DialogFooter>
             </>
@@ -2756,7 +2756,7 @@ export default function LostAndFoundPage() {
               >
                 <SelectTrigger className="border-gray-300"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="mypup">My Pup</SelectItem>
+                  <SelectItem value="mypup">PAWS</SelectItem>
                   <SelectItem value="ring">Ring</SelectItem>
                   <SelectItem value="nextdoor">Nextdoor</SelectItem>
                   <SelectItem value="facebook">Facebook</SelectItem>
@@ -2927,7 +2927,7 @@ export default function LostAndFoundPage() {
                       <p className="text-xs text-green-700 mt-1">Owner notified.</p>
                     )}
                     {matchChipMutation.isSuccess && !matchChipMutation.data?.match && (
-                      <p className="text-xs text-gray-600 mt-1">No microchip registered on My Pup.</p>
+                      <p className="text-xs text-gray-600 mt-1">No microchip registered on PAWS.</p>
                     )}
                 </div>
                 )}
@@ -2990,7 +2990,7 @@ export default function LostAndFoundPage() {
                                   <p>Last seen: ${String(data.last_seen_address || data.city || '—')}</p>
                                   <p>${data.reward_offered ? 'Reward offered' : ''}</p>
                                   <p>Contact: ${String(data.contact_info || '—')}</p>
-                                  <p><a href="${String(data.listing_url)}">View on My Pup</a></p>
+                                  <p><a href="${String(data.listing_url)}">View on PAWS</a></p>
                                   ${qrDataUrl ? `<p style="margin-top:12px"><img src="${qrDataUrl}" alt="QR code" width="120" height="120" style="display:block;margin:0 auto" /><br/><small>Scan to view listing</small></p>` : ''}
                                   <p style="margin-top:16px"><button onclick="window.print()" style="padding:8px 16px;font-size:14px;cursor:pointer">Print flyer</button></p>
                                   </body></html>`);

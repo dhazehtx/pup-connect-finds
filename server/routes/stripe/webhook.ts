@@ -1,7 +1,7 @@
 import { debugApiLog } from '../../lib/debugApi';
 import { Router } from "express";
 import Stripe from "stripe";
-import { STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET } from "../../lib/config";
+import { STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, IS_PROD } from "../../lib/config";
 import { 
   upsertProviderStatus, 
   logStripeEvent, 
@@ -30,14 +30,17 @@ router.post("/", async (req, res) => {
   
   console.log('[STRIPE WEBHOOK] Received webhook');
 
-  // Check if Stripe is configured
+  // Fail closed on misconfiguration. Returning 200 here would silently drop real
+  // payment events (a "soft success" that hides a broken production integration).
   if (!stripe) {
-    console.log('[STRIPE WEBHOOK] Stripe not configured, returning success');
+    console.error('[STRIPE WEBHOOK] Stripe secret key not configured.');
+    if (IS_PROD) return res.status(503).json({ error: 'Stripe not configured' });
     return res.json({ received: true, status: 'stripe_not_configured' });
   }
 
   if (!STRIPE_WEBHOOK_SECRET) {
-    console.log('[STRIPE WEBHOOK] Webhook secret not configured, returning success');
+    console.error('[STRIPE WEBHOOK] STRIPE_WEBHOOK_SECRET not configured — cannot verify signatures.');
+    if (IS_PROD) return res.status(503).json({ error: 'Webhook not configured' });
     return res.json({ received: true, status: 'webhook_secret_not_configured' });
   }
 

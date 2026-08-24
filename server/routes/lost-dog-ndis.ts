@@ -4,6 +4,7 @@ import { lostPetAlerts, microchips, importedPosts, dogEmbeddings, dogs } from '@
 import { createNotification } from '../lib/createNotification';
 import { eq, desc, and, gte, sql } from 'drizzle-orm';
 import { authMiddleware } from '../middleware/auth';
+import { getBrand } from '../lib/brand';
 
 const router = Router();
 
@@ -20,6 +21,8 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
 // POST /lostdog/match-chip — when a found dog has a microchip, look up owner and notify
 router.post('/match-chip', authMiddleware, async (req: Request, res: Response) => {
   try {
+    const userId = (req as any).user?.id;
+    if (!userId) return res.status(401).json({ error: 'Authentication required' });
     const { found_dog_id, microchip_number } = req.body;
     if (!found_dog_id || !microchip_number?.trim()) {
       return res.status(400).json({ error: 'found_dog_id and microchip_number required' });
@@ -38,7 +41,7 @@ router.post('/match-chip', authMiddleware, async (req: Request, res: Response) =
     }
     await createNotification({
       toUserId: ownerId,
-      fromUserId: (req as any).user.id,
+      fromUserId: userId,
       type: 'microchip_match',
       title: 'Possible match for your microchipped dog',
       message: 'Possible match found for your microchipped dog.',
@@ -61,7 +64,7 @@ router.post('/share', authMiddleware, async (req: Request, res: Response) => {
     if (!dog_id) return res.status(400).json({ error: 'dog_id required' });
     const [alert] = await db.select().from(lostPetAlerts).where(eq(lostPetAlerts.id, dog_id)).limit(1);
     if (!alert) return res.status(404).json({ error: 'Listing not found' });
-    const baseUrl = process.env.APP_URL || 'https://mypup.com';
+    const baseUrl = getBrand().appUrl;
     const shareUrl = `${baseUrl}/lost-and-found?alert=${dog_id}`;
     const message = `🚨 LOST DOG ALERT 🚨\n\nDog Name: ${alert.pet_name || 'Unknown'}\nBreed: ${alert.breed || 'Unknown'}\nLast Seen: ${alert.last_seen_address || alert.city || 'Unknown'}\nReward: ${alert.reward_offered ? 'Yes' : 'N/A'}\n\nView details and report sightings here:\n${shareUrl}`;
     res.json({ share_url: shareUrl, message, preview_image: alert.image_url || null });
@@ -116,7 +119,7 @@ router.post('/import', authMiddleware, async (req: Request, res: Response) => {
       const resFetch = await fetch(u, {
         signal: controller.signal,
         headers: {
-          'User-Agent': 'Mozilla/5.0 (compatible; MyPupLostDog/1.0; +https://mypup.com)',
+          'User-Agent': `Mozilla/5.0 (compatible; ${getBrand().name}LostDog/1.0; +${getBrand().appUrl})`,
           Accept: 'text/html,application/xhtml+xml',
         },
         redirect: 'follow',
@@ -227,7 +230,7 @@ router.get('/flyer/:id', async (req: Request, res: Response) => {
   try {
     const [alert] = await db.select().from(lostPetAlerts).where(eq(lostPetAlerts.id, req.params.id)).limit(1);
     if (!alert) return res.status(404).json({ error: 'Listing not found' });
-    const baseUrl = process.env.APP_URL || 'https://mypup.com';
+    const baseUrl = getBrand().appUrl;
     const listingUrl = `${baseUrl}/lost-and-found?alert=${alert.id}`;
     res.json({
       id: alert.id,

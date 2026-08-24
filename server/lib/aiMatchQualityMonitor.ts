@@ -3,6 +3,7 @@ import { db } from '../db';
 import { aiMatchQualityAlerts, aiMatchQualityDailyMetrics, aiMatchQualityEvents } from '@shared/schema';
 import { and, gte, lt, sql } from 'drizzle-orm';
 import { sendEmail } from './sendEmail';
+import { getBrand } from './brand';
 
 type MatchRanking = 'visual' | 'proximity' | 'empty';
 
@@ -21,7 +22,7 @@ const DEFAULT_MAX_FALLBACK_RATE = 0.4;
 const DEFAULT_MAX_EMPTY_RATE = 0.25;
 const DEFAULT_MIN_AVG_TOP_SCORE = 0.62;
 const SIX_HOURS_MS = 6 * 60 * 60 * 1000;
-const ALERT_EMAIL_SUBJECT = '[Pup Connect] AI Match quality alert';
+const ALERT_EMAIL_SUBJECT = `[${getBrand().name}] AI Match quality alert`;
 
 let monitorStarted = false;
 let lastEvaluatedDayKey: string | null = null;

@@ -281,7 +281,7 @@ const AdminDashboard = () => {
         {/* Footer */}
         <div className="mt-12 text-center">
           <p className="text-gray-500 text-sm">
-            MY PUP Admin Dashboard • Last updated: {new Date().toLocaleString()}
+            PAWS Admin Dashboard • Last updated: {new Date().toLocaleString()}
           </p>
         </div>
       </div>

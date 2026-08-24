@@ -13,7 +13,7 @@ const BugTestPage: React.FC = () => {
             Bug Reporting System Test
           </h1>
           <p className="text-gray-600 dark:text-gray-300">
-            Test the comprehensive bug reporting system for MY PUP platform.
+            Test the comprehensive bug reporting system for PAWS platform.
           </p>
         </div>
 

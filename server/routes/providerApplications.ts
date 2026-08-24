@@ -6,11 +6,13 @@ import { db } from "../db";
 import { providerApplications, profiles } from "../../shared/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { storage } from "../storage";
+import { requireAuth } from "../middleware/auth";
+import { requireAdmin, requireStrictAdmin } from "../middleware/requireAdmin";
 
 const router = Router();
 
 // Submit provider application (Step 7 of onboarding)
-router.post("/submit", async (req, res) => {
+router.post("/submit", requireAuth, async (req, res) => {
   try {
     if (!supabase) {
       return res.status(503).json({
@@ -28,30 +30,8 @@ router.post("/submit", async (req, res) => {
       });
     }
 
-    // Get user from session/auth (simplified for now)
-    let userId = req.body.userId; // Temporary fallback
-
-    if (!userId) {
-      // Try to get from auth header or session
-      const authHeader = req.headers.authorization;
-      if (authHeader) {
-        try {
-          const {
-            data: { user },
-          } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
-          userId = user?.id;
-        } catch {
-          // Fallback for development
-        }
-      }
-    }
-
-    if (!userId) {
-      return res.status(401).json({
-        ok: false,
-        error: "User authentication required",
-      });
-    }
+    // Server-authoritative applicant identity — never trust a client-supplied userId.
+    const userId = (req as any).user!.id;
 
     console.log("[PROVIDER APP] Submitting application:", {
       providerId,
@@ -142,8 +122,8 @@ router.post("/submit", async (req, res) => {
   }
 });
 
-// Admin review endpoint (uses supabaseAdmin)
-router.post("/review", async (req, res) => {
+// Admin review endpoint (uses supabaseAdmin) — server-side admin authorization required
+router.post("/review", requireStrictAdmin, async (req, res) => {
   try {
     if (!supabaseAdmin) {
       return res.status(503).json({
@@ -281,8 +261,8 @@ router.post("/review", async (req, res) => {
   }
 });
 
-// Get applications for admin (uses supabaseAdmin for secure access)
-router.get("/", async (req, res) => {
+// Get applications for admin (uses supabaseAdmin for secure access) — admin only
+router.get("/", requireAdmin, async (req, res) => {
   try {
     const { status } = req.query;
 
@@ -359,8 +339,8 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Get detailed application by ID (admin only)
-router.get("/:id", async (req, res) => {
+// Get detailed application by ID (admin only) — exposes signed ID-doc URLs
+router.get("/:id", requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -505,8 +485,8 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// PATCH endpoint for approve/reject (admin only)
-router.patch("/:id", async (req, res) => {
+// PATCH endpoint for approve/reject (admin only) — server-side admin authorization required
+router.patch("/:id", requireStrictAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { status, notes } = req.body;

@@ -214,7 +214,7 @@ const Services = () => {
               <Users className="w-12 h-12 text-purple-600 mx-auto mb-4" />
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Ready to Find Your Perfect Puppy?</h2>
               <p className="text-gray-600 mb-6">
-                Join thousands of happy families who have found their perfect puppy companion through MY PUP.
+                Join thousands of happy families who have found their perfect puppy companion through PAWS.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button size="lg" className="bg-purple-600 hover:bg-purple-700">

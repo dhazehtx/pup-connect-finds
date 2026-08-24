@@ -14,10 +14,10 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
  */
 export async function getDashboardLink(req: Request, res: Response) {
   try {
-    // Dev bypass: accept userId from session, body, or query
-    const userId = (req as any).user?.id ?? req.body?.userId ?? req.query?.userId;
+    // Server-authoritative identity only — never trust body/query userId.
+    const userId = (req as any).user?.id;
     if (!userId) {
-      return res.status(400).json({ error: "missing_user_id" });
+      return res.status(401).json({ error: "authentication_required" });
     }
     console.log('[DASHBOARD LINK] Using userId:', userId);
 

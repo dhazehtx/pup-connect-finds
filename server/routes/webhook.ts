@@ -1,28 +1,31 @@
 import { Router } from "express";
 import Stripe from "stripe";
 import { storage } from "../storage";
+import { STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET } from "../lib/config";
 
 const router = Router();
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', { 
-  apiVersion: "2025-08-27.basil" 
+const stripe = new Stripe(STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY || '', {
+  apiVersion: "2025-08-27.basil"
 });
 
-const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+const endpointSecret = STRIPE_WEBHOOK_SECRET;
 
-// Stripe webhook endpoint
+// Stripe webhook endpoint.
+// Signature verification is MANDATORY. There is no "skip verification" path —
+// an unverified body could forge a paid order. Missing secret => fail closed.
 router.post("/stripe", async (req, res) => {
   const sig = req.headers['stripe-signature'];
 
-  let event;
+  if (!endpointSecret) {
+    console.error('[WEBHOOK] STRIPE_WEBHOOK_SECRET is not configured — refusing to process unverified webhook.');
+    return res.status(503).json({ error: 'Webhook not configured' });
+  }
+
+  let event: Stripe.Event;
 
   try {
-    if (!endpointSecret) {
-      // For development, skip signature verification
-      event = req.body;
-    } else {
-      event = stripe.webhooks.constructEvent(req.body, sig as string, endpointSecret);
-    }
+    event = stripe.webhooks.constructEvent((req as any).rawBody || req.body, sig as string, endpointSecret);
   } catch (err: any) {
     console.log(`⚠️ Webhook signature verification failed.`, err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);

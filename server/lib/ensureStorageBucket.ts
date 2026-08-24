@@ -29,8 +29,10 @@ export async function ensureProviderIdBucket(): Promise<string> {
 
     const bucketExists = buckets?.some(b => b.name === BUCKET_NAME);
 
+    // PRIVATE bucket: government-ID documents must never be world-readable.
+    // The server reads them with the service role via short-lived signed URLs.
     const bucketConfig = {
-      public: true,
+      public: false,
       fileSizeLimit: 10485760, // 10MB
       allowedMimeTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'application/pdf']
     };

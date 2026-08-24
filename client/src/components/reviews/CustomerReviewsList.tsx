@@ -56,7 +56,7 @@ const CustomerReviewsList: React.FC<CustomerReviewsListProps> = ({ reviews, load
           No reviews available yet
         </p>
         <p className="text-sm text-black/50">
-          Be the first to share your experience with MY PUP!
+          Be the first to share your experience with PAWS!
         </p>
       </div>
     );

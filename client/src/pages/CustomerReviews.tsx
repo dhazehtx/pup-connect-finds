@@ -10,7 +10,7 @@ const CustomerReviews = () => {
       name: "Sarah Johnson",
       location: "Los Angeles, CA",
       rating: 5,
-      review: "Found our perfect Golden Retriever puppy through MY PUP. The breeder was verified and professional, and our Luna is healthy and happy!",
+      review: "Found our perfect Golden Retriever puppy through PAWS. The breeder was verified and professional, and our Luna is healthy and happy!",
       puppyName: "Luna",
       breed: "Golden Retriever",
       image: "/placeholder-dog.jpg"
@@ -53,7 +53,7 @@ const CustomerReviews = () => {
             <Heart className="h-16 w-16 text-blue-600 mx-auto mb-4" />
             <h1 className="text-4xl font-bold text-gray-900 mb-4">Customer Reviews</h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Read what families are saying about their experience finding their perfect puppy companion through MY PUP.
+              Read what families are saying about their experience finding their perfect puppy companion through PAWS.
             </p>
           </div>
 

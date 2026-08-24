@@ -5,17 +5,19 @@ import { db } from "../db";
 import { qaBugReports, profiles } from "@shared/schema";
 import { eq, desc, and } from "drizzle-orm";
 import { insertQaBugReportSchema } from "@shared/schema";
+import { requireAuth } from "../middleware/auth";
+import { requireAdmin } from "../middleware/requireAdmin";
 
 const router = Router();
 
-// POST /api/qa/bug-report - Submit a bug report
-router.post("/bug-report", async (req, res) => {
+// POST /api/qa/bug-report - Submit a bug report (authenticated user)
+router.post("/bug-report", requireAuth, async (req, res) => {
   try {
-    const { user_id, route, description, severity } = req.body;
+    const { route, description, severity } = req.body;
 
-    // Validate input
+    // Server-authoritative reporter identity — never trust a client-supplied user_id.
     const validData = insertQaBugReportSchema.parse({
-      user_id,
+      user_id: req.user!.id,
       route,
       description,
       severity,
@@ -37,7 +39,7 @@ router.post("/bug-report", async (req, res) => {
 });
 
 // GET /api/qa/bug-reports - Get all bug reports (admin only)
-router.get("/bug-reports", async (req, res) => {
+router.get("/bug-reports", requireAdmin, async (req, res) => {
   try {
     const { status, severity } = req.query;
 
@@ -87,8 +89,8 @@ router.get("/bug-reports", async (req, res) => {
   }
 });
 
-// PATCH /api/qa/bug-report/:id - Update bug report status
-router.patch("/bug-report/:id", async (req, res) => {
+// PATCH /api/qa/bug-report/:id - Update bug report status (admin only)
+router.patch("/bug-report/:id", requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;

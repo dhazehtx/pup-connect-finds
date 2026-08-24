@@ -10,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Clock, Shield } from 'lucide-react';
+import { BRAND } from '@shared/brand';
 
 interface SessionWarningModalProps {
   isOpen: boolean;
@@ -61,7 +62,7 @@ const SessionWarningModal = ({
           </div>
           <DialogDescription className="text-gray-600">
             Your session will expire in <strong>{minutes}:{seconds.toString().padStart(2, '0')}</strong> due to inactivity.
-            Extend your session to continue using MY PUP securely.
+            Extend your session to continue using {BRAND.name} securely.
           </DialogDescription>
         </DialogHeader>
 

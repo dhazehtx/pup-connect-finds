@@ -17,7 +17,7 @@ const AIAssistant = () => {
           <h1 className="text-3xl font-bold text-gray-900">AI Assistant Suite</h1>
         </div>
         <p className="text-gray-600 max-w-3xl mx-auto">
-          Discover the power of AI on MY PUP! From analyzing pet photos to finding perfect matches, 
+          Discover the power of AI on PAWS! From analyzing pet photos to finding perfect matches, 
           our AI tools help you make better decisions and create amazing content.
         </p>
       </div>
@@ -144,7 +144,7 @@ const AIAssistant = () => {
               <CardHeader>
                 <CardTitle>General AI Assistant</CardTitle>
                 <p className="text-sm text-gray-600">
-                  Generate any type of content for your MY PUP platform needs with personalized AI assistance.
+                  Generate any type of content for your PAWS platform needs with personalized AI assistance.
                 </p>
               </CardHeader>
               <CardContent>

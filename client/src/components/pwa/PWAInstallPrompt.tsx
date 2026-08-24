@@ -36,7 +36,7 @@ const PWAInstallPrompt = () => {
       setShowPrompt(false);
       toast({
         title: "App Installed!",
-        description: "My Pup has been added to your home screen",
+        description: "PAWS has been added to your home screen",
       });
     };
 
@@ -58,7 +58,7 @@ const PWAInstallPrompt = () => {
       if (result.outcome === 'accepted') {
         toast({
           title: "Installing...",
-          description: "My Pup is being added to your home screen",
+          description: "PAWS is being added to your home screen",
         });
       }
       
@@ -86,7 +86,7 @@ const PWAInstallPrompt = () => {
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg flex items-center gap-2">
               <Smartphone className="w-5 h-5 text-primary" />
-              Install My Pup
+              Install PAWS
             </CardTitle>
             <Button
               variant="ghost"
@@ -100,7 +100,7 @@ const PWAInstallPrompt = () => {
         </CardHeader>
         <CardContent className="pt-0">
           <p className="text-sm text-muted-foreground mb-4">
-            Get the full experience! Install My Pup on your device for faster access and offline features.
+            Get the full experience! Install PAWS on your device for faster access and offline features.
           </p>
           <div className="flex gap-2">
             <Button onClick={handleInstall} className="flex-1">

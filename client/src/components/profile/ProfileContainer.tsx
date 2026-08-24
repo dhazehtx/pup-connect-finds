@@ -104,7 +104,7 @@ const ProfileContainer = () => {
         full_name: 'Golden Paws Kennel',
         username: 'goldenpaws',
         email: 'contact@goldenpaws.com',
-        bio: 'Specializing in Golden Retrievers and Labradors for over 15 years. Join MY PUP to see more!',
+        bio: 'Specializing in Golden Retrievers and Labradors for over 15 years. Join PAWS to see more!',
         location: 'San Francisco, CA',
         avatar_url: 'https://images.unsplash.com/photo-1560743173-567a3b5658b1?w=150&h=150&fit=crop&crop=face',
         user_type: 'breeder',

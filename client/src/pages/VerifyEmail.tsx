@@ -37,7 +37,7 @@ const VerifyEmail = () => {
           
           toast({
             title: "Email Verified!",
-            description: "Your account is now active. Welcome to MY PUP!",
+            description: "Your account is now active. Welcome to PAWS!",
           });
 
           // Redirect to home page after a short delay

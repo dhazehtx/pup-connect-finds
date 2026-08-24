@@ -26,7 +26,7 @@ const Help = () => {
         },
         {
           question: 'What documents should I expect from a seller?',
-          answer: 'Health certificates, vaccination records, registration papers (if applicable), and breeding license information for commercial breeders. Need more help? Contact our support team at support@mypup.com or use live chat.'
+          answer: 'Health certificates, vaccination records, registration papers (if applicable), and breeding license information for commercial breeders. Need more help? Contact our support team at support@petadoptionwebservices.com or use live chat.'
         },
         {
           question: 'What safety measures should I take when meeting a seller?',
@@ -41,7 +41,7 @@ const Help = () => {
       faqs: [
         {
           question: 'What payment methods are accepted?',
-          answer: 'We accept credit cards, debit cards, and bank transfers through our secure payment processor. Cash payments are not recommended. Questions about payments? Email us at billing@mypup.com.'
+          answer: 'We accept credit cards, debit cards, and bank transfers through our secure payment processor. Cash payments are not recommended. Questions about payments? Email us at billing@petadoptionwebservices.com.'
         },
         {
           question: 'How does buyer protection work?',
@@ -68,7 +68,7 @@ const Help = () => {
         },
         {
           question: 'How do I reset my password?',
-          answer: 'Click "Forgot Password" on the login page and follow the email instructions. Still having trouble? Contact support@mypup.com or start a live chat.'
+          answer: 'Click "Forgot Password" on the login page and follow the email instructions. Still having trouble? Contact support@petadoptionwebservices.com or start a live chat.'
         }
       ]
     },
@@ -79,11 +79,11 @@ const Help = () => {
       faqs: [
         {
           question: 'What are the age requirements for puppy sales?',
-          answer: 'Puppies must be at least 8 weeks old in most states. Some locations have stricter requirements. Check your local laws. Need legal guidance? Email legal@mypup.com.'
+          answer: 'Puppies must be at least 8 weeks old in most states. Some locations have stricter requirements. Check your local laws. Need legal guidance? Email legal@petadoptionwebservices.com.'
         },
         {
           question: 'Do I need a license to sell puppies?',
-          answer: 'Commercial breeders typically need licenses. Occasional sellers may be exempt. Requirements vary by state and municipality. Contact us for specific guidance at support@mypup.com.'
+          answer: 'Commercial breeders typically need licenses. Occasional sellers may be exempt. Requirements vary by state and municipality. Contact us for specific guidance at support@petadoptionwebservices.com.'
         },
         {
           question: 'What happens if I violate the terms of service?',
@@ -108,11 +108,11 @@ const Help = () => {
     },
     {
       title: 'Email Support',
-      description: 'support@mypup.com',
+      description: 'support@petadoptionwebservices.com',
       icon: Mail,
       action: 'Send Email',
       available: 'Response within 4 hours',
-      contact: 'support@mypup.com'
+      contact: 'support@petadoptionwebservices.com'
     },
     {
       title: 'Emergency Line',
@@ -231,7 +231,7 @@ const Help = () => {
             </Button>
           </div>
           <div className="mt-4 text-sm text-blue-600">
-            <p>📧 support@mypup.com • 📞 (555) 123-HELP • 💬 24/7 Live Chat Available</p>
+            <p>📧 support@petadoptionwebservices.com • 📞 (555) 123-HELP • 💬 24/7 Live Chat Available</p>
           </div>
         </CardContent>
       </Card>

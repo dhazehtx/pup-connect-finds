@@ -8,7 +8,7 @@ const CustomerReviewsHeader = () => {
         What Our Customers Say
       </h1>
       <p className="text-black/70 text-lg mb-8">
-        Real stories from families who found their perfect puppy through MY PUP
+        Real stories from families who found their perfect puppy through PAWS
       </p>
     </div>
   );

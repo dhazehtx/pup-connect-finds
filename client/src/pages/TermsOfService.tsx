@@ -40,13 +40,13 @@ const TermsOfService = () => {
             <h2 className="text-2xl font-bold text-gray-900 mb-4">1. Acceptance of Terms</h2>
             <div className="space-y-4 text-gray-700">
               <p>
-                By accessing and using MY PUP ("the Platform"), you accept and agree to be bound by 
+                By accessing and using PAWS ("the Platform"), you accept and agree to be bound by 
                 the terms and provision of this agreement. If you do not agree to abide by the above, 
                 please do not use this service.
               </p>
               <p>
                 These Terms of Service ("Terms") govern your use of our website, mobile application, 
-                and related services provided by MY PUP.
+                and related services provided by PAWS.
               </p>
             </div>
           </section>
@@ -109,7 +109,7 @@ const TermsOfService = () => {
             <h2 className="text-2xl font-bold text-gray-900 mb-4">6. Limitation of Liability</h2>
             <div className="space-y-4 text-gray-700">
               <p>
-                MY PUP acts as a platform connecting buyers and sellers. We are not responsible for:
+                PAWS acts as a platform connecting buyers and sellers. We are not responsible for:
               </p>
               <ul className="list-disc list-inside space-y-2 ml-4">
                 <li>The quality, health, or condition of animals listed</li>
@@ -125,8 +125,8 @@ const TermsOfService = () => {
             <div className="space-y-4 text-gray-700">
               <p>For questions about these Terms of Service, please contact us:</p>
               <div className="bg-gray-50 p-4 rounded-lg">
-                <p><strong>Email:</strong> legal@mypup.com</p>
-                <p><strong>Mail:</strong> MY PUP Legal Department<br />123 Puppy Lane<br />Pet City, CA 90210</p>
+                <p><strong>Email:</strong> legal@petadoptionwebservices.com</p>
+                <p><strong>Mail:</strong> PAWS Legal Department<br />123 Puppy Lane<br />Pet City, CA 90210</p>
               </div>
             </div>
           </section>

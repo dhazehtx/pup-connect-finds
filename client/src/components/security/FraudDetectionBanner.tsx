@@ -157,7 +157,7 @@ export const useFraudDetectionState = () => {
 
   const handleContactSupport = React.useCallback(() => {
     // This would typically open a support chat or redirect to a support page
-    window.open('mailto:support@mypup.com?subject=Account Security Issue', '_blank');
+    window.open('mailto:support@petadoptionwebservices.com?subject=Account Security Issue', '_blank');
   }, []);
 
   return {

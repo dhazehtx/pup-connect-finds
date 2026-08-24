@@ -31,8 +31,13 @@ serve(async (req) => {
       case 'submit_verification':
         return await handleVerificationSubmission(supabaseClient, user.id, payload);
       case 'update_verification_status':
+        // Approving/rejecting verification (sets profiles.verified) is admin-only.
+        // Without this check any authenticated user could self-approve verification.
+        await assertAdmin(supabaseClient, user.id);
         return await handleVerificationUpdate(supabaseClient, payload);
       case 'get_verification_requests':
+        // Listing other users' verification requests is admin-only.
+        await assertAdmin(supabaseClient, user.id);
         return await getVerificationRequests(supabaseClient, payload);
       case 'upload_document':
         return await handleDocumentUpload(supabaseClient, user.id, payload);
@@ -51,6 +56,22 @@ serve(async (req) => {
     });
   }
 });
+
+/**
+ * Server-side admin authorization. Throws 'Forbidden' unless the caller's profile
+ * is an admin (or moderator). Uses the service-role client so it reads the true
+ * DB state, not a client-supplied claim.
+ */
+async function assertAdmin(supabase: any, userId: string) {
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('is_admin, role')
+    .eq('id', userId)
+    .single();
+  if (error) throw new Error('Forbidden');
+  const isAdmin = profile?.is_admin === true || profile?.role === 'admin' || profile?.role === 'moderator';
+  if (!isAdmin) throw new Error('Forbidden');
+}
 
 async function handleVerificationSubmission(supabase: any, userId: string, data: any) {
   console.log('Submitting verification request for user:', userId);

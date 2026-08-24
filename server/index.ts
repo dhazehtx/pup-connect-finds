@@ -126,6 +126,20 @@ app.use((req, res, next) => {
     );
   }
 
+  // Validate Stripe key/mode configuration on boot (never logs key material).
+  try {
+    const { validateStripeKeyMode, APP_ENV } = await import("./lib/config");
+    const problems = validateStripeKeyMode();
+    if (problems.length > 0) {
+      console.error(`[Startup] Stripe configuration problems (mode=${APP_ENV}):`);
+      for (const p of problems) console.error(`  - ${p}`);
+    } else {
+      console.log(`[Startup] Stripe key/mode validation passed (mode=${APP_ENV}).`);
+    }
+  } catch (e) {
+    console.error("[Startup] Stripe config validation failed to run:", e);
+  }
+
   const server = await registerRoutes(app);
 
   // Sentry error handling middleware (only if initialized)

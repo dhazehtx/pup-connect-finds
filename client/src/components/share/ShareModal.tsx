@@ -41,7 +41,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
 
   // Generate shareable URL
   const shareUrl = `${window.location.origin}/post/${postId}`;
-  const shareText = postTitle || postContent?.substring(0, 100) || 'Check out this post on MY PUP!';
+  const shareText = postTitle || postContent?.substring(0, 100) || 'Check out this post on PAWS!';
 
   const copyToClipboard = async () => {
     try {

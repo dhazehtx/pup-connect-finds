@@ -6,6 +6,42 @@ interface RequestWithTiming extends Request {
   startTime?: number;
 }
 
+/** Header names that must never be written to logs. */
+const REDACT_HEADERS = new Set([
+  'authorization',
+  'cookie',
+  'set-cookie',
+  'x-ops-secret',
+  'x-cron-secret',
+  'apikey',
+  'x-api-key',
+]);
+
+/** Body/field name fragments whose values must never be written to logs. */
+const SENSITIVE_FIELD_RE =
+  /pass(word)?|token|secret|authorization|cookie|card|cvc|cvv|ssn|social|two_factor|backup_code|id_document|bank|iban|routing|account_number/i;
+
+export function redactHeaders(headers: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(headers || {})) {
+    out[k] = REDACT_HEADERS.has(k.toLowerCase()) ? '[REDACTED]' : v;
+  }
+  return out;
+}
+
+export function redactBody(value: unknown, depth = 0): unknown {
+  if (value == null || depth > 4) return value;
+  if (Array.isArray(value)) return value.slice(0, 50).map((v) => redactBody(v, depth + 1));
+  if (typeof value === 'object') {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      out[k] = SENSITIVE_FIELD_RE.test(k) ? '[REDACTED]' : redactBody(v, depth + 1);
+    }
+    return out;
+  }
+  return value;
+}
+
 /**
  * Middleware to automatically log all API requests
  */
@@ -21,9 +57,9 @@ export const apiLoggingMiddleware = (req: RequestWithTiming, res: Response, next
   // Log request start for debugging
   if (process.env.NODE_ENV === 'development') {
     loggingService.debug('api', `${req.method} ${req.path} - Request started`, {
-      headers: req.headers,
+      headers: redactHeaders(req.headers as Record<string, unknown>),
       query: req.query,
-      body: req.method !== 'GET' ? req.body : undefined
+      body: req.method !== 'GET' ? redactBody(req.body) : undefined
     }, {
       method: req.method,
       endpoint: req.path,
@@ -189,11 +225,29 @@ const shouldSkipLogging = (path: string): boolean => {
  * Helper function to determine if we should log response body
  */
 const shouldLogResponseBody = (path: string): boolean => {
-  // Don't log response bodies for certain endpoints to avoid noise
+  // Never log response bodies in production — they routinely contain PII
+  // (private messages, profile email/phone, exported account data) and tokens.
+  if (process.env.NODE_ENV === 'production') return false;
+
+  // Even in development, never log bodies for sensitive/PII endpoints.
   const skipBodyPaths = [
     '/api/logs',
     '/api/stats',
-    '/api/health'
+    '/api/health',
+    '/api/messaging',
+    '/api/messages',
+    '/api/conversations',
+    '/api/export-data',
+    '/api/user',
+    '/api/profile',
+    '/api/profiles',
+    '/api/auth',
+    '/api/payout',
+    '/api/payments',
+    '/api/stripe',
+    '/api/verify',
+    '/api/upload-id',
+    '/api/provider-applications',
   ];
 
   return !skipBodyPaths.some(skipPath => path.includes(skipPath));

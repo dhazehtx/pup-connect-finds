@@ -31,7 +31,7 @@ function TermsOfService() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p>
-            My Pup, Inc. ("My Pup") is a marketplace platform that enables pet owners and third-party providers (e.g., sitters, walkers, groomers, breeders) to find, communicate, and transact. My Pup is not a party to any agreement between users, does not provide pet-related services, does not supervise or control users, and does not guarantee quality, safety, insurance coverage, background checks, or legal compliance of any user or service.
+            PAWS, Inc. ("PAWS") is a marketplace platform that enables pet owners and third-party providers (e.g., sitters, walkers, groomers, breeders) to find, communicate, and transact. PAWS is not a party to any agreement between users, does not provide pet-related services, does not supervise or control users, and does not guarantee quality, safety, insurance coverage, background checks, or legal compliance of any user or service.
           </p>
         </CardContent>
       </Card>
@@ -42,7 +42,7 @@ function TermsOfService() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p>
-            Users act solely as independent parties. No joint venture, partnership, employment, or agency relationship is created between My Pup and any user or between users. Users are exclusively responsible for their acts, omissions, and representations.
+            Users act solely as independent parties. No joint venture, partnership, employment, or agency relationship is created between PAWS and any user or between users. Users are exclusively responsible for their acts, omissions, and representations.
           </p>
         </CardContent>
       </Card>
@@ -64,7 +64,7 @@ function TermsOfService() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p>
-            To the maximum extent permitted by law, you release and forever discharge My Pup, its affiliates, and their officers, directors, employees, and agents from any and all claims, demands, damages, losses, liabilities, costs, and expenses (including reasonable attorneys' fees) arising out of or relating to:
+            To the maximum extent permitted by law, you release and forever discharge PAWS, its affiliates, and their officers, directors, employees, and agents from any and all claims, demands, damages, losses, liabilities, costs, and expenses (including reasonable attorneys' fees) arising out of or relating to:
           </p>
           <ul className="list-disc list-inside space-y-2 ml-4">
             <li>(a) interactions or contracts between users;</li>
@@ -84,7 +84,7 @@ function TermsOfService() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p>
-            You agree to defend, indemnify, and hold harmless My Pup from and against any third-party claims, damages, obligations, losses, liabilities, costs, and expenses (including reasonable attorneys' fees) arising from or related to: (i) your use of the platform or services; (ii) your breach of these Terms; (iii) your violation of law or the rights of any person; or (iv) any injury or damage to persons, animals, or property in connection with services you offer or receive.
+            You agree to defend, indemnify, and hold harmless PAWS from and against any third-party claims, damages, obligations, losses, liabilities, costs, and expenses (including reasonable attorneys' fees) arising from or related to: (i) your use of the platform or services; (ii) your breach of these Terms; (iii) your violation of law or the rights of any person; or (iv) any injury or damage to persons, animals, or property in connection with services you offer or receive.
           </p>
         </CardContent>
       </Card>
@@ -95,7 +95,7 @@ function TermsOfService() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p>
-            My Pup does not provide veterinary, medical, legal, or insurance advice. You are solely responsible for obtaining any required licenses, permits, or insurance and for evaluating whether another user maintains adequate qualifications or coverage.
+            PAWS does not provide veterinary, medical, legal, or insurance advice. You are solely responsible for obtaining any required licenses, permits, or insurance and for evaluating whether another user maintains adequate qualifications or coverage.
           </p>
         </CardContent>
       </Card>
@@ -106,7 +106,7 @@ function TermsOfService() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p>
-            Users engaging in services are solely responsible for arranging emergency protocols (e.g., veterinary care authorization, cost responsibility, and reimbursement). My Pup is not responsible for coordinating or paying for emergency services unless required by law.
+            Users engaging in services are solely responsible for arranging emergency protocols (e.g., veterinary care authorization, cost responsibility, and reimbursement). PAWS is not responsible for coordinating or paying for emergency services unless required by law.
           </p>
         </CardContent>
       </Card>
@@ -117,7 +117,7 @@ function TermsOfService() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p>
-            Payments may be processed by third-party providers (e.g., Stripe). My Pup is a platform and not a bank, money transmitter, or insurer. Refunds, chargebacks, taxes, and fee obligations are handled per the applicable payment terms and the agreement between users.
+            Payments may be processed by third-party providers (e.g., Stripe). PAWS is a platform and not a bank, money transmitter, or insurer. Refunds, chargebacks, taxes, and fee obligations are handled per the applicable payment terms and the agreement between users.
           </p>
         </CardContent>
       </Card>
@@ -129,13 +129,13 @@ function TermsOfService() {
         <CardContent className="space-y-4">
           <div className="space-y-3">
             <p className="uppercase font-semibold text-red-900">
-              THE PLATFORM AND CONTENT ARE PROVIDED "AS IS" AND "AS AVAILABLE." TO THE MAXIMUM EXTENT PERMITTED BY LAW, MY PUP DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+              THE PLATFORM AND CONTENT ARE PROVIDED "AS IS" AND "AS AVAILABLE." TO THE MAXIMUM EXTENT PERMITTED BY LAW, PAWS DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
             </p>
             <p className="uppercase font-semibold text-red-900">
-              TO THE MAXIMUM EXTENT PERMITTED BY LAW, MY PUP SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS, REVENUE, DATA, OR GOODWILL, ARISING OUT OF OR RELATING TO THE PLATFORM OR SERVICES.
+              TO THE MAXIMUM EXTENT PERMITTED BY LAW, PAWS SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS, REVENUE, DATA, OR GOODWILL, ARISING OUT OF OR RELATING TO THE PLATFORM OR SERVICES.
             </p>
             <p className="uppercase font-semibold text-red-900">
-              IN NO EVENT WILL MY PUP'S TOTAL LIABILITY EXCEED THE GREATER OF: (A) THE AMOUNT YOU PAID TO MY PUP IN FEES DURING THE TWELVE (12) MONTHS PRIOR TO THE EVENT GIVING RISE TO LIABILITY; OR (B) US $100.
+              IN NO EVENT WILL PAWS'S TOTAL LIABILITY EXCEED THE GREATER OF: (A) THE AMOUNT YOU PAID TO PAWS IN FEES DURING THE TWELVE (12) MONTHS PRIOR TO THE EVENT GIVING RISE TO LIABILITY; OR (B) US $100.
             </p>
             <p className="text-sm text-red-800 mt-4">
               Nothing herein limits liability where such limitation is prohibited by law.
@@ -155,7 +155,7 @@ function TermsOfService() {
             <div>
               <h4 className="font-semibold text-blue-900">(a) Informal Resolution</h4>
               <p className="text-blue-800">
-                Before filing a claim, the parties will attempt in good faith to resolve disputes by emailing contact@mypup.com with "Dispute Notice" and a description of the claim.
+                Before filing a claim, the parties will attempt in good faith to resolve disputes by emailing contact@petadoptionwebservices.com with "Dispute Notice" and a description of the claim.
               </p>
             </div>
 
@@ -176,7 +176,7 @@ function TermsOfService() {
             <div>
               <h4 className="font-semibold text-blue-900">(d) Opt-Out</h4>
               <p className="text-blue-800">
-                You may opt out of arbitration by mailing written notice to My Pup, Inc., Austin, Texas within 30 days of your first acceptance of these Terms.
+                You may opt out of arbitration by mailing written notice to PAWS, Inc., Austin, Texas within 30 days of your first acceptance of these Terms.
               </p>
             </div>
 
@@ -193,7 +193,7 @@ function TermsOfService() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p>
-            Users agree to follow reasonable safety practices, comply with applicable laws and animal-welfare regulations, and immediately report unsafe conduct, suspected abuse, or policy violations through in-app reporting or email to safety@mypup.com. My Pup may, in its discretion, suspend or terminate accounts.
+            Users agree to follow reasonable safety practices, comply with applicable laws and animal-welfare regulations, and immediately report unsafe conduct, suspected abuse, or policy violations through in-app reporting or email to safety@petadoptionwebservices.com. PAWS may, in its discretion, suspend or terminate accounts.
           </p>
         </CardContent>
       </Card>
@@ -218,17 +218,17 @@ function TermsOfService() {
         <CardContent className="space-y-4">
           <p>If you have questions about these terms, please contact us:</p>
           <ul className="space-y-1">
-            <li><strong>Legal:</strong> legal@mypup.com</li>
-            <li><strong>Support:</strong> support@mypup.com</li>
-            <li><strong>Safety:</strong> safety@mypup.com</li>
-            <li><strong>Disputes:</strong> contact@mypup.com (subject: "Dispute Notice")</li>
-            <li><strong>Address:</strong> My Pup, Inc., Austin, Texas</li>
+            <li><strong>Legal:</strong> legal@petadoptionwebservices.com</li>
+            <li><strong>Support:</strong> support@petadoptionwebservices.com</li>
+            <li><strong>Safety:</strong> safety@petadoptionwebservices.com</li>
+            <li><strong>Disputes:</strong> contact@petadoptionwebservices.com (subject: "Dispute Notice")</li>
+            <li><strong>Address:</strong> PAWS, Inc., Austin, Texas</li>
           </ul>
         </CardContent>
       </Card>
       
       <div className="text-center text-sm text-muted-foreground pb-8">
-        <p>By using My Pup, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.</p>
+        <p>By using PAWS, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.</p>
         <p className="mt-2">Version {currentVersion} | Effective {effectiveDate}</p>
       </div>
     </div>

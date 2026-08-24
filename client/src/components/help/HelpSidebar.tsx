@@ -92,7 +92,7 @@ const HelpSidebar: React.FC<HelpSidebarProps> = ({ popularArticles }) => {
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
                     <Bot size={20} />
-                    MY PUP AI Assistant
+                    PAWS AI Assistant
                   </DialogTitle>
                 </DialogHeader>
                 <div className="h-[600px]">

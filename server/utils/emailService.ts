@@ -1,9 +1,12 @@
 import sgMail from '@sendgrid/mail';
+import { getBrand } from '../lib/brand';
 
 // Initialize SendGrid
 if (process.env.SENDGRID_API_KEY) {
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 }
+
+const BRAND = getBrand();
 
 interface EmailOptions {
   to: string;
@@ -13,7 +16,7 @@ interface EmailOptions {
 }
 
 export class EmailService {
-  private static readonly FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@mypup.com';
+  private static readonly FROM_EMAIL = BRAND.fromEmail;
 
   static async sendEmail(options: EmailOptions): Promise<boolean> {
     if (!process.env.SENDGRID_API_KEY) {
@@ -42,7 +45,7 @@ export class EmailService {
   static async sendDataExportEmail(userEmail: string, downloadUrl: string): Promise<boolean> {
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #3B82F6;">Your MY PUP Data Export is Ready</h2>
+        <h2 style="color: #3B82F6;">Your ${BRAND.name} Data Export is Ready</h2>
         <p>Hello,</p>
         <p>Your personal data export has been processed and is ready for download.</p>
         <div style="margin: 20px 0; padding: 20px; background-color: #F3F4F6; border-radius: 8px;">
@@ -66,14 +69,14 @@ export class EmailService {
         </p>
         <hr style="margin: 30px 0; border: none; border-top: 1px solid #E5E7EB;">
         <p style="color: #6B7280; font-size: 12px;">
-          This email was sent in response to your data export request on MY PUP.
+          This email was sent in response to your data export request on ${BRAND.name}.
         </p>
       </div>
     `;
 
     return this.sendEmail({
       to: userEmail,
-      subject: 'Your MY PUP Data Export is Ready',
+      subject: `Your ${BRAND.name} Data Export is Ready`,
       html
     });
   }
@@ -84,7 +87,7 @@ export class EmailService {
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #DC2626;">Account Deletion Confirmation</h2>
         <p>Hello ${username},</p>
-        <p>Your MY PUP account has been successfully deleted as requested.</p>
+        <p>Your ${BRAND.name} account has been successfully deleted as requested.</p>
         <div style="margin: 20px 0; padding: 20px; background-color: #FEF2F2; border-radius: 8px; border-left: 4px solid #DC2626;">
           <h3>What was deleted:</h3>
           <ul>
@@ -98,14 +101,14 @@ export class EmailService {
         <p>We're sorry to see you go. If you have any feedback about your experience, please don't hesitate to reach out to our support team.</p>
         <hr style="margin: 30px 0; border: none; border-top: 1px solid #E5E7EB;">
         <p style="color: #6B7280; font-size: 12px;">
-          Thank you for being part of the MY PUP community.
+          Thank you for being part of the ${BRAND.name} community.
         </p>
       </div>
     `;
 
     return this.sendEmail({
       to: userEmail,
-      subject: 'MY PUP Account Deletion Confirmation',
+      subject: `${BRAND.name} Account Deletion Confirmation`,
       html
     });
   }
@@ -129,7 +132,7 @@ export class EmailService {
         <p>If you need further assistance, please reply to this email or visit your support dashboard.</p>
         <hr style="margin: 30px 0; border: none; border-top: 1px solid #E5E7EB;">
         <p style="color: #6B7280; font-size: 12px;">
-          MY PUP Support Team
+          ${BRAND.name} Support Team
         </p>
       </div>
     `;
@@ -145,9 +148,9 @@ export class EmailService {
   static async sendWelcomeEmail(userEmail: string, username: string): Promise<boolean> {
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #3B82F6; text-align: center;">Welcome to MY PUP! 🐕</h1>
+        <h1 style="color: #3B82F6; text-align: center;">Welcome to ${BRAND.name}! 🐕</h1>
         <p>Hello ${username},</p>
-        <p>Welcome to the MY PUP community! We're excited to have you join our platform connecting dog lovers, breeders, and pet enthusiasts.</p>
+        <p>Welcome to the ${BRAND.name} community! We're excited to have you join our platform connecting dog lovers, breeders, and pet enthusiasts.</p>
         
         <div style="margin: 30px 0; padding: 20px; background-color: #F0F9FF; border-radius: 8px;">
           <h3>Get Started:</h3>
@@ -160,9 +163,9 @@ export class EmailService {
         </div>
 
         <div style="margin: 30px 0; text-align: center;">
-          <a href="${process.env.FRONTEND_URL || 'https://mypup.com'}" 
+          <a href="${BRAND.appUrl}"
              style="background-color: #3B82F6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
-            Explore MY PUP
+            Explore ${BRAND.name}
           </a>
         </div>
 
@@ -170,14 +173,14 @@ export class EmailService {
         
         <hr style="margin: 30px 0; border: none; border-top: 1px solid #E5E7EB;">
         <p style="color: #6B7280; font-size: 12px; text-align: center;">
-          The MY PUP Team
+          The ${BRAND.name} Team
         </p>
       </div>
     `;
 
     return this.sendEmail({
       to: userEmail,
-      subject: 'Welcome to MY PUP - Find Your Perfect Puppy Companion!',
+      subject: `Welcome to ${BRAND.name} - Find Your Perfect Puppy Companion!`,
       html
     });
   }

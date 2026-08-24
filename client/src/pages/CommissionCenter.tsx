@@ -90,7 +90,7 @@ export const CommissionCenter: React.FC = () => {
               <div className="bg-blue-100 p-4 rounded-lg border border-blue-300">
                 <p className="text-sm text-blue-800">
                   <strong>Note:</strong> Commission helps us maintain platform security, customer support, 
-                  payment processing, and continuous improvements to keep MY PUP the best marketplace for pets.
+                  payment processing, and continuous improvements to keep PAWS the best marketplace for pets.
                 </p>
               </div>
             </CardContent>

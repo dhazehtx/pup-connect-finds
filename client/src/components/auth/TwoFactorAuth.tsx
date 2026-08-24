@@ -11,6 +11,7 @@ import { Shield, Smartphone, Key, Copy, Check, AlertCircle } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { BRAND } from '@shared/brand';
 
 interface TwoFactorAuthProps {
   onSuccess?: () => void;
@@ -61,7 +62,7 @@ const TwoFactorAuth = ({ onSuccess }: TwoFactorAuthProps) => {
     
     try {
       const secret = generateSecret();
-      const appName = 'MY PUP';
+      const appName = BRAND.name;
       const accountName = user?.email || 'user';
       
       setSecretKey(secret);

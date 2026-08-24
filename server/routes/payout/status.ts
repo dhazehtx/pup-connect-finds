@@ -15,10 +15,10 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
  */
 export async function getPayoutStatus(req: Request, res: Response) {
   try {
-    // Dev bypass: accept userId from session, body, or query
-    const userId = (req as any).user?.id ?? req.body?.userId ?? req.query?.userId;
+    // Server-authoritative identity only — never trust body/query userId.
+    const userId = (req as any).user?.id;
     if (!userId) {
-      return res.status(400).json({ error: "missing_user_id" });
+      return res.status(401).json({ error: "authentication_required" });
     }
     console.log('[PAYOUT STATUS] Using userId:', userId);
 
@@ -101,12 +101,18 @@ export async function getPayoutStatus(req: Request, res: Response) {
  */
 export async function checkPayoutStatus(req: Request, res: Response) {
   try {
-    const { userId, providerId, applicationId } = req.body;
+    const { providerId, applicationId } = req.body;
+    // Server-authoritative identity only — never trust a client-supplied userId.
+    const userId = (req as any).user?.id;
 
-    if (!userId || !providerId || !applicationId) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Missing required fields: userId, providerId, applicationId" 
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Authentication required" });
+    }
+
+    if (!providerId || !applicationId) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields: providerId, applicationId"
       });
     }
 

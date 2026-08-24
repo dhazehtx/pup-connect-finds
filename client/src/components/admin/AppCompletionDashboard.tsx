@@ -793,7 +793,7 @@ const AppCompletionDashboard = () => {
       {/* Header */}
       <div className="text-center space-y-4">
         <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-transparent">
-          MY PUP App Completion Dashboard
+          PAWS App Completion Dashboard
         </h1>
         <p className="text-gray-600 text-lg">
           Phase 2: Feature Completion Roadmap with Priority & Effort Estimates

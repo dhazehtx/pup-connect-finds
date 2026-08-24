@@ -49,7 +49,7 @@ const SupportChatbot = () => {
       <CardHeader className="flex-shrink-0">
         <CardTitle className="flex items-center gap-2">
           <MessageCircle size={20} />
-          MY PUP Support Assistant
+          PAWS Support Assistant
         </CardTitle>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={clearHistory}>
@@ -64,7 +64,7 @@ const SupportChatbot = () => {
           {chatHistory.length === 0 && (
             <div className="text-center text-gray-500 py-8">
               <Bot size={48} className="mx-auto mb-4 text-gray-400" />
-              <p className="text-lg font-medium">Welcome to MY PUP Support!</p>
+              <p className="text-lg font-medium">Welcome to PAWS Support!</p>
               <p className="text-sm">Ask me anything about using the platform.</p>
               
               <div className="mt-4 space-y-2">

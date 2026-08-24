@@ -30,7 +30,7 @@ const PrivacyPolicyPage: React.FC = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-gray-700 dark:text-gray-300">
-                MY PUP ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy 
+                PAWS ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy 
                 explains how we collect, use, disclose, and safeguard your information when you use our platform.
               </p>
               <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
@@ -236,7 +236,7 @@ const PrivacyPolicyPage: React.FC = () => {
               <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
                 <p className="text-sm text-green-700 dark:text-green-300">
                   <strong>Exercise Your Rights:</strong> Visit your Privacy Settings to export your data, 
-                  delete your account, or contact us at privacy@mypup.com.
+                  delete your account, or contact us at privacy@petadoptionwebservices.com.
                 </p>
               </div>
             </CardContent>
@@ -348,7 +348,7 @@ const PrivacyPolicyPage: React.FC = () => {
               <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
                 <div className="space-y-2">
                   <p className="text-sm text-blue-700 dark:text-blue-300">
-                    <strong>Email:</strong> privacy@mypup.com
+                    <strong>Email:</strong> privacy@petadoptionwebservices.com
                   </p>
                   <p className="text-sm text-blue-700 dark:text-blue-300">
                     <strong>Response Time:</strong> We respond to privacy inquiries within 30 days

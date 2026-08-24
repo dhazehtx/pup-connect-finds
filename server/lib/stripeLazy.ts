@@ -1,15 +1,26 @@
 import Stripe from 'stripe';
+import { STRIPE_SECRET_KEY, IS_PROD } from './config';
 
 const API_VERSION = '2025-08-27.basil' as any;
 
 /**
- * Resolves secret key. Falls back to the same placeholder as `stripe/connect.ts` so
- * `new Stripe()` never receives `undefined` / empty string (Stripe SDK throws).
- * Local dev without `.env` can still boot; real payments need STRIPE_SECRET_KEY set.
+ * Resolves the Stripe secret key.
+ *
+ * PRODUCTION fails closed: if no real secret key is configured we throw instead
+ * of silently using a mock key (which would make every charge a no-op / error
+ * while the UI might report success). Local dev without `.env` may still boot
+ * with the mock placeholder so unrelated code paths don't crash on import.
  */
 function resolveSecretKey(): string {
-  const k = process.env.STRIPE_SECRET_KEY?.trim();
-  if (k) return k;
+  const k = (STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY || '').trim();
+  if (k && k !== 'sk_test_mock_key') return k;
+
+  if (IS_PROD || (process.env.NODE_ENV || '').toLowerCase() === 'production') {
+    throw new Error(
+      '[stripe] No usable STRIPE_SECRET_KEY configured in production. ' +
+        'Refusing to fall back to a mock key. Set STRIPE_SECRET_KEY (or STRIPE_SECRET_KEY_LIVE).',
+    );
+  }
   return 'sk_test_mock_key';
 }
 

@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -38,17 +38,11 @@ export const useCreateListing = () => {
     try {
       setLoading(true);
 
-      // Create the listing
-      const { data: listing, error: listingError } = await supabase
-        .from('dog_listings')
-        .insert([{
-          ...listingData,
-          user_id: user.id
-        }])
-        .select()
-        .single();
-
-      if (listingError) throw listingError;
+      // Authoritative write path: server → Neon/Drizzle with server-side ownership.
+      const listing = await apiRequest('/api/listings', {
+        method: 'POST',
+        body: { ...listingData },
+      });
 
       // For now, we'll skip the additional photos since the table doesn't exist yet
       // In the future, when the listing_photos table is added, we can uncomment this:
@@ -105,15 +99,10 @@ export const useCreateListing = () => {
     try {
       setLoading(true);
 
-      const { data, error } = await supabase
-        .from('dog_listings')
-        .update(updates)
-        .eq('id', listingId)
-        .eq('user_id', user.id)
-        .select()
-        .single();
-
-      if (error) throw error;
+      const data = await apiRequest(`/api/listings/${listingId}`, {
+        method: 'PUT',
+        body: updates,
+      });
 
       toast({
         title: "Success",
@@ -147,13 +136,7 @@ export const useCreateListing = () => {
     try {
       setLoading(true);
 
-      const { error } = await supabase
-        .from('dog_listings')
-        .delete()
-        .eq('id', listingId)
-        .eq('user_id', user.id);
-
-      if (error) throw error;
+      await apiRequest(`/api/listings/${listingId}`, { method: 'DELETE' });
 
       toast({
         title: "Success",

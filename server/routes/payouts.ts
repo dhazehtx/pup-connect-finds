@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { Pool } from '@neondatabase/serverless';
 import Stripe from 'stripe';
 import { STRIPE_SECRET_KEY } from '../lib/config';
@@ -6,6 +7,27 @@ import { getConnectAppFeeBps } from '../lib/platformFees';
 
 const router = Router();
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+/**
+ * The payout-release job moves real money to connected accounts, so it must
+ * never be publicly triggerable. Allow either an authenticated admin session or
+ * a matching CRON_SECRET bearer/header (for scheduled invocation). Fails closed.
+ */
+function requireAdminOrCron(req: Request, res: Response, next: NextFunction) {
+  const cronSecret = process.env.CRON_SECRET?.trim();
+  if (cronSecret) {
+    const headerSecret = (req.get('x-cron-secret') || '').trim();
+    const authHeader = req.get('authorization') || '';
+    const bearer = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+    if (headerSecret === cronSecret || bearer === cronSecret) {
+      return next();
+    }
+  }
+  if ((req as any).user?.is_admin) {
+    return next();
+  }
+  return res.status(403).json({ error: 'Forbidden', code: 'ADMIN_OR_CRON_REQUIRED' });
+}
 
 // Initialize Stripe only if we have a secret key
 let stripe: Stripe | null = null;
@@ -19,8 +41,8 @@ function computeAppFee(amountCents: number) {
   return fee;
 }
 
-// POST /api/payouts/release - Release eligible payouts (cron-friendly)
-router.post('/release', async (req, res) => {
+// POST /api/payouts/release - Release eligible payouts (cron-friendly, admin/cron only)
+router.post('/release', requireAdminOrCron, async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }

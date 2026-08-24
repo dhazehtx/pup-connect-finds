@@ -86,7 +86,7 @@ const BugReportModal: React.FC<BugReportModalProps> = ({ isOpen, onClose }) => {
       queryClient.invalidateQueries({ queryKey: ['bug-reports'] });
       toast({
         title: "Bug report submitted successfully",
-        description: "Thank you for helping us improve MY PUP. We'll investigate this issue.",
+        description: "Thank you for helping us improve PAWS. We'll investigate this issue.",
       });
       onClose();
       resetForm();

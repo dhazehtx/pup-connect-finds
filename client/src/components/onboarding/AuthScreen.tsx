@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Heart, Mail, User, Eye, EyeOff, Shield, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { BRAND } from '@shared/brand';
 
 interface AuthScreenProps {
   onSignIn: () => void;
@@ -84,7 +85,7 @@ const AuthScreen = ({ onSignIn, onGuestBrowse, onSkip }: AuthScreenProps) => {
           <div className="w-16 h-16 mx-auto mb-4 bg-royal-blue rounded-full flex items-center justify-center">
             <Heart size={32} className="text-cloud-white" />
           </div>
-          <CardTitle className="text-2xl font-bold text-deep-navy">Welcome to MY PUP</CardTitle>
+          <CardTitle className="text-2xl font-bold text-deep-navy">Welcome to {BRAND.name}</CardTitle>
           <p className="text-deep-navy/70">Join our community of dog lovers</p>
           
           <div className="flex items-center justify-center gap-2 mt-2 text-xs text-deep-navy/60">

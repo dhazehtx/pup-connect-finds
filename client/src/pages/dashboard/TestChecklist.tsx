@@ -137,19 +137,19 @@ function TestChecklist() {
   const testCredentials = [
     {
       type: 'Test Buyer',
-      email: 'testbuyer@mypup.com',
+      email: 'testbuyer@petadoptionwebservices.com',
       password: 'TestPass123!',
       purpose: 'Testing purchases and bookings',
     },
     {
       type: 'Test Provider',
-      email: 'testprovider@mypup.com',
+      email: 'testprovider@petadoptionwebservices.com',
       password: 'TestPass123!',
       purpose: 'Testing service provider features',
     },
     {
       type: 'Test Admin',
-      email: 'admin@mypup.com',
+      email: 'admin@petadoptionwebservices.com',
       password: 'AdminPass123!',
       purpose: 'Testing admin panel features',
     },

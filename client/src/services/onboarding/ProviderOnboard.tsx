@@ -1697,7 +1697,7 @@ const ProviderOnboard: React.FC = () => {
                 data-testid="checkbox-bgcheck-consent"
               />
               <span className="text-sm">
-                I consent to a background check and authorize My Pup to process it upon submission.
+                I consent to a background check and authorize PAWS to process it upon submission.
               </span>
             </label>
 

@@ -46,29 +46,47 @@ serve(async (req) => {
       console.error('Failed to create notification:', notificationError);
     }
 
-    // For now, we'll just log the email (in production, integrate with email service)
-    console.log('Email notification:', {
-      to: to_email,
-      subject,
-      message,
-      action_url
-    });
+    // Send via SendGrid if configured. Do NOT report a fake success — if email
+    // is not configured, say so explicitly so callers/logs reflect reality.
+    const sendgridKey = Deno.env.get('SENDGRID_API_KEY');
+    const fromEmail = Deno.env.get('FROM_EMAIL') || Deno.env.get('SENDGRID_FROM') || 'noreply@petadoptionwebservices.com';
 
-    // Here you would integrate with your email service (Resend, SendGrid, etc.)
-    // Example with mock response:
-    const emailResponse = {
-      id: 'mock-email-id',
-      status: 'sent',
-      to: to_email,
-      subject
-    };
+    let emailSent = false;
+    let emailError: string | null = null;
 
-    return new Response(JSON.stringify({ 
-      success: true, 
-      email_response: emailResponse,
+    if (sendgridKey) {
+      try {
+        const resp = await fetch('https://api.sendgrid.com/v3/mail/send', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${sendgridKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            personalizations: [{ to: [{ email: to_email }] }],
+            from: { email: fromEmail },
+            subject,
+            content: [{ type: 'text/plain', value: `${message}${action_url ? `\n\n${action_url}` : ''}` }],
+          }),
+        });
+        emailSent = resp.ok;
+        if (!resp.ok) emailError = `SendGrid responded ${resp.status}`;
+      } catch (e) {
+        emailError = (e as Error)?.message || 'SendGrid request failed';
+      }
+    } else {
+      emailError = 'email_not_configured';
+      console.warn('[send-notification-email] SENDGRID_API_KEY not set — email not sent (notification still recorded).');
+    }
+
+    return new Response(JSON.stringify({
+      success: emailSent,
+      email_sent: emailSent,
+      email_error: emailError,
       notification_created: !notificationError
     }), {
-      status: 200,
+      // 200 only when the email actually went out; otherwise 502 so the failure is visible.
+      status: emailSent ? 200 : 502,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
 

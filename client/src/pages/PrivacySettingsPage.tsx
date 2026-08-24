@@ -364,7 +364,7 @@ const PrivacySettingsPage: React.FC = () => {
               <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
                 <div className="space-y-2">
                   <p className="text-sm text-blue-700 dark:text-blue-300">
-                    <strong>Privacy Officer:</strong> privacy@mypup.com
+                    <strong>Privacy Officer:</strong> privacy@petadoptionwebservices.com
                   </p>
                   <p className="text-sm text-blue-700 dark:text-blue-300">
                     <strong>Response Time:</strong> Within 30 days

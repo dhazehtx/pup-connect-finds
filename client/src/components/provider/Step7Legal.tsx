@@ -41,7 +41,7 @@ export default function Step7Legal({
       <label className="flex items-start gap-2">
         <input type="checkbox" checked={checked} onChange={(e)=>setChecked(e.target.checked)} />
         <span className="text-sm">
-          I agree to the Terms of Service and Service Provider Agreement. I understand My Pup is a neutral marketplace and
+          I agree to the Terms of Service and Service Provider Agreement. I understand PAWS is a neutral marketplace and
           is not responsible for off-platform interactions or user conduct.
         </span>
       </label>

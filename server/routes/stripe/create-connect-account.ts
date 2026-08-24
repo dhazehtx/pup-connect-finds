@@ -12,10 +12,11 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
  */
 export async function createConnectAccount(req: Request, res: Response) {
   try {
-    const { userId } = req.body;
-    
+    // Server-authoritative identity only — never trust a client-supplied userId.
+    const userId = (req as any).user?.id;
+
     if (!userId) {
-      return res.status(400).json({ error: 'Missing userId' });
+      return res.status(401).json({ error: 'Authentication required' });
     }
 
     console.log('[STRIPE CONNECT] Creating account for userId:', userId);

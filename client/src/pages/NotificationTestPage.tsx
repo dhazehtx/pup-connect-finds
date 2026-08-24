@@ -367,7 +367,7 @@ const NotificationTestPage: React.FC = () => {
               
               <div className="text-center pt-4">
                 <Badge className="bg-green-600 text-white">
-                  MY PUP is now a complete modern social platform! 🎉
+                  PAWS is now a complete modern social platform! 🎉
                 </Badge>
               </div>
             </div>
