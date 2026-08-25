@@ -26,7 +26,9 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 // Webhook endpoint needs raw body
 router.post("/", async (req, res) => {
   const sig = req.headers['stripe-signature'] as string;
-  const body = req.body;
+  // constructEvent needs the raw payload preserved by express.json's verify hook —
+  // the parsed req.body object always fails signature verification.
+  const body = (req as any).rawBody || req.body;
   
   console.log('[STRIPE WEBHOOK] Received webhook');
 
