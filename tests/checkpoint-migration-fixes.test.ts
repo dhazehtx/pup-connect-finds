@@ -98,23 +98,23 @@ describe('checkpoint — corrected migration is safe & trigger-free', () => {
     expect(sql).not.toMatch(/CREATE\s+(OR\s+REPLACE\s+)?FUNCTION\s+public\.prevent_profile_privilege_escalation/i);
   });
 
-  it('enforces privilege protection via column-level REVOKE', () => {
-    expect(sql).toMatch(/REVOKE UPDATE \(%I\)/i);
-    expect(sql).toMatch(/REVOKE SELECT \(%I\)/i);
-    // privilege + PII columns are in the guarded arrays
-    for (const col of ['is_admin', 'verified', 'role', 'is_suspended']) {
-      expect(sql).toContain(`'${col}'`);
-    }
-    for (const col of ['email', 'phone', 'two_factor_secret', 'backup_codes']) {
-      expect(sql).toContain(`'${col}'`);
-    }
+  it('enforces privilege protection via table-level REVOKE + minimal column GRANT', () => {
+    // Production has TABLE-level profile grants; column REVOKEs alone cannot
+    // remove them. The corrected mechanism strips the table privileges first,
+    // then grants back only the audited public column set.
+    expect(sql).toMatch(/REVOKE ALL PRIVILEGES ON public\.profiles FROM PUBLIC;/);
+    expect(sql).toMatch(/REVOKE ALL PRIVILEGES ON public\.profiles FROM anon;/);
+    expect(sql).toMatch(/REVOKE ALL PRIVILEGES ON public\.profiles FROM authenticated;/);
+    expect(sql).toMatch(/GRANT SELECT \(%I\) ON public\.profiles TO anon, authenticated/);
+    // no write privilege of any kind is granted back
+    expect(sql).not.toMatch(/GRANT\s+UPDATE/i);
+    expect(sql).not.toMatch(/GRANT\s+INSERT/i);
   });
 
-  it('keeps public marketplace profile fields readable (not revoked)', () => {
-    // These must NOT appear in the select_guard REVOKE array.
-    const guardBlock = sql.slice(sql.indexOf('select_guard'), sql.indexOf('BEGIN', sql.indexOf('select_guard')));
+  it('keeps public marketplace profile fields readable (in the grant list)', () => {
+    const grantBlock = sql.slice(sql.indexOf('client_read'), sql.indexOf('BEGIN', sql.indexOf('client_read')));
     for (const pub of ['username', 'full_name', 'avatar_url', 'rating', 'total_reviews']) {
-      expect(guardBlock).not.toContain(`'${pub}'`);
+      expect(grantBlock).toContain(`'${pub}'`);
     }
   });
 

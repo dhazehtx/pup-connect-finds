@@ -324,8 +324,11 @@ async function getMarketplaceStats(supabase: any) {
   ] = await Promise.all([
     supabase.from('dog_listings').select('*', { count: 'exact', head: true }),
     supabase.from('dog_listings').select('*', { count: 'exact', head: true }).eq('status', 'active'),
-    supabase.from('profiles').select('*', { count: 'exact', head: true }),
-    supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('verified', true)
+    // Count on `id`, not `*`: this function runs with the ANON key, and the
+    // hardened profiles grants (20260824000000) only allow the public column
+    // set — a `*` count would expand to revoked columns and fail.
+    supabase.from('profiles').select('id', { count: 'exact', head: true }),
+    supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('verified', true)
   ]);
 
   // Get recent activity (last 7 days)

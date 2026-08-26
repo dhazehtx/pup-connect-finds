@@ -62,18 +62,26 @@ describe('Step 2 — the three prepared migrations cover the full hardening set'
     expect(rls).toMatch(/UPDATE storage\.buckets SET public = false WHERE id = 'message-attachments'/);
   });
 
-  it('authenticated profile PII exposure is removed (column SELECT revoke)', () => {
+  it('authenticated profile PII exposure is removed (table revoke, PII not re-granted)', () => {
+    const rlsSql = stripComments(rls);
+    expect(rlsSql).toMatch(/REVOKE ALL PRIVILEGES ON public\.profiles FROM authenticated;/);
+    expect(rlsSql).toMatch(/REVOKE ALL PRIVILEGES ON public\.profiles FROM anon;/);
+    // sensitive columns never appear in executable SQL (i.e. in any grant list)
     for (const c of ['email', 'phone', 'two_factor_secret', 'backup_codes']) {
-      expect(rls).toContain(`'${c}'`);
+      expect(rlsSql).not.toContain(`'${c}'`);
     }
-    expect(rls).toMatch(/REVOKE SELECT \(%I\)/i);
   });
 
-  it('self-admin/self-verified/self-role escalation is blocked (column UPDATE revoke)', () => {
-    for (const c of ['is_admin', 'verified', 'role', 'is_suspended']) {
-      expect(rls).toContain(`'${c}'`);
+  it('self-admin/self-verified/self-role escalation is blocked (no client write privilege)', () => {
+    const rlsSql = stripComments(rls);
+    expect(rlsSql).toMatch(/REVOKE ALL PRIVILEGES ON public\.profiles FROM authenticated;/);
+    expect(rlsSql).not.toMatch(/GRANT\s+UPDATE/i);
+    expect(rlsSql).not.toMatch(/GRANT\s+INSERT/i);
+    // privilege columns are not in the SELECT grant list either (verified is
+    // public marketplace data and intentionally stays readable)
+    for (const c of ['is_admin', 'role', 'is_suspended']) {
+      expect(rlsSql).not.toContain(`'${c}'`);
     }
-    expect(rls).toMatch(/REVOKE UPDATE \(%I\)/i);
   });
 
   it('analytics tables are locked (RLS enabled)', () => {
