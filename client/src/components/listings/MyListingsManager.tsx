@@ -126,7 +126,7 @@ const MyListingsManager = () => {
                       <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
                         <span className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
-                          {listing.age} months old
+                          {listing.age} weeks old
                         </span>
                         {listing.location && (
                           <span className="flex items-center gap-1">

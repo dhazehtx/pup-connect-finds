@@ -24,7 +24,7 @@ export interface DogListing {
   id: string;
   dogName: string;
   breed: string;
-  age: number; // in months
+  age: number; // in weeks (matches the "Age (weeks)" create-listing input and the detail page)
   price: number;
   imageUrl?: string;
   description?: string;

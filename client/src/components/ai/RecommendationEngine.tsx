@@ -229,7 +229,7 @@ const RecommendationEngine = () => {
                       {formatPrice(rec.listing.price)}
                     </span>
                     <Badge variant="secondary">
-                      {rec.listing.age} months
+                      {rec.listing.age} weeks
                     </Badge>
                   </div>
 

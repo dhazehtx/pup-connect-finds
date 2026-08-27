@@ -5,6 +5,7 @@ import { Minus, Plus, Trash2, ShoppingBag, Loader2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { authHeaders } from '@/lib/api';
 
 const Cart = () => {
   useEffect(() => {
@@ -42,7 +43,7 @@ const Cart = () => {
 
       const response = await fetch('/api/checkout/session', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
         credentials: 'include',
         body: JSON.stringify({ cartItems }),
       });

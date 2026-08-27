@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import FilterBar, { type StoreSortType } from '@/components/FilterBar';
 import { useCart } from '@/hooks/use-cart';
+import { authHeaders } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
@@ -360,7 +361,7 @@ const StoreTab = () => {
     try {
       const response = await fetch('/api/checkout/session', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
         credentials: 'include',
         body: JSON.stringify({
           cartItems: [{ id: product.id, quantity: 1 }],

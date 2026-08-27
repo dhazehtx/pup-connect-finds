@@ -68,7 +68,7 @@ import {
   type InsertBreed
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, asc, and, or, like, ilike, sql, isNotNull, inArray } from "drizzle-orm";
+import { eq, desc, asc, and, or, like, ilike, sql, isNull, isNotNull, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // Legacy user methods
@@ -558,7 +558,7 @@ export class DatabaseStorage implements IStorage {
         .where(and(
           eq(messages.conversation_id, c.id),
           sql`${messages.sender_id} != ${userId}`,
-          eq(messages.read, false)
+          isNull(messages.read_at)
         ));
       const isSellerInThread = otherUserId && c.seller_id === otherUserId;
       const isVerifiedBreeder = Boolean(
@@ -705,11 +705,11 @@ export class DatabaseStorage implements IStorage {
 
   async markMessagesAsRead(conversationId: string, userId: string): Promise<boolean> {
     const result = await db.update(messages)
-      .set({ read: true })
+      .set({ read_at: new Date() })
       .where(and(
         eq(messages.conversation_id, conversationId),
         sql`${messages.sender_id} != ${userId}`,
-        eq(messages.read, false)
+        isNull(messages.read_at)
       ));
     return (result.rowCount ?? 0) >= 0;
   }
@@ -726,7 +726,7 @@ export class DatabaseStorage implements IStorage {
       .where(and(
         inArray(messages.conversation_id, convIds),
         sql`${messages.sender_id} != ${userId}`,
-        eq(messages.read, false)
+        isNull(messages.read_at)
       ));
     return result[0]?.count || 0;
   }

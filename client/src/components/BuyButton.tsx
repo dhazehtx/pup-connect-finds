@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { ShoppingCart, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { authHeaders } from '@/lib/api';
 
 interface BuyButtonProps {
   productId: string;
@@ -41,7 +42,7 @@ export default function BuyButton({
     try {
       const response = await fetch('/api/checkout/session', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
         credentials: 'include',
         body: JSON.stringify({
           cartItems: [{ id: productId, quantity }],

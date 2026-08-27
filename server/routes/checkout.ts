@@ -63,18 +63,23 @@ router.post("/session", authMiddleware, async (req, res) => {
           price: product.stripe_price_id,
           quantity: qty,
         });
-      } else if (product.stripe_price_id) {
-        lineItems.push({
-          price: product.stripe_price_id,
-          quantity: qty,
-        });
       } else {
+        // One-time items: build an inline price from unit_price so checkout is
+        // Stripe-mode-agnostic. The stored stripe_price_id may be a LIVE-mode
+        // price, which a TEST-mode key cannot use ("No such price … exists in
+        // live mode, but a test mode key was used"). Only attach an image when
+        // it is an absolute URL — Stripe rejects the app-relative image_url
+        // paths (e.g. "/products/…").
+        const absoluteImages =
+          product.image_url && /^https?:\/\//i.test(product.image_url)
+            ? [product.image_url]
+            : undefined;
         lineItems.push({
           price_data: {
             currency: product.currency || "usd",
             product_data: {
               name: product.name,
-              ...(product.image_url ? { images: [product.image_url] } : {}),
+              ...(absoluteImages ? { images: absoluteImages } : {}),
             },
             unit_amount: unitPriceCents,
           },
@@ -145,8 +150,26 @@ router.post("/session", authMiddleware, async (req, res) => {
 
     res.json({ url: session.url });
   } catch (error: any) {
-    debugApiLog("[PROOF:CHECKOUT:ERROR]", error.message);
-    res.status(500).json({ error: "Failed to create checkout session" });
+    // Surface the real cause server-side. Stripe error message/type/code are
+    // safe to log (they never contain secret keys); do NOT echo them to the
+    // client verbatim (a message can leak internal price/product ids).
+    debugApiWarn(
+      "[PROOF:CHECKOUT:ERROR]",
+      JSON.stringify({
+        message: error?.message,
+        type: error?.type,
+        code: error?.code,
+        statusCode: error?.statusCode,
+        param: error?.param,
+      }),
+    );
+    const isStripeConfigError =
+      error?.type === "StripeInvalidRequestError" &&
+      /No such price|No such product|test mode|live mode/i.test(error?.message || "");
+    res.status(isStripeConfigError ? 400 : 500).json({
+      error: "Failed to create checkout session",
+      code: isStripeConfigError ? "STRIPE_PRICE_UNAVAILABLE" : "CHECKOUT_FAILED",
+    });
   }
 });
 

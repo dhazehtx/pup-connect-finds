@@ -9,6 +9,25 @@ export const isAbortError = (err: any): boolean =>
   err?.cause?.name === 'AbortError' ||
   err?.__isCanceled === true;
 
+/**
+ * Authorization header for the current Supabase session (empty object when logged
+ * out). The Express `authMiddleware` authenticates ONLY via this Bearer token —
+ * it does not read cookies — so any authenticated request made with a raw `fetch`
+ * (rather than `apiRequest`) must spread these headers in, or it 401s. Mirrors the
+ * token sanitisation `apiRequest` performs.
+ */
+export async function authHeaders(): Promise<Record<string, string>> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  let token = session?.access_token || '';
+  if (token) {
+    token = token.replace(/…/g, '');
+    if (!/^[A-Za-z0-9._-]+$/.test(token)) token = '';
+  }
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 function domainFromPath(path: string): string {
   if (path.includes('/posts')) return 'posts';
   if (path.includes('/comments')) return 'comments';

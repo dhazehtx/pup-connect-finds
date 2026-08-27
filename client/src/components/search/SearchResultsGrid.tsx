@@ -52,7 +52,7 @@ const SearchResultsGrid = ({ results, loading }: SearchResultsGridProps) => {
             <CardContent className="p-4">
               <h3 className="font-semibold">{result.dog_name}</h3>
               <p className="text-sm text-gray-600">{result.breed}</p>
-              <p className="text-sm text-gray-600">{result.age} months old</p>
+              <p className="text-sm text-gray-600">{result.age} weeks old</p>
               <p className="font-bold text-lg">${result.price.toLocaleString()}</p>
               {result.profiles?.verified && (
                 <Badge variant="secondary" className="mt-2">

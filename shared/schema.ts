@@ -131,7 +131,11 @@ export const messages = pgTable("messages", {
   conversation_id: uuid("conversation_id").references(() => conversations.id),
   sender_id: uuid("sender_id").references(() => profiles.id),
   content: text("content").notNull(),
-  read: boolean("read").default(false),
+  // Production stores read state as a nullable timestamp (read_at), NOT a boolean.
+  // NULL = unread; a timestamp = when it was read. The prior `read` boolean was
+  // schema drift — that column does not exist in prod, which 500'd message loads
+  // and emptied the inbox (the unread-count query threw and was masked to []).
+  read_at: timestamp("read_at"),
   created_at: timestamp("created_at").defaultNow(),
 });
 

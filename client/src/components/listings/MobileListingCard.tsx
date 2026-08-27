@@ -136,7 +136,7 @@ const MobileListingCard = ({
           
           {/* Details */}
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <span>{listing.age} months</span>
+            <span>{listing.age} weeks</span>
             <span>•</span>
             <div className="flex items-center gap-1">
               <MapPin className="h-3 w-3" />

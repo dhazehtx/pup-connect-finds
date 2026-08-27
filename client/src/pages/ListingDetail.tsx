@@ -48,6 +48,11 @@ const ListingDetail = () => {
     setCurrentImageIndex(0);
   }, [id]);
 
+  // Fetch the listing whenever the id changes. Intentionally keyed on `id` ONLY:
+  // auth (`user`) resolving or its token auto-refreshing after mount must NOT
+  // re-run this and flash the skeleton back over already-rendered content (that
+  // was the client-side-navigation regression). The viewer-specific favourite
+  // check lives in its own effect below and never toggles the page skeleton.
   useEffect(() => {
     const fetchListing = async () => {
       if (!id) {
@@ -59,7 +64,7 @@ const ListingDetail = () => {
         navigate('/explore');
         return;
       }
-      
+
       try {
         setLoading(true);
         const listingData = await apiRequest(`/api/listings/${id}`);
@@ -78,15 +83,6 @@ const ListingDetail = () => {
         if (listingData?.dog_name) {
           document.title = `${listingData.dog_name} — PAWS`;
         }
-
-        if (user) {
-          try {
-            const favData = await apiRequest(`/api/favorites/check/${id}`);
-            setIsFavorited(favData?.isFavorited ?? false);
-          } catch (favError) {
-            console.error('Unexpected error checking favorite status:', favError);
-          }
-        }
       } catch (error: any) {
         console.error('Error:', error);
         toast({
@@ -101,7 +97,29 @@ const ListingDetail = () => {
     };
 
     fetchListing();
-  }, [id, user, toast, navigate]);
+    // Keyed on `id` only — see comment above (auth changes must not reset the skeleton).
+  }, [id]);
+
+  // Favourite status depends on the viewer; updating it must not toggle the
+  // page-level `loading`/skeleton. Re-runs safely when the id or user changes.
+  useEffect(() => {
+    if (!id || !user) {
+      setIsFavorited(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const favData = await apiRequest(`/api/favorites/check/${id}`);
+        if (!cancelled) setIsFavorited(favData?.isFavorited ?? false);
+      } catch (favError) {
+        console.error('Unexpected error checking favorite status:', favError);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [id, user]);
 
   const handleShare = async () => {
     if (!listing) {

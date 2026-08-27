@@ -48,7 +48,7 @@ const ListingCard = ({
             </div>
             <div className="text-right">
               <p className="text-xl font-bold">${listing.price}</p>
-              <p className="text-sm text-gray-500">{listing.age} months old</p>
+              <p className="text-sm text-gray-500">{listing.age} weeks old</p>
             </div>
           </div>
           

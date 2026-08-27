@@ -202,7 +202,7 @@ export default function ListingsGrid() {
                 <h3 className="font-semibold text-lg mb-1 text-gray-900">{listing.dog_name}</h3>
                 <p className="text-sm text-gray-600 mb-1">{listing.breed}</p>
                 <p className="text-sm text-gray-600 mb-1">
-                  {listing.age} {listing.age === 1 ? 'month' : 'months'} old • {listing.gender}
+                  {listing.age} {listing.age === 1 ? 'week' : 'weeks'} old • {listing.gender}
                 </p>
                 {listing.color && (
                   <p className="text-sm text-gray-600 mb-1">{listing.color}</p>

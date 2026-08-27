@@ -131,7 +131,7 @@ const SearchResultsDisplay = ({
                     </span>
                     {listing.age && (
                       <Badge variant="secondary">
-                        {listing.age} months
+                        {listing.age} weeks
                       </Badge>
                     )}
                   </div>

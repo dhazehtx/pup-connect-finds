@@ -72,7 +72,7 @@ const ListingsComparison = ({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Age:</span>
-                  <span className="text-sm">{listing.age} months</span>
+                  <span className="text-sm">{listing.age} weeks</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Location:</span>
@@ -130,7 +130,7 @@ const ListingsComparison = ({
                   <tr className="border-b">
                     <td className="p-2 font-medium">Age</td>
                     {listings.map(listing => (
-                      <td key={listing.id} className="text-center p-2">{listing.age} months</td>
+                      <td key={listing.id} className="text-center p-2">{listing.age} weeks</td>
                     ))}
                   </tr>
                   <tr className="border-b">

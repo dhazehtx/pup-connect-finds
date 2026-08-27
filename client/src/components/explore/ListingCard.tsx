@@ -70,7 +70,7 @@ const ListingCard = ({ listing, onFavorite, isFavorited }: ListingCardProps) => 
                 {listing.breed}
               </Badge>
               <Badge variant="outline" className="text-gray-600">
-                {listing.age} {listing.age === 1 ? 'month' : 'months'}
+                {listing.age} {listing.age === 1 ? 'week' : 'weeks'}
               </Badge>
             </div>
           </div>

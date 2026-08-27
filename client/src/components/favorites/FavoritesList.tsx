@@ -78,7 +78,7 @@ const FavoritesList = ({ favorites, onRemoveFavorite, onViewListing }: Favorites
                 
                 <div className="flex items-center gap-2 mb-2">
                   <Badge variant="secondary">
-                    {listing.age} months
+                    {listing.age} weeks
                   </Badge>
                   <Badge 
                     variant={listing.status === 'active' ? 'default' : 'secondary'}

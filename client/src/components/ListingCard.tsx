@@ -141,7 +141,7 @@ const ListingCard = ({
           
           {/* Details */}
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            {listing.age && <span>{listing.age} months</span>}
+            {listing.age && <span>{listing.age} weeks</span>}
             {listing.age && <span>•</span>}
             <div className="flex items-center gap-1">
               <MapPin className="h-3 w-3" />
