@@ -452,6 +452,13 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
+                {/* Sign out — a plain, safe action; kept visually separate from the
+                    destructive Delete account below so they are never confused. */}
+                <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign out
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link
                     to="/account-settings"

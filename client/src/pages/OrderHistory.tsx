@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/AuthContext';
+import { authHeaders } from '@/lib/api';
 import { format } from 'date-fns';
 import { Package, Truck, Clock, CheckCircle, ExternalLink } from 'lucide-react';
 
@@ -46,7 +47,11 @@ const OrderHistory: React.FC = () => {
     queryFn: async () => {
       if (!profile?.id) throw new Error('No user ID');
       
-      const response = await fetch(`/api/orders/user/${profile.id}`);
+      // Must send the Supabase bearer token — the server authenticates via it (not
+      // cookies); without it the owner is rejected as non-owner (403).
+      const response = await fetch(`/api/orders/user/${profile.id}`, {
+        headers: { ...(await authHeaders()) },
+      });
       if (!response.ok) throw new Error('Failed to fetch orders');
       
       const data = await response.json();

@@ -36,6 +36,15 @@ export function registerHealthRoutes(app: Express) {
       dbConfigured: Boolean(
         Boolean(readDatabaseUrlEnv()),
       ),
+      // Non-secret deploy identifier so an external test can prove
+      // DEPLOYED SHA == EXPECTED CANDIDATE SHA. Railway injects
+      // RAILWAY_GIT_COMMIT_SHA on GitHub deploys; fall back to a generic var or
+      // "unknown". NEVER expose other env vars through this endpoint.
+      commit:
+        process.env.RAILWAY_GIT_COMMIT_SHA ||
+        process.env.GIT_COMMIT_SHA ||
+        process.env.SOURCE_COMMIT ||
+        "unknown",
     });
   });
 

@@ -210,22 +210,16 @@ const ListingDetail = () => {
     }
   };
 
-  const handleContactSeller = () => {
+  const handleContactSeller = async () => {
     if (!listing) {
-      toast({
-        title: "Error",
-        description: "Listing data not available",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Listing data not available", variant: "destructive" });
       return;
     }
 
+    // Guest: never silently no-op — send them to sign in and return to this listing.
     if (!user) {
-      toast({
-        title: "Sign in required",
-        description: "Please sign in to contact sellers",
-        variant: "destructive",
-      });
+      toast({ title: "Sign in required", description: "Please sign in to contact sellers" });
+      navigate(`/auth?next=${encodeURIComponent(`/listing/${id}`)}`);
       return;
     }
 
@@ -238,8 +232,31 @@ const ListingDetail = () => {
       return;
     }
 
-    const targetUrl = `/messages?contact=${listing.user_id}&listing=${listing.id}&from=listing`;
-    navigate(targetUrl);
+    // Create-or-find the thread and go DIRECTLY to it (no inbox hop). The thread
+    // view loads its own messages, so the conversation is immediately visible.
+    try {
+      const result = await apiRequest('/messaging/conversations/find-or-create', {
+        method: 'POST',
+        body: { targetUserId: listing.user_id, listing_id: listing.id },
+      });
+      const conversationId = result?.conversationId || result?.id;
+      if (conversationId) {
+        navigate(`/messages/${conversationId}`);
+      } else {
+        toast({
+          title: "Messaging unavailable",
+          description: `Could not start the conversation (${result?.code || 'UNKNOWN'}).`,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('[ContactSeller] error', error);
+      toast({
+        title: "Messaging unavailable",
+        description: "Could not start the conversation. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const nextImage = () => {
@@ -403,7 +420,7 @@ const ListingDetail = () => {
               e.stopPropagation();
               handleContactSeller();
             }}
-            className="min-h-[44px] flex-1 bg-royal-blue hover:bg-royal-blue/90"
+            className="min-h-[44px] flex-1 bg-blue-600 font-semibold text-white shadow-sm hover:bg-blue-700"
             disabled={!listing || !listing.user_id}
           >
             Contact Seller

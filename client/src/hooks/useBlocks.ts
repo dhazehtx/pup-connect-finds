@@ -1,8 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function useBlockStatus(userId: string | undefined) {
+  // Block status is meaningful only for a signed-in viewer; querying as a guest
+  // just yields a noisy 401. Gate the request on authentication.
+  const { user } = useAuth();
   return useQuery({
     queryKey: ['/api/blocks/status', userId],
     queryFn: async () => {
@@ -13,7 +17,7 @@ export function useBlockStatus(userId: string | undefined) {
         blockedByThem: boolean;
       }>;
     },
-    enabled: !!userId,
+    enabled: !!userId && !!user,
   });
 }
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -6,33 +6,31 @@ import { Dog, Heart, MapPin } from 'lucide-react';
 import AdvancedFilters from '@/components/explore/AdvancedFilters';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
+import { useDogListings } from '@/hooks/useDogListings';
 
-// Local demo puppy images - guaranteed to render
-import goldenRetrieverImg from '@assets/image_1768789113456.png';
-import labradorImg from '@assets/image_1768789180374.png';
-import germanShepherdImg from '@assets/image_1768789189271.png';
-import frenchBulldogImg from '@assets/image_1768789197905.png';
+// Neutral placeholder for listings that genuinely have no image (NOT fake inventory).
+const PLACEHOLDER_IMAGE =
+  "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='400'><rect width='100%25' height='100%25' fill='%23f3f4f6'/></svg>";
 
-
-
-// Fallback image for demo listings
-const DEMO_FALLBACK_IMAGE = "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=300&fit=crop";
-
-// Demo listing card that matches real ListingCard but with guest-mode behavior
+// Guest listing card — shows a REAL public listing and opens the public detail page.
 const GuestListingCard = ({ listing }: { listing: any }) => {
+  const navigate = useNavigate();
   const { requireAuth } = useRequireAuth();
-  
-  const handleGatedClick = () => {
-    requireAuth(() => {});
-  };
 
-  // Get image URL with fallback chain
-  const imageUrl = listing.image_url || listing.images?.[0] || DEMO_FALLBACK_IMAGE;
+  // Viewing a listing is public (the /listing/:id route is not auth-gated), so open
+  // the real detail page. Actions that mutate (favorite/contact) still gate on auth.
+  const openDetail = () => navigate(`/listing/${listing.id}`);
+
+  const imageUrl = listing.image_url || listing.images?.[0] || PLACEHOLDER_IMAGE;
 
   return (
-    <Card 
-      className="w-full cursor-pointer overflow-hidden border border-gray-200 bg-white transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
-      onClick={handleGatedClick}
+    <Card
+      className="w-full cursor-pointer overflow-hidden border border-gray-200 bg-white transition-all duration-200 hover:-translate-y-1 hover:shadow-lg focus-within:ring-2 focus-within:ring-blue-500"
+      role="link"
+      tabIndex={0}
+      aria-label={`View ${listing.dog_name || 'listing'}${listing.breed ? `, ${listing.breed}` : ''}`}
+      onClick={openDetail}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDetail(); } }}
     >
       {/* Image container - square aspect ratio to show full puppy */}
       <div 
@@ -52,7 +50,7 @@ const GuestListingCard = ({ listing }: { listing: any }) => {
           }}
           loading="lazy"
           onError={(e) => {
-            (e.target as HTMLImageElement).src = DEMO_FALLBACK_IMAGE;
+            (e.target as HTMLImageElement).src = PLACEHOLDER_IMAGE;
           }}
         />
         
@@ -83,7 +81,7 @@ const GuestListingCard = ({ listing }: { listing: any }) => {
             backgroundColor: 'rgba(255,255,255,0.92)', 
             WebkitTapHighlightColor: 'transparent' 
           }}
-          onClick={(e) => { e.stopPropagation(); handleGatedClick(); }}
+          onClick={(e) => { e.stopPropagation(); requireAuth(() => {}); }}
           aria-label="Save to favorites"
         >
           <Heart className="h-4 w-4" style={{ color: '#6b7280' }} />
@@ -106,8 +104,8 @@ const GuestListingCard = ({ listing }: { listing: any }) => {
           </div>
         </div>
         
-        <Button size="sm" className="w-full mt-2" onClick={handleGatedClick}>
-          Sign in to view
+        <Button size="sm" className="w-full mt-2" onClick={(e) => { e.stopPropagation(); openDetail(); }}>
+          View details
         </Button>
       </CardContent>
     </Card>
@@ -139,56 +137,45 @@ const ExploreGuest = () => {
     console.log('[EXPLORE GUEST] Component mounted');
   }, []);
 
-  // Static demo data for guest users - uses LOCAL images for guaranteed rendering
-  // CRITICAL: Uses imported local images, not external URLs
-  const GUEST_DEMO_LISTINGS = [
-    {
-      id: "demo-1",
-      dog_name: "Golden Retriever Puppy",
-      breed: "Golden Retriever",
-      age: 8,
-      price: 1200,
-      location: "Austin, TX",
-      image_url: goldenRetrieverImg,
-      isDemo: true
-    },
-    {
-      id: "demo-2",
-      dog_name: "Labrador Puppy", 
-      breed: "Labrador Retriever",
-      age: 10,
-      price: 1000,
-      location: "Los Angeles, CA",
-      image_url: labradorImg,
-      isDemo: true
-    },
-    {
-      id: "demo-3",
-      dog_name: "German Shepherd Puppy",
-      breed: "German Shepherd", 
-      age: 12,
-      price: 1500,
-      location: "Chicago, IL",
-      image_url: germanShepherdImg,
-      isDemo: true
-    },
-    {
-      id: "demo-4",
-      dog_name: "French Bulldog Puppy",
-      breed: "French Bulldog",
-      age: 9,
-      price: 2500,
-      location: "New York, NY",
-      image_url: frenchBulldogImg,
-      isDemo: true
+  // REAL public marketplace inventory (never fabricated). Guests may read
+  // dog_listings via the anon Supabase key (public RLS + the granted public
+  // profile columns), exactly like the authenticated Explore.
+  const { listings: allListings, loading: loadingListings } = useDogListings();
+
+  // Apply the AdvancedFilters selection to the REAL data so guest search/filter
+  // reflects actual inventory (impossible query → 0 results → honest empty state).
+  // Note: age filtering is intentionally omitted here — listing.age is stored in
+  // weeks while the filter's ageRange scale is ambiguous, and applying it would
+  // wrongly exclude real listings.
+  const listings = useMemo(() => {
+    let out = Array.isArray(allListings) ? allListings : [];
+    const kw = (filters.keywords || '').trim().toLowerCase();
+    if (kw) {
+      out = out.filter((l: any) =>
+        (l.dog_name || '').toLowerCase().includes(kw) ||
+        (l.breed || '').toLowerCase().includes(kw) ||
+        (l.location || '').toLowerCase().includes(kw)
+      );
     }
-  ];
+    if (Array.isArray(filters.breeds) && filters.breeds.length > 0) {
+      const set = new Set(filters.breeds.map((b: string) => b.toLowerCase()));
+      out = out.filter((l: any) => l.breed && set.has(String(l.breed).toLowerCase()));
+    }
+    if (filters.location && String(filters.location).trim()) {
+      const loc = String(filters.location).trim().toLowerCase();
+      out = out.filter((l: any) => (l.location || '').toLowerCase().includes(loc));
+    }
+    const pr = filters.priceRange;
+    if (Array.isArray(pr) && (pr[0] > 0 || pr[1] < 5000)) {
+      out = out.filter((l: any) => {
+        const p = Number(l.price) || 0;
+        return p >= pr[0] && p <= pr[1];
+      });
+    }
+    return out;
+  }, [allListings, filters]);
 
-  // Use static data - no network request needed for guests
-  const listings = GUEST_DEMO_LISTINGS;
-  const loadingListings = false;
-
-  // Update result count when listings change
+  // Update result count when the filtered listings change
   useEffect(() => {
     setResultCount(listings.length || 0);
   }, [listings]);

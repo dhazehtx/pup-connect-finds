@@ -4,6 +4,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { apiRequest } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
+import { queryClient } from '@/lib/queryClient';
 
 export const useAuthState = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -142,6 +143,9 @@ export const useAuthState = () => {
       setSession(null);
       setProfile(null);
       localStorage.removeItem('guestMode');
+      // Drop all cached account-specific data so no stale identity, orders, or
+      // private filters survive the sign-out (guest state must load clean).
+      try { queryClient.clear(); } catch { /* non-fatal */ }
 
       toast({
         title: "Signed out",

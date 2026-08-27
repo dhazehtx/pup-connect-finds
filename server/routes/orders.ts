@@ -11,7 +11,12 @@ router.get('/user/:user_id', authMiddleware, async (req, res) => {
     const { user_id } = req.params;
     const requestingUserId = req.user?.id;
 
-    // Users can only view their own orders (unless admin)
+    // Unauthenticated → 401 (clearer than the ownership 403 below, which otherwise
+    // triggers whenever the bearer token is missing).
+    if (!requestingUserId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    // Users can only view their own orders (unless admin) — no IDOR.
     if (user_id !== requestingUserId && !req.user?.is_admin) {
       return res.status(403).json({ error: 'Access denied' });
     }
