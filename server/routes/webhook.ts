@@ -1,6 +1,5 @@
 import { Router } from "express";
 import Stripe from "stripe";
-import { storage } from "../storage";
 import { STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET } from "../lib/config";
 
 const router = Router();
@@ -33,55 +32,29 @@ router.post("/stripe", async (req, res) => {
 
   // Handle the event
   switch (event.type) {
-    case 'checkout.session.completed':
+    case 'checkout.session.completed': {
+      // CONSOLIDATION: delegate to the single canonical, DB-idempotent processor
+      // used by /api/stripe/webhook. This handler previously created an order
+      // UNCONDITIONALLY (no idempotency, no pending-guard), so a Stripe retry
+      // produced duplicate orders + double inventory decrements. withDbIdempotency
+      // shares the stripe_idempotency table across all webhook handlers, so any
+      // event is processed exactly once regardless of which endpoint(s) Stripe
+      // delivers to. processCheckoutSessionCompleted handles both order_id and the
+      // legacy product_id metadata and only advances a pending order.
       const session = event.data.object as Stripe.Checkout.Session;
-      
       try {
-        console.log('✅ Payment succeeded:', session.id);
-        
-        // Extract metadata
-        const userId = session.client_reference_id || session.metadata?.user_id;
-        const productId = session.metadata?.product_id;
-        const quantity = parseInt(session.metadata?.quantity || '1');
-        
-        if (!userId || !productId) {
-          console.error('Missing required metadata in session:', { userId, productId });
-          break;
-        }
-
-        // Get product details
-        const product = await storage.getProduct(productId);
-        if (!product) {
-          console.error('Product not found:', productId);
-          break;
-        }
-
-        // Create order record
-        const order = await storage.createOrder({
-          user_id: userId,
-          amount_total: (session.amount_total! / 100).toString(), // Convert from cents
-          status: 'paid',
-          stripe_session_id: session.id
+        const { withDbIdempotency } = await import('../lib/idempotency');
+        const { processCheckoutSessionCompleted } = await import('../lib/checkoutSessionWebhook');
+        const { logStripeEvent } = await import('../lib/stripe-handlers');
+        await withDbIdempotency(event.id, async () => {
+          await logStripeEvent(event);
+          await processCheckoutSessionCompleted(session);
         });
-
-        // Create order item
-        await storage.createOrderItem({
-          order_id: order.id,
-          product_id: productId,
-          qty: quantity,
-          unit_price: product.unit_price
-        });
-
-        // Decrement inventory
-        await storage.decrementProductInventory(productId, quantity);
-
-        console.log('✅ Order created successfully:', order.id);
-        console.log('✅ Inventory decremented for product:', productId, 'by', quantity);
-        
       } catch (error) {
         console.error('Error processing checkout session:', error);
       }
       break;
+    }
 
     case 'payment_intent.succeeded':
       const paymentIntent = event.data.object as Stripe.PaymentIntent;

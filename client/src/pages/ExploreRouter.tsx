@@ -21,9 +21,14 @@ export default function ExploreRouter() {
     timestamp: Date.now()
   });
 
+  // Keep the document title accurate for /explore (was stale from the prior page).
+  useEffect(() => {
+    document.title = 'Explore — PAWS';
+  }, []);
+
   // Auth state change tracking with stable dependencies
   useEffect(() => {
-    if (DEBUG) console.debug('[EXPLORE ROUTER] Router state changed', { 
+    if (DEBUG) console.debug('[EXPLORE ROUTER] Router state changed', {
       userId: stableUserId, 
       hasUser: !!user, 
       loading,

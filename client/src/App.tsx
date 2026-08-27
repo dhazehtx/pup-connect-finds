@@ -30,6 +30,7 @@ const LazyCart = lazy(() => import('./pages/Cart'));
 const LazyCheckoutSuccess = lazy(() => import('./pages/CheckoutSuccess'));
 const LazyCheckoutCancel = lazy(() => import('./pages/CheckoutCancel'));
 const LazyListingDetail = lazy(() => import('./pages/ListingDetail'));
+const LazyNotFound = lazy(() => import('./pages/NotFound'));
 const LazyCreateListing = lazy(() => import('./pages/CreateListing'));
 const LazyPost = lazy(() => import('./pages/Post'));
 const LazyMessageThread = lazy(() => import('./components/messaging/MessageThread'));
@@ -682,6 +683,12 @@ function App() {
                   <Route path="/account-data" element={
                     <Suspense fallback={<LoadingPage message="Loading..." />}>
                       <AccountDataRequests />
+                    </Suspense>
+                  } />
+                  {/* Catch-all: unknown routes render a real 404, not a blank page. */}
+                  <Route path="*" element={
+                    <Suspense fallback={<LoadingPage message="Loading..." />}>
+                      <LazyNotFound />
                     </Suspense>
                   } />
                   </Routes>

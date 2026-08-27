@@ -300,7 +300,7 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
 
   if (loading) {
     return (
-      <div className="flex flex-col h-screen">
+      <div className="flex flex-col h-[100dvh]">
         <div className="flex items-center justify-center h-full">
           <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent"></div>
         </div>
@@ -310,7 +310,7 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
 
   if (!conversation) {
     return (
-      <div className="flex flex-col h-screen">
+      <div className="flex flex-col h-[100dvh]">
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
             <h3 className="text-lg font-semibold mb-2">Conversation not found</h3>
@@ -433,7 +433,7 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
   };
 
   return (
-    <div className={`flex flex-col h-screen transition-colors duration-200 ${
+    <div className={`flex flex-col h-[100dvh] transition-colors duration-200 ${
       theme === 'dark' 
         ? 'bg-gradient-to-br from-gray-900 to-gray-800' 
         : 'bg-gradient-to-br from-blue-50/30 to-purple-50/30'
@@ -556,8 +556,9 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Modern Message Input */}
-      <div className={`flex-shrink-0 px-4 py-3 backdrop-blur-sm border-t ${
+      {/* Modern Message Input — clear the app's fixed mobile bottom nav (h-16) so the
+          composer isn't hidden behind it; the nav is md:hidden, so md:pb-3 on desktop. */}
+      <div className={`flex-shrink-0 px-4 pt-3 pb-[calc(0.75rem+4rem+env(safe-area-inset-bottom,0px))] md:pb-3 backdrop-blur-sm border-t ${
         theme === 'dark'
           ? 'bg-gray-800/95 border-gray-700/60'
           : 'bg-white/95 border-gray-200/60'
