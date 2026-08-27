@@ -131,9 +131,12 @@ const BottomNavigation = () => {
 
   return (
     <>
-      {/* Mobile-only: hidden at md+ (desktop). Layout already sets md:pb-0 assuming
-          this bar is gone on desktop; without md:hidden it wrongly showed at desktop width. */}
-      <nav className="bottom-nav fixed bottom-0 left-0 right-0 z-40 safe-area-bottom rounded-t-2xl text-white md:hidden md:rounded-none">
+      {/* Breakpoint contract: this bottom nav is the primary navigation below lg
+          (mobile + tablet, 0–1023px); the StickyHeader desktop nav takes over at lg
+          (≥1024px, where it is `lg:flex`). Using lg:hidden here (not md:hidden) closes
+          the 768–1023px gap where BOTH navs were hidden, while still hiding this bar on
+          true desktop. Layout pairs this with lg:pb-0 so content clears the bar <lg. */}
+      <nav className="bottom-nav fixed bottom-0 left-0 right-0 z-40 safe-area-bottom rounded-t-2xl text-white lg:hidden lg:rounded-none">
         <div className="grid h-16 grid-cols-5" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0)' }}>
           {navItems.map((item) => {
             const Icon = item.icon;

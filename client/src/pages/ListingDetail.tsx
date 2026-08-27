@@ -70,12 +70,9 @@ const ListingDetail = () => {
         const listingData = await apiRequest(`/api/listings/${id}`);
 
         if (!listingData) {
-          toast({
-            title: "Not Found",
-            description: "This listing could not be found",
-            variant: "destructive",
-          });
-          navigate('/explore');
+          // Leave `listing` null and render the in-page "Listing not found" state
+          // below — a useful not-found experience instead of a silent redirect.
+          document.title = 'Listing not found — PAWS';
           return;
         }
 
@@ -85,12 +82,9 @@ const ListingDetail = () => {
         }
       } catch (error: any) {
         console.error('Error:', error);
-        toast({
-          title: "Error",
-          description: "An unexpected error occurred",
-          variant: "destructive",
-        });
-        navigate('/explore');
+        // A load error (incl. a 404 from apiRequest throwing) also falls through to
+        // the in-page not-found state rather than silently redirecting away.
+        document.title = 'Listing not found — PAWS';
       } finally {
         setLoading(false);
       }

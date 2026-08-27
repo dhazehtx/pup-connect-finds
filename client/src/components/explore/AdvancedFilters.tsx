@@ -114,25 +114,28 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
     };
   }, [isMobile, isOpen]);
 
-  // Load saved filters from localStorage on mount
+  // Load saved STRUCTURED filters from localStorage on mount. Intentionally does
+  // NOT restore the search keywords — a transient search should never persist and
+  // strand a returning user on a stale query with zero results.
   useEffect(() => {
     const savedFilters = localStorage.getItem('exploreFilters');
     if (savedFilters) {
       try {
-        const parsed = JSON.parse(savedFilters);
+        const parsed = JSON.parse(savedFilters) || {};
+        delete parsed.keywords; // never restore a stale search term
         setFilters(prev => ({ ...prev, ...parsed }));
-        setSearchQuery(parsed.keywords || '');
+        // searchQuery intentionally starts empty on every fresh mount.
       } catch (error) {
         console.error('Error loading saved filters:', error);
       }
     }
   }, []);
 
-  // Save filters to localStorage and notify parent
+  // Notify the parent with the full selection (incl. the live search text), but
+  // PERSIST only the structured filters — never the transient keywords.
   useEffect(() => {
-    const filtersToSave = { ...filters, keywords: searchQuery };
-    localStorage.setItem('exploreFilters', JSON.stringify(filtersToSave));
-    onFiltersChange(filtersToSave);
+    localStorage.setItem('exploreFilters', JSON.stringify({ ...filters }));
+    onFiltersChange({ ...filters, keywords: searchQuery });
   }, [filters, searchQuery, onFiltersChange]);
 
   const updateFilter = (key: string, value: any) => {
@@ -1133,7 +1136,13 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
     </Card>
   );
 
-  return isMobile ? <MobileFilters /> : <DesktopFilters />;
+  // IMPORTANT: MobileFilters/DesktopFilters are defined inside this component, so
+  // rendering them as <MobileFilters /> / <DesktopFilters /> makes React see a NEW
+  // component type on every re-render and REMOUNT the whole subtree — which
+  // destroyed the search input and dropped focus after each keystroke. Calling them
+  // as plain functions inlines their JSX into THIS component's tree, so the input
+  // is reconciled in place and keeps focus. (Neither contains hooks, so this is safe.)
+  return isMobile ? MobileFilters() : DesktopFilters();
 };
 
 export default AdvancedFilters;

@@ -48,7 +48,7 @@ describe('P1 — desktop messaging layout: dvh height + composer clears the mobi
     expect(thread).not.toMatch(/flex flex-col h-screen/);
     expect(thread).toMatch(/flex flex-col h-\[100dvh\]/);
   });
-  it('the composer has bottom clearance for the fixed mobile bottom nav (md:pb-3)', () => {
-    expect(thread).toMatch(/pb-\[calc\(0\.75rem\+4rem\+env\(safe-area-inset-bottom,0px\)\)\] md:pb-3/);
+  it('the composer has bottom clearance for the fixed bottom nav (visible <lg → lg:pb-3)', () => {
+    expect(thread).toMatch(/pb-\[calc\(0\.75rem\+4rem\+env\(safe-area-inset-bottom,0px\)\)\] lg:pb-3/);
   });
 });

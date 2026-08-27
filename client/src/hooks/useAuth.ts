@@ -143,6 +143,7 @@ export const useAuthState = () => {
       setSession(null);
       setProfile(null);
       localStorage.removeItem('guestMode');
+      localStorage.removeItem('exploreFilters');
       // Drop all cached account-specific data so no stale identity, orders, or
       // private filters survive the sign-out (guest state must load clean).
       try { queryClient.clear(); } catch { /* non-fatal */ }

@@ -556,9 +556,10 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Modern Message Input — clear the app's fixed mobile bottom nav (h-16) so the
-          composer isn't hidden behind it; the nav is md:hidden, so md:pb-3 on desktop. */}
-      <div className={`flex-shrink-0 px-4 pt-3 pb-[calc(0.75rem+4rem+env(safe-area-inset-bottom,0px))] md:pb-3 backdrop-blur-sm border-t ${
+      {/* Modern Message Input — clear the app's fixed bottom nav (h-16), which is
+          visible below lg (mobile + tablet), so the composer isn't hidden behind it;
+          the nav is lg:hidden, so full clearance below lg and lg:pb-3 on desktop. */}
+      <div className={`flex-shrink-0 px-4 pt-3 pb-[calc(0.75rem+4rem+env(safe-area-inset-bottom,0px))] lg:pb-3 backdrop-blur-sm border-t ${
         theme === 'dark'
           ? 'bg-gray-800/95 border-gray-700/60'
           : 'bg-white/95 border-gray-200/60'

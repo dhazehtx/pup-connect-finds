@@ -184,6 +184,13 @@ const ExploreGuest = () => {
     setFilters(newFilters);
   }, []);
 
+  const hasActiveFilters = Boolean(
+    (filters.keywords && String(filters.keywords).trim()) ||
+    (Array.isArray(filters.breeds) && filters.breeds.length) ||
+    (filters.location && String(filters.location).trim()) ||
+    (Array.isArray(filters.priceRange) && (filters.priceRange[0] > 0 || filters.priceRange[1] < 5000))
+  );
+
   return (
     <div className="min-h-screen pb-20 explore-guest-page" data-page="explore" style={{ backgroundColor: '#ffffff' }}>
       {/* Page Header */}
@@ -230,17 +237,23 @@ const ExploreGuest = () => {
                 <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-blue-50 text-blue-500">
                   <Dog className="h-12 w-12" strokeWidth={1.5} aria-hidden />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900">Searching for your perfect match...</h3>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {hasActiveFilters ? 'No puppies match your search' : 'No listings available yet'}
+                </h3>
                 <p className="mt-2 max-w-sm text-sm text-gray-500">
-                  Try adjusting filters or reset to browse all listings.
+                  {hasActiveFilters
+                    ? 'Try adjusting or resetting your filters to see more results.'
+                    : 'New puppies are added regularly — please check back soon.'}
                 </p>
-                <Button
-                  type="button"
-                  className="mt-6 bg-blue-600 hover:bg-blue-700"
-                  onClick={() => clearExploreFiltersRef.current?.()}
-                >
-                  Reset all filters
-                </Button>
+                {hasActiveFilters && (
+                  <Button
+                    type="button"
+                    className="mt-6 bg-blue-600 hover:bg-blue-700"
+                    onClick={() => clearExploreFiltersRef.current?.()}
+                  >
+                    Reset all filters
+                  </Button>
+                )}
               </div>
             )}
           </div>

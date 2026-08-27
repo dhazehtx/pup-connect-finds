@@ -19,7 +19,9 @@ const Layout = ({ children, showBottomNav = true }: LayoutProps) => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <StickyHeader />
-      <main className="flex-1 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0">
+      {/* Bottom padding clears the fixed BottomNavigation, which is visible below lg
+          (mobile + tablet); removed at lg where the desktop nav takes over (lg:pb-0). */}
+      <main className="flex-1 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
         {children}
       </main>
       <Footer />
