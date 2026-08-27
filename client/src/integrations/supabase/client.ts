@@ -41,6 +41,22 @@ export function resolveSupabaseConfig(input: {
   };
 }
 
+/**
+ * Guard for the createClient failure paths in buildClient: a production build must
+ * NEVER silently fall back to the shared demo project (that would route real users
+ * to a throwaway Supabase instance). In development the demo fallback is a
+ * convenience. Exported for testing.
+ */
+export function assertNoDemoFallbackInProd(isProd: boolean, reason: string): void {
+  if (isProd) {
+    throw new Error(
+      `[supabase] Refusing demo-project fallback in a production build (${reason}). ` +
+        'Set valid VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY at build time — ' +
+        'real users must never be routed to the demo project.',
+    );
+  }
+}
+
 function createWithOptions(url: string, anonKey: string): SupabaseClient<Database> {
   return createClient<Database>(url, anonKey, {
     auth: {
@@ -64,10 +80,11 @@ function buildClient(): SupabaseClient<Database> {
   }
   // Production must fail closed: never silently fall back to the shared demo
   // project (that would send real users' data to a throwaway Supabase instance).
+  const isProd = Boolean(import.meta.env.PROD);
   const { url, anonKey, usedFallback } = resolveSupabaseConfig({
     envUrl,
     envKey,
-    isProd: Boolean(import.meta.env.PROD),
+    isProd,
   });
 
   if (usedFallback) {
@@ -77,11 +94,17 @@ function buildClient(): SupabaseClient<Database> {
   }
 
   try {
-    if (!url || !anonKey) {
-      return createWithOptions(DEV_FALLBACK_URL, DEV_FALLBACK_ANON_KEY);
+    if (url && anonKey) {
+      return createWithOptions(url, anonKey);
     }
-    return createWithOptions(url, anonKey);
+    // Empty url/key can only happen in dev — resolveSupabaseConfig throws for
+    // missing env in prod. Guard anyway so a future refactor can't reopen the hole.
+    assertNoDemoFallbackInProd(isProd, 'resolved empty URL/key');
+    return createWithOptions(DEV_FALLBACK_URL, DEV_FALLBACK_ANON_KEY);
   } catch (e) {
+    // A present-but-unusable config must not silently downgrade real users to the
+    // demo project: fail fast in production, keep the dev convenience.
+    assertNoDemoFallbackInProd(isProd, 'createClient failed');
     console.warn('[supabase] createClient failed, using demo URL/key:', e);
     return createWithOptions(DEV_FALLBACK_URL, DEV_FALLBACK_ANON_KEY);
   }

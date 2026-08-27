@@ -6,7 +6,10 @@
  * instance). In development the demo placeholders remain a convenience.
  */
 import { describe, it, expect } from 'vitest';
-import { resolveSupabaseConfig } from '../client/src/integrations/supabase/client';
+import {
+  resolveSupabaseConfig,
+  assertNoDemoFallbackInProd,
+} from '../client/src/integrations/supabase/client';
 
 describe('Session 2 — resolveSupabaseConfig fail-closed', () => {
   it('throws in production when the URL is missing', () => {
@@ -47,5 +50,23 @@ describe('Session 2 — resolveSupabaseConfig fail-closed', () => {
     });
     expect(cfg.url).toBe('https://real.supabase.co');
     expect(cfg.usedFallback).toBe(false);
+  });
+});
+
+describe('Session 2 — the createClient fallback paths fail fast in production', () => {
+  it('assertNoDemoFallbackInProd throws in production (createClient-failed path)', () => {
+    expect(() => assertNoDemoFallbackInProd(true, 'createClient failed')).toThrow(
+      /Refusing demo-project fallback in a production build/,
+    );
+  });
+
+  it('assertNoDemoFallbackInProd throws in production (empty URL/key path)', () => {
+    expect(() => assertNoDemoFallbackInProd(true, 'resolved empty URL/key')).toThrow(
+      /production build/,
+    );
+  });
+
+  it('assertNoDemoFallbackInProd is a no-op in development (demo fallback allowed)', () => {
+    expect(() => assertNoDemoFallbackInProd(false, 'createClient failed')).not.toThrow();
   });
 });
