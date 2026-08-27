@@ -79,3 +79,36 @@ describe('P2-7 — POST /api/notifications requires auth and forces a server-aut
     expect(notif.indexOf('validatedData.fromUserId = (req as any).user!.id', postIdx)).toBeGreaterThan(postIdx);
   });
 });
+
+describe('P2-8/P2-9 — checkout/status and stripe/status enforce auth + ownership (IDOR closed)', () => {
+  const checkout = read('server/routes/checkout.ts');
+  const routes = read('server/routes.ts');
+  const success = read('client/src/pages/CheckoutSuccess.tsx');
+
+  it('checkout/status requires auth and scopes the order to the caller', () => {
+    expect(checkout).toMatch(/router\.get\("\/status",\s*authMiddleware/);
+    expect(checkout).toMatch(/order\.user_id !== userId/);
+    expect(success).toMatch(/authHeaders\(\)/); // client sends the bearer token
+  });
+
+  it('stripe/status requires auth and only allows the caller\'s own account', () => {
+    const idx = routes.indexOf("app.get('/api/stripe/status'");
+    expect(idx).toBeGreaterThan(-1);
+    expect(routes.indexOf('req.isAuthenticated', idx)).toBeGreaterThan(idx);
+    expect(routes.indexOf('me.stripe_account_id !== accountId', idx)).toBeGreaterThan(idx);
+    // no raw stripe error message echoed to the client
+    expect(routes.slice(idx, idx + 1400)).not.toMatch(/message:\s*error\?\.message/);
+  });
+});
+
+describe('P3 — production hardening: 5xx error messages hidden; socket CORS restricted', () => {
+  it('global error handler returns a generic message for 5xx in production', () => {
+    const idx = read('server/index.ts');
+    expect(idx).toMatch(/status < 500 \? message : "Internal Server Error"/);
+  });
+  it('Socket.IO CORS is an env-derived allowlist, not a hard wildcard', () => {
+    const socket = read('server/socket.ts');
+    expect(socket).toMatch(/allowedOrigins\.length > 0 \? allowedOrigins : '\*'/);
+    expect(socket).toMatch(/process\.env\.CLIENT_URL/);
+  });
+});

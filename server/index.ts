@@ -164,7 +164,12 @@ app.use((req, res, next) => {
       status
     });
 
-    res.status(status).json({ message });
+    // SECURITY: never leak internal 5xx error messages to clients in production
+    // (they can disclose stack/library/DB internals). 4xx messages are typically
+    // intentional validation text and are preserved. Full detail is logged above.
+    const isProd = process.env.NODE_ENV === "production";
+    const clientMessage = !isProd || status < 500 ? message : "Internal Server Error";
+    res.status(status).json({ message: clientMessage });
   });
 
   // importantly only setup vite in development and after

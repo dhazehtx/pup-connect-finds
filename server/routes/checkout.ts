@@ -173,15 +173,21 @@ router.post("/session", authMiddleware, async (req, res) => {
   }
 });
 
-router.get("/status", async (req, res) => {
+router.get("/status", authMiddleware, async (req, res) => {
   try {
+    // SECURITY: require auth and only return the caller's OWN order. Previously
+    // anyone with a session_id could read order status/amount (IDOR).
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
     const sessionId = req.query.session_id as string;
     if (!sessionId) {
       return res.status(400).json({ error: "session_id is required" });
     }
 
     const order = await storage.getOrderBySessionId(sessionId);
-    if (!order) {
+    if (!order || order.user_id !== userId) {
       return res.status(404).json({ error: "Order not found" });
     }
 

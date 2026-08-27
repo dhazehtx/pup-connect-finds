@@ -48,8 +48,20 @@ export function emitToUser(userId: string, event: string, data: any): void {
 }
 
 export function setupSocketIO(httpServer: HttpServer): Server {
+  // SECURITY: restrict Socket.IO CORS to the app origin(s) in production instead of
+  // the previous wildcard '*'. Falls back to '*' only when no origin env is set
+  // (local dev), so it never breaks a configured deployment. Handshake auth (below)
+  // still verifies a Supabase JWT regardless.
+  const allowedOrigins = [
+    process.env.CLIENT_URL,
+    process.env.BASE_URL,
+    process.env.PUBLIC_APP_URL,
+    process.env.FRONTEND_URL,
+    'http://localhost:5173',
+    'http://localhost:5000',
+  ].filter((o): o is string => Boolean(o));
   const io = new Server(httpServer, {
-    cors: { origin: '*', methods: ['GET', 'POST'] },
+    cors: { origin: allowedOrigins.length > 0 ? allowedOrigins : '*', methods: ['GET', 'POST'] },
     path: '/socket.io',
     transports: ['websocket', 'polling'],
   });

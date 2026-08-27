@@ -131,7 +131,9 @@ const BottomNavigation = () => {
 
   return (
     <>
-      <nav className="bottom-nav fixed bottom-0 left-0 right-0 z-40 safe-area-bottom rounded-t-2xl text-white md:rounded-none">
+      {/* Mobile-only: hidden at md+ (desktop). Layout already sets md:pb-0 assuming
+          this bar is gone on desktop; without md:hidden it wrongly showed at desktop width. */}
+      <nav className="bottom-nav fixed bottom-0 left-0 right-0 z-40 safe-area-bottom rounded-t-2xl text-white md:hidden md:rounded-none">
         <div className="grid h-16 grid-cols-5" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0)' }}>
           {navItems.map((item) => {
             const Icon = item.icon;

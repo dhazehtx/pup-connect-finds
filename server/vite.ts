@@ -75,10 +75,31 @@ export function serveStatic(app: Express) {
     );
   }
 
-  app.use(express.static(distPath));
+  // PERF: Vite content-hashes filenames under /assets (e.g. index-<hash>.js), so a
+  // changed file gets a new name — those can be cached immutably for a year. Other
+  // files (notably index.html, which references the hashed assets) must stay
+  // revalidated so a deploy is picked up immediately.
+  app.use(
+    "/assets",
+    express.static(path.join(distPath, "assets"), {
+      immutable: true,
+      maxAge: "1y",
+      index: false,
+    }),
+  );
+  app.use(
+    express.static(distPath, {
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith("index.html")) {
+          res.setHeader("Cache-Control", "no-cache");
+        }
+      },
+    }),
+  );
 
   // fall through to index.html if the file doesn't exist
   app.use("*", (_req, res) => {
+    res.setHeader("Cache-Control", "no-cache");
     res.sendFile(path.resolve(distPath, "index.html"));
   });
 }

@@ -2671,17 +2671,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Stripe account status endpoint
   app.get('/api/stripe/status', async (req, res) => {
     try {
+      // SECURITY: require auth and only allow querying the CALLER'S OWN Connect
+      // account. Previously any caller could read details_submitted/charges_enabled/
+      // payouts_enabled for any accountId (IDOR). Callers who want their own status
+      // should use /api/stripe/account/status (no accountId needed).
+      if (!req.isAuthenticated || !req.isAuthenticated()) {
+        return res.status(401).json({ success: false, message: 'Unauthorized' });
+      }
       const { accountId } = req.query;
-      
+
       if (!accountId || typeof accountId !== 'string') {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'accountId parameter is required' 
+        return res.status(400).json({
+          success: false,
+          message: 'accountId parameter is required'
         });
       }
 
+      const me = await storage.getProfile((req as any).user.id);
+      if (!me || me.stripe_account_id !== accountId) {
+        return res.status(403).json({ success: false, message: 'Forbidden' });
+      }
+
       const account = await getStripe().accounts.retrieve(accountId);
-      
+
       res.json({
         success: true,
         id: account.id,
@@ -2692,9 +2704,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error: any) {
       console.error('[STRIPE STATUS] Error:', error);
-      res.status(500).json({ 
-        success: false, 
-        message: error?.message || 'Internal server error' 
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error'
       });
     }
   });

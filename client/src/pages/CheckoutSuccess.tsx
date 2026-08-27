@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle, ShoppingBag, ArrowRight, Loader2 } from 'lucide-react';
 import { useCart } from '@/hooks/use-cart';
+import { authHeaders } from '@/lib/api';
 
 interface OrderStatus {
   order_id: string;
@@ -34,7 +35,9 @@ const CheckoutSuccess = () => {
 
     const fetchStatus = async () => {
       try {
-        const res = await fetch(`/api/checkout/status?session_id=${sessionId}`);
+        const res = await fetch(`/api/checkout/status?session_id=${sessionId}`, {
+          headers: { ...(await authHeaders()) },
+        });
         if (res.ok) {
           const data = await res.json();
           setOrderDetails(data);
