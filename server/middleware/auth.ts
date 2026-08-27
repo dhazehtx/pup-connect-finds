@@ -109,7 +109,15 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       ...(user.user_metadata as Record<string, unknown>),
       id: user.id,
       email: user.email,
+      // SECURITY: authorization fields MUST come from the DB profile, never from
+      // user_metadata. The spread above copies client-controllable metadata (a user
+      // can call supabase.auth.updateUser({ data: { role: 'admin' } })), so we
+      // OVERRIDE is_admin/role/isAdmin here from the trusted profile row. Several
+      // routes gate on req.user.role === 'admin' (e.g. escrow release/refund), so a
+      // spoofable role would allow real money movement / admin escalation.
       is_admin: Boolean(profile?.is_admin),
+      isAdmin: Boolean(profile?.is_admin),
+      role: (profile?.role as string) ?? 'user',
       username: profile?.username ?? null,
       full_name: (profile?.full_name ?? meta.full_name ?? meta.name ?? null) as string | null,
       name: (meta.name ?? meta.full_name ?? null) as string | null,

@@ -3,6 +3,17 @@ import { Server, Socket } from 'socket.io';
 import { createClient } from '@supabase/supabase-js';
 import { getServerSupabaseApiUrl } from './lib/serverSupabaseEnv';
 import { serviceRoleSupabaseOptions } from './lib/serviceSupabaseOptions';
+import { storage } from './storage';
+
+/**
+ * A socket is authorized for a conversation only if it has actually JOINED the
+ * `conv:<id>` room — and join is gated by a DB participant check below. Relay
+ * handlers (message/typing/read) therefore require room membership, which prevents
+ * a non-participant from injecting or spoofing events into someone else's thread
+ * (socket.to(room) broadcasts regardless of membership, so we must check it).
+ */
+const inConversationRoom = (socket: Socket, conversationId: unknown): conversationId is string =>
+  typeof conversationId === 'string' && socket.rooms.has(`conv:${conversationId}`);
 
 const supabaseUrl = getServerSupabaseApiUrl();
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -83,8 +94,20 @@ export function setupSocketIO(httpServer: HttpServer): Server {
       socket.emit('presence:list', { users: Array.from(onlineUsers.keys()) });
     });
 
-    socket.on('join:conversation', (conversationId: string) => {
-      socket.join(`conv:${conversationId}`);
+    socket.on('join:conversation', async (conversationId: string) => {
+      // SECURITY: only conversation participants may join the room (and thus
+      // receive live messages/typing/read). Verified against the DB once, here.
+      try {
+        if (typeof conversationId !== 'string') return;
+        const isParticipant = await storage.isConversationParticipant(conversationId, userId);
+        if (!isParticipant) {
+          socket.emit('join:denied', { conversationId });
+          return;
+        }
+        socket.join(`conv:${conversationId}`);
+      } catch {
+        socket.emit('join:denied', { conversationId });
+      }
     });
 
     socket.on('leave:conversation', (conversationId: string) => {
@@ -101,11 +124,17 @@ export function setupSocketIO(httpServer: HttpServer): Server {
     });
 
     socket.on('message:new', (data: { conversationId: string; message: any }) => {
+      // SECURITY: only relay if this socket is an authorized member of the room
+      // (join is participant-gated), so a non-participant cannot inject a spoofed
+      // message into another user's open chat. Authoritative persistence still goes
+      // through POST /api/messaging/messages (which re-checks participation).
+      if (!inConversationRoom(socket, data?.conversationId)) return;
       socket.to(`conv:${data.conversationId}`).emit('message:new', data.message);
     });
 
     socket.on('typing:start', (data: { conversationId: string }) => {
       const { conversationId } = data;
+      if (!inConversationRoom(socket, conversationId)) return;
       if (!typingUsers.has(conversationId)) {
         typingUsers.set(conversationId, new Map());
       }
@@ -131,6 +160,7 @@ export function setupSocketIO(httpServer: HttpServer): Server {
 
     socket.on('typing:stop', (data: { conversationId: string }) => {
       const { conversationId } = data;
+      if (!inConversationRoom(socket, conversationId)) return;
       const convTyping = typingUsers.get(conversationId);
       if (convTyping?.has(userId)) {
         clearTimeout(convTyping.get(userId)!.timeout);
@@ -144,6 +174,7 @@ export function setupSocketIO(httpServer: HttpServer): Server {
     });
 
     socket.on('messages:read', (data: { conversationId: string }) => {
+      if (!inConversationRoom(socket, data?.conversationId)) return;
       socket.to(`conv:${data.conversationId}`).emit('messages:read', {
         userId,
         conversationId: data.conversationId,

@@ -240,7 +240,7 @@ const MyListingsPage: React.FC = () => {
                         <strong>Breed:</strong> {listing.breed}
                       </p>
                       <p className="text-sm text-gray-600">
-                        <strong>Age:</strong> {listing.age_months} months • <strong>Gender:</strong> {listing.gender}
+                        <strong>Age:</strong> {listing.age} weeks • <strong>Gender:</strong> {listing.gender}
                       </p>
                     </div>
                     

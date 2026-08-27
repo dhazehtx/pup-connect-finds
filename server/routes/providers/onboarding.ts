@@ -14,15 +14,29 @@ import { getProviderWithVerificationStatus } from '../../lib/supabase/providers'
 
 const router = Router();
 
+// SECURITY: the mock ID / background-check WEBHOOK callbacks accept a providerId +
+// status from the request body with NO signature and NO auth, so anyone could POST
+// {status:'passed'} to forge identity/background-check verification. They are mock
+// stubs (a real vendor integration must verify an HMAC signature). Block them in
+// production — fail closed — until a signed vendor webhook is wired. (Mirrors the
+// blockMockIdVerifyInProd guard on the /id/webhook + /id/link-media routes in
+// server/routes.ts.) The user-initiated /start endpoints stay available.
+const blockMockWebhookInProd = (_req: any, res: any, next: any) => {
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(404).json({ error: 'Not available' });
+  }
+  next();
+};
+
 // ID Verification routes
 router.post('/id/start', startIdVerification);
-router.post('/id/webhook', handleIdVerificationWebhook);
+router.post('/id/webhook', blockMockWebhookInProd, handleIdVerificationWebhook);
 router.post('/id/upload', uploadIdImages, handleIdUpload);
 router.post('/id/link-media', linkIdMedia);
 
-// Background Check routes  
+// Background Check routes
 router.post('/checks/start', startBackgroundCheck);
-router.post('/checks/webhook', handleBackgroundCheckWebhook);
+router.post('/checks/webhook', blockMockWebhookInProd, handleBackgroundCheckWebhook);
 
 // Payout routes
 router.post('/payouts/connect', connectStripePayout);

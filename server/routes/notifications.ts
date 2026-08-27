@@ -250,7 +250,15 @@ router.delete("/clear", async (req, res) => {
 
 router.post("/", async (req, res) => {
   try {
+    // SECURITY: require auth and make the sender server-authoritative. Previously
+    // this endpoint had no auth and trusted a client-supplied fromUserId, so anyone
+    // could push a notification appearing to come from any user to any user (spoof
+    // / phishing). Real notifications are created server-side via createNotification.
+    if (!req.isAuthenticated || !req.isAuthenticated()) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
     const validatedData = insertNotificationSchema.parse(req.body);
+    validatedData.fromUserId = (req as any).user!.id;
 
     const [notification] = await db
       .insert(notifications)

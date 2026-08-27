@@ -105,9 +105,8 @@ import { processCheckoutSessionCompleted } from './lib/checkoutSessionWebhook';
 import { STRIPE_WEBHOOK_SECRET as CONFIG_STRIPE_WEBHOOK_SECRET, IS_PROD as STRIPE_IS_PROD } from './lib/config';
 import { resolveOneTimeAmountCents } from './lib/paymentCatalog';
 
-import { 
-  insertProfileSchema, 
-  insertDogListingSchema, 
+import {
+  insertDogListingSchema,
   insertMessageSchema,
   insertConversationSchema,
   insertFavoriteSchema,
@@ -365,44 +364,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/search', searchRouter);
   app.use('/api/user', userRouter);
 
-  // Legacy profile routes (kept for backwards compatibility)
-  app.get("/api/profile/:id", async (req, res) => {
-    try {
-      const profile = await storage.getProfile(req.params.id);
-      if (!profile) {
-        return res.status(404).json({ error: "Profile not found" });
-      }
-      res.json(profile);
-    } catch (error) {
-      console.error("Error getting profile:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
-  });
-
-  app.post("/api/profiles", async (req, res) => {
-    try {
-      const validatedData = insertProfileSchema.parse(req.body);
-      const profile = await storage.createProfile(validatedData);
-      res.json(profile);
-    } catch (error) {
-      console.error("Error creating profile:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
-  });
-
-  app.put("/api/profile/:id", async (req, res) => {
-    try {
-      const validatedData = insertProfileSchema.partial().parse(req.body);
-      const profile = await storage.updateProfile(req.params.id, validatedData);
-      if (!profile) {
-        return res.status(404).json({ error: "Profile not found" });
-      }
-      res.json(profile);
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
-  });
+  // SECURITY (removed): the legacy unauthenticated `GET/POST /api/profiles` and
+  // `GET/PUT /api/profile/:id` routes were deleted. They had NO auth and used the
+  // full `insertProfileSchema` against the RLS-bypassing `updateProfile`, so any
+  // unauthenticated caller could (a) read another user's raw row incl. email/phone/
+  // two_factor_secret, (b) create profiles, and (c) set is_admin/role/verified/
+  // is_suspended/stripe_account_id on ANY account (unauthenticated account takeover
+  // + admin escalation). All legitimate profile reads/updates go through the
+  // hardened, auth-scoped, field-allowlisted router at `/api/profiles`
+  // (server/routes/profiles.ts). No client used the legacy singular paths.
 
   // Dog listing routes (with rate limiting for creation)
   const handleListingsQuery = async (req: any, res: any) => {

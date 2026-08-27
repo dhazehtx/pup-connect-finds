@@ -63,6 +63,7 @@ describe('Listing age — displayed unit is weeks and consistent with the detail
     'client/src/components/listings/MobileListingCard.tsx',
     'client/src/components/search/SearchResultsGrid.tsx',
     'client/src/components/comparison/ListingsComparison.tsx',
+    'client/src/pages/MyListingsPage.tsx',
   ];
 
   it('the routed detail page renders age in weeks (canonical)', () => {

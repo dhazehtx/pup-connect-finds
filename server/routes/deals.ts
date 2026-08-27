@@ -280,7 +280,7 @@ router.post("/:dealId/release", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Resolve dispute before releasing funds" });
     }
 
-    const isAdmin = req.user?.role === "admin";
+    const isAdmin = req.user?.is_admin === true;
     const isAutoRelease = deal.status === "DELIVERED_CONFIRMED" && deal.dispute_window_ends && new Date(deal.dispute_window_ends) < new Date();
 
     if (!isAdmin && !isAutoRelease) {
@@ -371,7 +371,7 @@ router.post("/:dealId/refund", async (req: Request, res: Response) => {
   try {
     if (!stripe) return res.status(503).json({ error: "Stripe not configured" });
 
-    const isAdmin = req.user?.role === "admin";
+    const isAdmin = req.user?.is_admin === true;
     if (!isAdmin) return res.status(403).json({ error: "Admin only" });
 
     const { dealId } = req.params;
@@ -433,7 +433,7 @@ router.post("/:dealId/cancel", async (req: Request, res: Response) => {
     if (!rows[0]) return res.status(404).json({ error: "Deal not found" });
 
     const deal = rows[0];
-    const isAdmin = req.user?.role === "admin";
+    const isAdmin = req.user?.is_admin === true;
     const isBuyer = deal.buyer_id === userId;
 
     if (!isAdmin && !isBuyer) return res.status(403).json({ error: "Not authorized" });
@@ -461,7 +461,7 @@ router.post("/:dealId/cancel", async (req: Request, res: Response) => {
 // POST /api/deals/:dealId/resolve — admin resolves dispute
 router.post("/:dealId/resolve", async (req: Request, res: Response) => {
   try {
-    const isAdmin = req.user?.role === "admin";
+    const isAdmin = req.user?.is_admin === true;
     if (!isAdmin) return res.status(403).json({ error: "Admin only" });
 
     const { dealId } = req.params;
@@ -590,7 +590,7 @@ router.get("/:dealId", async (req: Request, res: Response) => {
 // GET /api/deals/admin/all — admin list all deals
 router.get("/admin/all", async (req: Request, res: Response) => {
   try {
-    const isAdmin = req.user?.role === "admin";
+    const isAdmin = req.user?.is_admin === true;
     if (!isAdmin) return res.status(403).json({ error: "Admin only" });
 
     const { status, page = "1", limit = "20" } = req.query;
@@ -631,7 +631,7 @@ router.get("/admin/all", async (req: Request, res: Response) => {
 // POST /api/deals/admin/:dealId/extend — admin extends reservation
 router.post("/admin/:dealId/extend", async (req: Request, res: Response) => {
   try {
-    const isAdmin = req.user?.role === "admin";
+    const isAdmin = req.user?.is_admin === true;
     if (!isAdmin) return res.status(403).json({ error: "Admin only" });
 
     const { dealId } = req.params;
