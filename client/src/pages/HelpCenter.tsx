@@ -189,7 +189,7 @@ export default function HelpCenter() {
                 <Link to="/support" className="font-medium text-blue-600 underline-offset-2 hover:underline">
                   Support tickets
                 </Link>
-                . A dedicated support inbox can be published at launch (see owner checklist).
+                .
               </p>
             </CardContent>
           </Card>

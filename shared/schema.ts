@@ -965,6 +965,22 @@ export const supportTickets = pgTable('support_tickets', {
   resolved_at: timestamp('resolved_at'),
 });
 
+// Guest-safe contact/support queue backing the public /contact form.
+// user_id is nullable (guests); populated when the sender is authenticated.
+export const contactMessages = pgTable('contact_messages', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  user_id: uuid('user_id').references(() => profiles.id, { onDelete: 'set null' }),
+  name: text('name').notNull(),
+  email: text('email').notNull(),
+  category: text('category').notNull(),
+  subject: text('subject'),
+  message: text('message').notNull(),
+  status: text('status').notNull().default('new'), // 'new' | 'read' | 'resolved'
+  ip_address: text('ip_address'),
+  user_agent: text('user_agent'),
+  created_at: timestamp('created_at').defaultNow(),
+});
+
 export const supportTicketReplies = pgTable('support_ticket_replies', {
   id: uuid('id').primaryKey().defaultRandom(),
   ticket_id: uuid('ticket_id').notNull().references(() => supportTickets.id, { onDelete: 'cascade' }),

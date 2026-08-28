@@ -8,13 +8,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { MessageCircle, Mail, LifeBuoy, Clock, Send, ChevronRight, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { APP_SHELL_CONTAINER_CLASS } from '@/lib/appShell';
-import { BRAND } from '@shared/brand';
+import { apiRequest } from '@/lib/api';
 
-const SUPPORT_EMAIL_PLACEHOLDER = BRAND.supportEmail;
+// Only show a support email if the owner has explicitly configured one at build
+// time (VITE_SUPPORT_EMAIL). When absent we never display a placeholder/unmonitored
+// address — the working contact form + in-app tickets are the support path.
+const CONFIGURED_SUPPORT_EMAIL =
+  (import.meta.env.VITE_SUPPORT_EMAIL as string | undefined)?.trim() || '';
 
 const Contact = () => {
   const { toast } = useToast();
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -43,7 +48,7 @@ const Contact = () => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.category.trim()) {
       toast({
@@ -54,21 +59,31 @@ const Contact = () => {
       return;
     }
     setSubmitting(true);
+    setSubmitError(null);
     try {
-      // Owner can wire to `/api/support` or CRM later; UX is complete for launch shell.
-      console.info('[contact] message intent', { ...formData, at: new Date().toISOString() });
+      // Persist for real — success is shown ONLY after the backend accepts the row.
+      await apiRequest('/api/support/contact', {
+        method: 'POST',
+        body: {
+          name: formData.name,
+          email: formData.email,
+          category: formData.category,
+          subject: formData.subject,
+          message: formData.message,
+        },
+      });
       toast({
-        title: 'Message recorded',
-        description:
-          'Thanks — we received your note. When support email is live, this will route to the team automatically.',
+        title: 'Message sent',
+        description: 'Thanks — your message reached our support queue. We’ll follow up by email.',
       });
-      setFormData({
-        name: '',
-        email: '',
-        subject: '',
-        category: '',
-        message: '',
-      });
+      setFormData({ name: '', email: '', subject: '', category: '', message: '' });
+    } catch (err: any) {
+      const msg =
+        err?.status === 400
+          ? 'Please add your name, a valid email, a category, and a message of at least 10 characters.'
+          : 'We couldn’t send your message right now. Please try again in a moment.';
+      setSubmitError(msg);
+      toast({ title: 'Message not sent', description: msg, variant: 'destructive' });
     } finally {
       setSubmitting(false);
     }
@@ -94,26 +109,47 @@ const Contact = () => {
       <div className={`${APP_SHELL_CONTAINER_CLASS} py-10 sm:py-12`}>
         <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-3">
           <div className="space-y-4 lg:col-span-1">
-            <Card className="border-slate-200 shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Mail className="h-5 w-5 text-blue-600" />
-                  Email
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm text-slate-600">
-                <p>
-                  Primary inbox (publish your real address at launch):{' '}
-                  <a
-                    href={`mailto:${SUPPORT_EMAIL_PLACEHOLDER}`}
-                    className="font-medium text-blue-600 underline-offset-2 hover:underline"
-                  >
-                    {SUPPORT_EMAIL_PLACEHOLDER}
-                  </a>
-                </p>
-                <p className="text-xs text-slate-500">Typical reply: within one business day.</p>
-              </CardContent>
-            </Card>
+            {CONFIGURED_SUPPORT_EMAIL ? (
+              <Card className="border-slate-200 shadow-sm">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Mail className="h-5 w-5 text-blue-600" />
+                    Email
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm text-slate-600">
+                  <p>
+                    Reach us at{' '}
+                    <a
+                      href={`mailto:${CONFIGURED_SUPPORT_EMAIL}`}
+                      className="font-medium text-blue-600 underline-offset-2 hover:underline"
+                    >
+                      {CONFIGURED_SUPPORT_EMAIL}
+                    </a>
+                  </p>
+                  <p className="text-xs text-slate-500">Typical reply: within one business day.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="border-slate-200 shadow-sm">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Mail className="h-5 w-5 text-blue-600" />
+                    Message us
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm text-slate-600">
+                  <p>
+                    Use the form on this page — it reaches our support queue directly. You can also{' '}
+                    <Link to="/support" className="font-medium text-blue-600 underline-offset-2 hover:underline">
+                      open a support ticket
+                    </Link>{' '}
+                    to track a request.
+                  </p>
+                  <p className="text-xs text-slate-500">Typical reply: within one business day.</p>
+                </CardContent>
+              </Card>
+            )}
 
             <Card className="border-slate-200 shadow-sm">
               <CardHeader className="pb-2">
@@ -246,6 +282,12 @@ const Contact = () => {
                       className="resize-y min-h-[140px]"
                     />
                   </div>
+
+                  {submitError && (
+                    <p className="text-sm font-medium text-red-600" role="alert">
+                      {submitError}
+                    </p>
+                  )}
 
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <Button type="submit" className="min-h-[44px] sm:min-w-[200px]" disabled={submitting}>

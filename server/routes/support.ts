@@ -1,15 +1,75 @@
 import { Router } from 'express';
 import { db } from '../db';
-import { 
-  supportTickets, 
+import {
+  supportTickets,
   supportTicketReplies,
   profiles,
-  userPreferences
+  userPreferences,
+  contactMessages
 } from '@shared/schema';
 import { eq, and, desc, count, sql, asc, like, or } from 'drizzle-orm';
 import type { Request, Response } from 'express';
+import { strictRateLimit } from '../middleware/rateLimiting';
 
 const router = Router();
+
+// Allowed contact categories — server-authoritative so the client cannot inject
+// arbitrary values. Mirrors the public /contact form.
+const CONTACT_CATEGORIES = new Set([
+  'General inquiry', 'Orders & shipping', 'Pup Box & subscriptions', 'Account & sign-in',
+  'Payments & billing', 'Safety & trust', 'Technical issue', 'Partnerships', 'Other',
+]);
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const clip = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+
+/**
+ * POST /api/support/contact — public (guest OR authenticated) contact submission.
+ * Persists to contact_messages and returns 201 ONLY after the row is written, so
+ * the UI never shows a false success. The server controls every stored field
+ * (status/ip/user_agent/user_id); the client cannot set them or spoof identity.
+ */
+router.post('/contact', strictRateLimit, async (req: Request, res: Response) => {
+  try {
+    const name = clip(req.body?.name, 100);
+    const email = clip(req.body?.email, 254);
+    const category = clip(req.body?.category, 60);
+    const subject = clip(req.body?.subject, 200);
+    const message = clip(req.body?.message, 5000);
+
+    const errors: string[] = [];
+    if (name.length < 1) errors.push('name is required');
+    if (!EMAIL_RE.test(email)) errors.push('a valid email is required');
+    if (!CONTACT_CATEGORIES.has(category)) errors.push('a valid category is required');
+    if (message.length < 10) errors.push('message must be at least 10 characters');
+    if (errors.length > 0) {
+      return res.status(400).json({ ok: false, error: 'VALIDATION_FAILED', details: errors });
+    }
+
+    // Identity comes from the session, never the request body (no spoofing).
+    const userId = (req.isAuthenticated?.() && (req.user as any)?.id) ? (req.user as any).id : null;
+
+    const [row] = await db
+      .insert(contactMessages)
+      .values({
+        user_id: userId,
+        name,
+        email,
+        category,
+        subject: subject || null,
+        message,
+        ip_address: (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.ip || null,
+        user_agent: clip(req.headers['user-agent'], 500) || null,
+      })
+      .returning({ id: contactMessages.id });
+
+    // Do not log message/email bodies (avoid PII in logs); id + category only.
+    console.info('[contact] message stored', { id: row?.id, category });
+    return res.status(201).json({ ok: true, id: row?.id });
+  } catch (error) {
+    console.error('[contact] failed to store message:', (error as Error)?.message);
+    return res.status(500).json({ ok: false, error: 'CONTACT_STORE_FAILED' });
+  }
+});
 
 // Get all support tickets for authenticated user
 router.get('/tickets', async (req, res) => {
