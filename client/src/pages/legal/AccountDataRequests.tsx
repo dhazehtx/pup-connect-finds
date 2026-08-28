@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FileText, Trash2, Settings, ArrowRight } from 'lucide-react';
 
 function AccountDataRequests() {
+  useEffect(() => {
+    document.title = 'Account & Data Requests — PAWS';
+  }, []);
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <div className="text-center mb-8">

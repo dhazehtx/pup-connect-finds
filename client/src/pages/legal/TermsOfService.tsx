@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { AlertTriangle } from 'lucide-react';
 
 function TermsOfService() {
+  useEffect(() => {
+    document.title = 'Terms of Service — PAWS';
+  }, []);
   const currentVersion = 'v2.0';
   const effectiveDate = 'October 15, 2025';
   

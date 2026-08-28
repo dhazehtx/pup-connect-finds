@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Truck, Package, Globe, Mail } from 'lucide-react';
@@ -8,6 +8,9 @@ import { Truck, Package, Globe, Mail } from 'lucide-react';
  * with final operational and legal language before going live.
  */
 export default function ShippingPolicy() {
+  useEffect(() => {
+    document.title = 'Shipping Policy — PAWS';
+  }, []);
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-10 pb-24">
       <div className="mx-auto max-w-4xl px-4 sm:px-6">
