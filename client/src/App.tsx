@@ -655,6 +655,10 @@ function App() {
                       </Suspense>
                     } />
                   )}
+                  {/* Bare-path aliases → canonical /legal/* pages (no duplicate implementations). */}
+                  <Route path="/terms" element={<Navigate to="/legal/terms" replace />} />
+                  <Route path="/shipping" element={<Navigate to="/legal/shipping" replace />} />
+                  <Route path="/returns" element={<Navigate to="/legal/returns" replace />} />
                   <Route path="/legal/terms" element={
                     <Suspense fallback={<LoadingPage message="Loading Terms..." />}>
                       <TermsOfService />

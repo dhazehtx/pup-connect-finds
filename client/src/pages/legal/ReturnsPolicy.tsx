@@ -16,10 +16,6 @@ export default function ReturnsPolicy() {
           <p className="mt-2 text-sm text-slate-600">
             Our commitment to fair resolutions for store items, subscription boxes, and digital purchases.
           </p>
-          <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-            <strong>Owner note:</strong> Confirm return windows, restocking fees, and subscription cancellation
-            rules with your payment processor and legal advisor, then update this page accordingly.
-          </p>
         </div>
 
         <div className="space-y-6">

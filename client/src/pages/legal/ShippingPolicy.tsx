@@ -16,10 +16,6 @@ export default function ShippingPolicy() {
           <p className="mt-2 text-sm text-slate-600">
             How PAWS fulfills physical orders, subscription boxes, and store purchases.
           </p>
-          <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-            <strong>Owner note:</strong> Replace the illustrative timelines below with your confirmed processing
-            times, carriers, and service areas. This page is structured for a quick legal/compliance pass.
-          </p>
         </div>
 
         <div className="space-y-6">
