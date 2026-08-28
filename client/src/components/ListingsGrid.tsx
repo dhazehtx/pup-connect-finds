@@ -40,7 +40,9 @@ export default function ListingsGrid() {
       }
     };
     fetchFavorites();
-  }, [user]);
+    // Key on the user id, not the object, so the one-time AuthContext user-ref
+    // change during init doesn't double-fetch /api/favorites/ids.
+  }, [user?.id]);
 
   const toggleFavorite = useCallback(async (listingId: string) => {
     if (!user) {

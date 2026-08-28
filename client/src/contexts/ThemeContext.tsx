@@ -51,7 +51,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     };
 
     loadTheme();
-  }, [user]);
+    // Key on the user id, not the object: the AuthContext user reference changes
+    // once during init (same id), which otherwise re-runs this and double-fetches
+    // /api/support/preferences.
+  }, [user?.id]);
 
   const applyTheme = (_newTheme: Theme) => {
     const root = document.documentElement;

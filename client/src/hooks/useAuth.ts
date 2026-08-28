@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { apiRequest } from '@/lib/api';
@@ -14,6 +14,13 @@ export const useAuthState = () => {
   const [profile, setProfile] = useState<any>(null);
   const { toast } = useToast();
 
+  // De-dup guard: Supabase fires several auth events on a cold authenticated load
+  // (INITIAL_SESSION, SIGNED_IN, TOKEN_REFRESHED). Without this, each one — plus the
+  // initial getSession() — triggers its own /api/profiles/me, producing ~4 identical
+  // requests. We fetch a given identity at most once and coalesce concurrent calls.
+  const loadedProfileUserIdRef = useRef<string | null>(null);
+  const inFlightProfileRef = useRef<Promise<any> | null>(null);
+
   const fetchProfile = async (_userId?: string) => {
     try {
       const data = await apiRequest('/api/profiles/me');
@@ -27,6 +34,28 @@ export const useAuthState = () => {
       setProfile(null);
       return null;
     }
+  };
+
+  // Fetch a user's profile once per identity, coalescing concurrent auth events.
+  // Explicit refreshes (refreshProfile/updateProfile) bypass this and force a fetch.
+  const loadProfileForUser = (userId: string) => {
+    if (loadedProfileUserIdRef.current === userId) return inFlightProfileRef.current ?? undefined;
+    if (inFlightProfileRef.current) return inFlightProfileRef.current;
+    const promise = fetchProfile(userId)
+      .then((data) => {
+        if (data) loadedProfileUserIdRef.current = userId; // only mark loaded on success
+        return data;
+      })
+      .finally(() => {
+        inFlightProfileRef.current = null;
+      });
+    inFlightProfileRef.current = promise;
+    return promise;
+  };
+
+  const resetProfileCache = () => {
+    loadedProfileUserIdRef.current = null;
+    inFlightProfileRef.current = null;
   };
 
   const refreshProfile = async () => {
@@ -142,6 +171,7 @@ export const useAuthState = () => {
       setUser(null);
       setSession(null);
       setProfile(null);
+      resetProfileCache(); // next sign-in must refetch the (possibly different) user's profile
       localStorage.removeItem('guestMode');
       localStorage.removeItem('exploreFilters');
       // Drop all cached account-specific data so no stale identity, orders, or
@@ -222,11 +252,13 @@ export const useAuthState = () => {
       
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
-        fetchProfile(session.user.id);
+        // A real authenticated session must never coexist with a stale guest flag.
+        localStorage.removeItem('guestMode');
+        loadProfileForUser(session.user.id);
       }
-      
+
       // Mark as loaded after initial session check
       setLoaded(true);
       setLoading(false);
@@ -240,12 +272,16 @@ export const useAuthState = () => {
         setUser(session?.user ?? null);
 
         if (session?.user && event !== 'SIGNED_OUT') {
+          // Signing in (or refreshing a session) clears any stale guest flag so
+          // guestMode can't linger alongside a valid authenticated session.
+          localStorage.removeItem('guestMode');
           setTimeout(() => {
             if (mounted) {
-              fetchProfile(session.user.id);
+              loadProfileForUser(session.user.id);
             }
           }, 0);
         } else {
+          resetProfileCache();
           setProfile(null);
         }
 
