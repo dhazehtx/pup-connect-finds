@@ -3,6 +3,7 @@ import { and, eq, ilike, or, sql } from 'drizzle-orm';
 import { db } from '../db';
 import { dogListings, petServiceProviders, profiles } from '@shared/schema';
 import { storage } from '../storage';
+import { getThumbUrlsForParents, attachThumbUrls } from '../lib/mediaHelpers';
 
 const router = Router();
 
@@ -92,6 +93,13 @@ router.get('/', async (req: Request, res: Response) => {
         .limit(perBucket),
     ]);
 
+    // Resolve listing thumbnails through the same media pipeline the Explore feed
+    // uses, so a listing whose photo lives in media_assets (empty legacy image_url)
+    // isn't rendered blank in the search dropdown.
+    const listingIds = listingRows.map((l) => l.id).filter(Boolean);
+    const listingThumbs = await getThumbUrlsForParents('listing', listingIds);
+    const augmentedListings = attachThumbUrls(listingRows as any[], listingThumbs);
+
     const results: UnifiedSearchResult[] = [];
 
     for (const p of profileRows) {
@@ -105,14 +113,14 @@ router.get('/', async (req: Request, res: Response) => {
       });
     }
 
-    for (const l of listingRows) {
+    for (const l of augmentedListings) {
       results.push({
         type: 'listing',
         id: l.id,
         name: l.dog_name || 'Listing',
         breed: l.breed || '',
         price: Number(l.price) || 0,
-        image: l.image_url || '',
+        image: l.thumbUrls?.[0] || l.image_url || '',
         location: l.location || undefined,
       });
     }
