@@ -133,9 +133,14 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
 
   // Notify the parent with the full selection (incl. the live search text), but
   // PERSIST only the structured filters — never the transient keywords.
+  // Persistence is immediate (cheap, local); the parent notification is debounced
+  // so dragging the price slider doesn't fire a burst of /api/listings queries.
   useEffect(() => {
     localStorage.setItem('exploreFilters', JSON.stringify({ ...filters }));
-    onFiltersChange({ ...filters, keywords: searchQuery });
+    const t = setTimeout(() => {
+      onFiltersChange({ ...filters, keywords: searchQuery });
+    }, 250);
+    return () => clearTimeout(t);
   }, [filters, searchQuery, onFiltersChange]);
 
   const updateFilter = (key: string, value: any) => {
