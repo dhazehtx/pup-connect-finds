@@ -165,4 +165,23 @@ test.describe('Guest + responsive certification', () => {
     await screenshot(page, info, 'auth');
     await assertNoMaterialErrors(c, info);
   });
+
+  test('authenticated-only routes redirect anonymous users away (no seller/profile UI)', async ({ page }) => {
+    // Anonymous visitors must never be shown the create-listing form, my-listings,
+    // profile, or messages — RequireAuth sends them to /greeting.
+    for (const guarded of ['/create-listing', '/my-listings', '/profile', '/messages']) {
+      // Ensure a clean logged-out context for each route.
+      await page.goto('/', { waitUntil: 'domcontentloaded' });
+      await page.evaluate(() => {
+        try { localStorage.clear(); sessionStorage.clear(); } catch { /* private mode */ }
+      });
+      await page.goto(guarded, { waitUntil: 'domcontentloaded' });
+      // Wait for the auth check to resolve and the guard to redirect.
+      await expect
+        .poll(async () => new URL(page.url()).pathname, { timeout: 20_000 })
+        .not.toBe(guarded);
+      const path = new URL(page.url()).pathname;
+      expect(path, `${guarded} should redirect an anonymous user to /greeting`).toBe('/greeting');
+    }
+  });
 });
