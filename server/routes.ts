@@ -125,6 +125,20 @@ import { getThumbUrlsForParents, attachThumbUrls } from "./lib/mediaHelpers";
 import { postgresErrorMeta } from "./lib/pgErrorMeta";
 import { ZodError } from "zod";
 
+/**
+ * Map a ZodError to a safe { field: message } object for client-facing 400s.
+ * Exposes only the submitted field path + zod's message — no stack, SQL, or
+ * internals. First message per field wins.
+ */
+function zodFieldErrors(error: ZodError): Record<string, string> {
+  const fields: Record<string, string> = {};
+  for (const issue of error.issues) {
+    const key = issue.path.join('.') || '_form';
+    if (!fields[key]) fields[key] = issue.message;
+  }
+  return fields;
+}
+
 async function cleanupParentMedia(parentType: string, parentId: string) {
   try {
     const assets = await db.select().from(mediaAssets).where(
@@ -506,7 +520,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating listing:", error);
       if (error instanceof ZodError) {
-        return res.status(400).json({ error: "Invalid listing data", code: "LISTING_VALIDATION_FAILED" });
+        return res.status(400).json({
+          error: "Invalid listing data",
+          code: "LISTING_VALIDATION_FAILED",
+          fields: zodFieldErrors(error),
+        });
       }
       res.status(500).json({ error: "Internal server error" });
     }
@@ -525,7 +543,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating listing:", error);
       if (error instanceof ZodError) {
-        return res.status(400).json({ error: "Invalid listing data", code: "LISTING_VALIDATION_FAILED" });
+        return res.status(400).json({
+          error: "Invalid listing data",
+          code: "LISTING_VALIDATION_FAILED",
+          fields: zodFieldErrors(error),
+        });
       }
       res.status(500).json({ error: "Internal server error" });
     }

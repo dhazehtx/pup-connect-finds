@@ -299,7 +299,17 @@ export const transactions = pgTable("transactions", {
 
 // Create insert schemas
 export const insertProfileSchema = createInsertSchema(profiles).omit({ id: true, created_at: true, updated_at: true });
-export const insertDogListingSchema = createInsertSchema(dogListings).omit({ id: true, created_at: true, updated_at: true });
+export const insertDogListingSchema = createInsertSchema(dogListings, {
+  // The `price` column is Postgres decimal (stored as a string), but the create
+  // form sends a JS number. Accept a number or numeric string, require a sane
+  // non-negative amount, and normalize to the string the column stores. This
+  // strengthens validation (rejects negatives / non-numeric) while fixing the
+  // number-vs-string contract mismatch that 400'd every real create.
+  price: z.coerce
+    .number({ invalid_type_error: 'Price must be a number' })
+    .nonnegative('Price must be zero or more')
+    .transform((n) => String(n)),
+}).omit({ id: true, created_at: true, updated_at: true });
 export const insertMediaAssetSchema = createInsertSchema(mediaAssets).omit({ id: true, created_at: true });
 export const insertConversationSchema = createInsertSchema(conversations).omit({ id: true, created_at: true, updated_at: true });
 export const insertConversationParticipantSchema = createInsertSchema(conversationParticipants).omit({ id: true, created_at: true });
