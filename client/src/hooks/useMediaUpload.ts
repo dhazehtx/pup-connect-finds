@@ -31,8 +31,10 @@ interface UploadResult {
 
 const MAX_RETRIES = 2;
 
+// HEIC/HEIF excluded: browsers can't decode them (they upload but render broken).
+// The server enforces the same; this just fails fast client-side.
 const ALLOWED_IMAGE_TYPES = [
-  'image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'
+  'image/jpeg', 'image/png', 'image/webp', 'image/gif'
 ];
 const ALLOWED_VIDEO_TYPES = [
   'video/mp4', 'video/quicktime', 'video/webm'

@@ -20,6 +20,15 @@ type MediaItem = {
   failed?: boolean;     // remote upload failed (preview still shown)
 };
 
+// Only formats every browser can decode. HEIC/HEIF (iPhone default) fetch fine
+// but render as a broken 0x0 image, so they must never enter the pipeline.
+const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const isHeic = (f: File) => /image\/hei[cf]/i.test(f.type) || /\.(heic|heif)$/i.test(f.name);
+const isSupportedImage = (f: File) =>
+  SUPPORTED_IMAGE_TYPES.includes(f.type) ||
+  // Some browsers report an empty MIME for a valid jpg/png/webp — trust the extension.
+  (f.type === '' && /\.(jpe?g|png|webp)$/i.test(f.name));
+
 const UnifiedMediaUpload = ({ onImagesChange, onVideoChange, listingId, className }: UnifiedMediaUploadProps) => {
   // Each picked photo gets a LOCAL object-URL preview (shown immediately, never
   // dependent on the remote upload) plus the committed remote URL once it lands.
@@ -41,17 +50,36 @@ const UnifiedMediaUpload = ({ onImagesChange, onVideoChange, listingId, classNam
     if (files.length === 0) return;
     e.target.value = '';
 
-    const imageFiles = files.filter((file) => file.type.startsWith('image/'));
     const videoFiles = files.filter((file) => file.type.startsWith('video/'));
+    // Everything that isn't a video is a candidate photo (covers empty-MIME HEIC).
+    const photoCandidates = files.filter((file) => !file.type.startsWith('video/'));
+    const imageFiles = photoCandidates.filter(isSupportedImage);
+    const heicFiles = photoCandidates.filter((f) => !isSupportedImage(f) && isHeic(f));
+    const otherUnsupported = photoCandidates.filter((f) => !isSupportedImage(f) && !isHeic(f));
 
+    if (heicFiles.length > 0) {
+      toast({
+        title: 'HEIC photos aren’t supported yet',
+        description: "HEIC photos aren't supported yet. Please upload JPEG, PNG, or WebP.",
+        variant: 'destructive',
+      });
+    }
+    if (otherUnsupported.length > 0) {
+      toast({
+        title: 'Unsupported photo format',
+        description: 'Please upload JPEG, PNG, or WebP photos.',
+        variant: 'destructive',
+      });
+    }
     if (videoFiles.length > 0) {
       toast({
         title: 'Photos only',
         description: 'Listing media must be photos (JPEG, PNG, or WebP). Video is not supported yet.',
         variant: 'destructive',
       });
-      if (imageFiles.length === 0) return;
     }
+    // Rejected files never reach the uploader — no Supabase write, no orphan object.
+    if (imageFiles.length === 0) return;
 
     if (items.length + imageFiles.length > 5) {
       toast({
@@ -137,7 +165,7 @@ const UnifiedMediaUpload = ({ onImagesChange, onVideoChange, listingId, classNam
             ref={fileInputRef}
             type="file"
             multiple
-            accept=".jpg,.jpeg,.png,.webp,image/*"
+            accept="image/jpeg,image/png,image/webp"
             onChange={handleFileUpload}
             className="sr-only"
             id="unified-media-upload"

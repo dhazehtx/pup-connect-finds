@@ -76,9 +76,14 @@ export const MEDIA_LIMITS = {
   listing: { maxBytes: 10 * 1024 * 1024, maxCount: 20 },
 } as const;
 
+// Browsers cannot decode HEIC/HEIF, so those must never enter the media pipeline
+// (they fetch 200 but render as a broken 0x0 image). Blocked globally here.
 export const ALLOWED_IMAGE_TYPES = [
-  'image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'
+  'image/jpeg', 'image/png', 'image/webp', 'image/gif'
 ];
+
+// Listings accept only the universally browser-renderable still formats.
+export const LISTING_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 export const ALLOWED_VIDEO_TYPES = [
   'video/mp4', 'video/quicktime', 'video/webm'
@@ -121,6 +126,13 @@ export function validateMediaUpload(
   } else if (kind === 'listing') {
     if (isVideo) {
       return { valid: false, code: 'MEDIA_INVALID_TYPE', message: 'Listings only accept images' };
+    }
+    if (!LISTING_IMAGE_TYPES.includes(mimeType)) {
+      return {
+        valid: false,
+        code: 'MEDIA_INVALID_TYPE',
+        message: "Unsupported photo format. Please upload JPEG, PNG, or WebP.",
+      };
     }
     if (sizeBytes && sizeBytes > MEDIA_LIMITS.listing.maxBytes) {
       return { valid: false, code: 'MEDIA_TOO_LARGE', message: 'Listing image must be under 10MB' };
