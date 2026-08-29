@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { MessageCircle, Search, BadgeCheck } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useConversationsManager } from '@/hooks/messaging/useConversationsManager';
+import { safeDisplayName } from '@/lib/displayName';
 import { formatDistanceToNow } from 'date-fns';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -127,6 +128,7 @@ const MessageInbox = ({ onConversationSelect, loading }: MessageInboxProps) => {
                     <button
                       type="button"
                       onClick={() => onConversationSelect?.(conversation)}
+                      aria-label={`Conversation with ${safeDisplayName(conversation.other_user, 'Unknown User')}${conversation.listing?.dog_name ? `, about ${conversation.listing.dog_name}` : ''}`}
                       className="flex w-full cursor-pointer items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-blue-50/50 active:bg-blue-50/80"
                     >
                       <div className="relative shrink-0">

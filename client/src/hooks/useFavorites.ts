@@ -40,7 +40,8 @@ export const useFavorites = () => {
         id: listing.id,
         user_id: user.id,
         listing_id: listing.id,
-        created_at: listing.created_at || new Date().toISOString(),
+        // The favorite's own save time (favorited_at), NOT the listing's created_at.
+        created_at: listing.favorited_at || listing.created_at || new Date().toISOString(),
         listing,
       }));
       setFavorites(mapped);

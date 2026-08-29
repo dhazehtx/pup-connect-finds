@@ -69,7 +69,8 @@ export const OptimizedListingCard = memo<ListingCardProps>(({
                 "absolute top-2 right-2 p-2 rounded-full bg-white/90 shadow-sm transition-colors",
                 isFavorited ? 'hover:bg-red-50' : 'hover:bg-white'
               )}
-              aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+              aria-label={isFavorited ? 'Remove from favorites' : 'Save to favorites'}
+              aria-pressed={isFavorited}
             >
               <Heart
                 size={16}

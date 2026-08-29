@@ -188,6 +188,8 @@ export default function ListingsGrid() {
                   size="sm"
                   className={`absolute top-2 right-2 rounded-full w-8 h-8 p-0 ${isFav ? 'bg-red-50 hover:bg-red-100' : 'bg-white/90 hover:bg-white'}`}
                   disabled={togglingIds.has(listing.id)}
+                  aria-label={isFav ? 'Remove from favorites' : 'Save to favorites'}
+                  aria-pressed={isFav}
                   onClick={(e) => {
                     e.stopPropagation();
                     toggleFavorite(listing.id);
@@ -195,6 +197,7 @@ export default function ListingsGrid() {
                 >
                   <Heart
                     className="w-4 h-4 transition-colors"
+                    aria-hidden
                     fill={isFav ? "#ef4444" : "none"}
                     stroke={isFav ? "#ef4444" : "#9ca3af"}
                   />

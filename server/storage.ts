@@ -781,6 +781,9 @@ export class DatabaseStorage implements IStorage {
       listing_status: dogListings.listing_status,
       created_at: dogListings.created_at,
       updated_at: dogListings.updated_at,
+      // The time the user SAVED the listing (not the listing's own created_at),
+      // so the Favorites "Saved …" timestamp is correct.
+      favorited_at: favorites.created_at,
     })
     .from(favorites)
     .innerJoin(dogListings, eq(favorites.listing_id, dogListings.id))

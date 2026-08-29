@@ -307,6 +307,7 @@ export const insertDogListingSchema = createInsertSchema(dogListings, {
   // number-vs-string contract mismatch that 400'd every real create.
   price: z.coerce
     .number({ invalid_type_error: 'Price must be a number' })
+    .finite('Price must be a finite number') // reject Infinity/-Infinity (invalid decimal)
     .nonnegative('Price must be zero or more')
     .transform((n) => String(n)),
 }).omit({ id: true, created_at: true, updated_at: true });

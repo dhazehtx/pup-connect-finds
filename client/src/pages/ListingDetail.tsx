@@ -403,9 +403,11 @@ const ListingDetail = () => {
             size="icon"
             disabled={isFavoriteLoading}
             onClick={() => handleFavorite()}
+            aria-label={isFavorited ? 'Remove from favorites' : 'Save to favorites'}
+            aria-pressed={isFavorited}
             className={`transition-colors ${isFavorited ? 'text-red-500 hover:bg-red-50' : 'text-gray-400 hover:bg-gray-50'}`}
           >
-            <Heart className="h-5 w-5 transition-colors" fill={isFavorited ? "#ef4444" : "none"} stroke={isFavorited ? "#ef4444" : "#9ca3af"} />
+            <Heart className="h-5 w-5 transition-colors" aria-hidden fill={isFavorited ? "#ef4444" : "none"} stroke={isFavorited ? "#ef4444" : "#9ca3af"} />
           </Button>
           
           {user && listing && listing.user_id === user.id ? (

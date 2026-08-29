@@ -70,9 +70,10 @@ const FavoritesList = ({ favorites, onRemoveFavorite, onViewListing }: Favorites
                     variant="ghost"
                     size="icon"
                     onClick={() => onRemoveFavorite(listing.id)}
+                    aria-label="Remove from favorites"
                     className="text-red-500 hover:text-red-600"
                   >
-                    <Heart size={20} fill="currentColor" />
+                    <Heart size={20} fill="currentColor" aria-hidden />
                   </Button>
                 </div>
                 
