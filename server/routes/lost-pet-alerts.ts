@@ -103,7 +103,12 @@ async function notifyMatchingSubscriptions(alert: any): Promise<void> {
 
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const status = (req.query.status as string) || 'active';
+    // Whitelist publicly-listable statuses. Previously any ?status= value was
+    // passed straight through, letting an anonymous caller enumerate deleted or
+    // arbitrary-status alerts (whose rows still carry contact_info + coordinates).
+    const PUBLIC_LISTABLE_STATUSES = ['active', 'reunited'];
+    const rawStatus = (req.query.status as string) || 'active';
+    const status = PUBLIC_LISTABLE_STATUSES.includes(rawStatus) ? rawStatus : 'active';
     const alertType = req.query.alert_type as string | undefined; // 'all' | 'lost' | 'found'
     const breed = req.query.breed as string | undefined;
     const dogSize = req.query.dog_size as string | undefined;
