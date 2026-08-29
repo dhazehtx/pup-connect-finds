@@ -14,7 +14,7 @@ import { authMiddleware } from '../middleware/auth';
 import { lostPetAiMatchRateLimit, lostPetPatchRateLimit } from '../middleware/rateLimiting';
 import { createNotification } from '../lib/createNotification';
 import { getImageEmbedding, getImageEmbeddingFromUrl, cosineSimilarity } from '../lib/imageEmbedding';
-import { getAiMatchMinListingScore } from '../lib/aiMatchConfig';
+import { getAiMatchMinListingScore, getAiMatchMinAlertScore } from '../lib/aiMatchConfig';
 import { notifyEmbeddingMatchesForNewAlert } from '../lib/embeddingMatchNotify';
 import { primaryListingImageUrl } from '../lib/listingEmbeddingJob';
 import { recordAiMatchEvent } from '../lib/aiMatchQualityMonitor';
@@ -307,6 +307,7 @@ router.post('/ai-match', lostPetAiMatchRateLimit, async (req: Request, res: Resp
     const userLng = lng != null ? parseFloat(lng) : null;
     const viewerId = typeof req.user?.id === 'string' && req.user.id ? req.user.id : undefined;
     const minListingScore = getAiMatchMinListingScore();
+    const minAlertScore = getAiMatchMinAlertScore();
     const model = process.env.HF_IMAGE_EMBEDDING_MODEL?.trim() || 'google/vit-base-patch16-224';
     const sendWithMonitoring = (
       payload: { matches: any[]; matchRanking: 'visual' | 'proximity' | 'empty' },
@@ -482,11 +483,16 @@ router.post('/ai-match', lostPetAiMatchRateLimit, async (req: Request, res: Resp
         } catch {
           score = 0;
         }
+        const matchScore = Math.round(score * 100) / 100;
+        // Gate alerts by a similarity floor, mirroring the listing branch below.
+        // Without this, every active alert with an embedding surfaced as a
+        // "possible match" — including near-zero similarity (unrelated dogs).
+        if (matchScore < minAlertScore) continue;
         scored.push({
           kind: 'alert',
           alert: r,
           listing: null,
-          matchScore: Math.round(score * 100) / 100,
+          matchScore,
           distanceMiles: alertDistanceMiles(userLat, userLng, r),
         });
       }
@@ -561,6 +567,8 @@ router.post('/ai-match', lostPetAiMatchRateLimit, async (req: Request, res: Resp
   } catch (e: unknown) {
     const err = e as Error;
     const msg = err?.message || '';
+    // Expected pre-launch state: the feature's tables are not deployed. Degrade
+    // to a benign empty result (the UI is hidden behind a feature flag anyway).
     if (
       msg.includes('relation') &&
       (msg.includes('lost_pet_alerts') ||
@@ -569,8 +577,13 @@ router.post('/ai-match', lostPetAiMatchRateLimit, async (req: Request, res: Resp
         msg.includes('dog_listings'))
     )
       return res.json({ matches: [], matchRanking: 'empty' as const });
+    // Unexpected failure: signal an error rather than masquerading as
+    // "no matches". A broken comparison must not read as "your dog has no
+    // matches" — the client shows its error state on a non-2xx response.
     console.error('[ai-match]', msg);
-    return res.json({ matches: [], matchRanking: 'empty' as const });
+    return res
+      .status(502)
+      .json({ error: 'match_failed', matchRanking: 'error' as const, matches: [] });
   }
 });
 

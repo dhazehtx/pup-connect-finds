@@ -17,6 +17,23 @@ export function getAiMatchMinListingScore(): number {
   return Math.min(1, Math.max(0, raw));
 }
 
+/**
+ * Minimum CLIP cosine score (0–1) for a lost/found ALERT to surface as a
+ * "possible photo match". The alert branch of /ai-match previously applied NO
+ * floor, so every active alert with an embedding surfaced — including near-zero
+ * similarity (unrelated dogs map to ~0.5 under the (cos+1)/2 remap). Defaults to
+ * the listing floor for consistency; refine with `npm run tune:ai-match`.
+ */
+export const AI_MATCH_DEFAULT_MIN_ALERT_SCORE = AI_MATCH_DEFAULT_MIN_LISTING_SCORE;
+
+export function getAiMatchMinAlertScore(): number {
+  const raw = parseFloat(
+    process.env.AI_MATCH_MIN_ALERT_SCORE ?? String(AI_MATCH_DEFAULT_MIN_ALERT_SCORE),
+  );
+  if (Number.isNaN(raw)) return AI_MATCH_DEFAULT_MIN_ALERT_SCORE;
+  return Math.min(1, Math.max(0, raw));
+}
+
 /** Auto “possible photo match” notification when a new alert is posted (lost↔found CLIP compare). */
 export const EMBEDDING_MATCH_NOTIFY_DEFAULT_MIN_SCORE = 0.78;
 

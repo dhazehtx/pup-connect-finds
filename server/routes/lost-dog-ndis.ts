@@ -205,8 +205,20 @@ router.post('/import/publish', authMiddleware, async (req: Request, res: Respons
 // Dog face recognition placeholder: store embedding for a lost dog (client sends vector from vision API)
 router.post('/embedding', authMiddleware, async (req: Request, res: Response) => {
   try {
+    // authMiddleware is non-blocking, so enforce authentication explicitly.
+    const userId = (req as any).user?.id;
+    if (!userId) return res.status(401).json({ error: 'Authentication required' });
     const { dog_id, embedding_vector } = req.body;
     if (!dog_id || !Array.isArray(embedding_vector)) return res.status(400).json({ error: 'dog_id and embedding_vector required' });
+    // Ownership: only the alert's owner may (re)write its embedding. Without this
+    // any caller could poison/overwrite match vectors for arbitrary dogs.
+    const [alert] = await db
+      .select({ user_id: lostPetAlerts.user_id })
+      .from(lostPetAlerts)
+      .where(eq(lostPetAlerts.id, dog_id))
+      .limit(1);
+    if (!alert) return res.status(404).json({ error: 'Alert not found' });
+    if (alert.user_id !== userId) return res.status(403).json({ error: 'Forbidden' });
     await db.insert(dogEmbeddings).values({ dog_id, embedding_vector });
     res.status(201).json({ stored: true });
   } catch (e: unknown) {
