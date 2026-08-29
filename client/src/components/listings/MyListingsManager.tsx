@@ -170,12 +170,14 @@ const MyListingsManager = () => {
                           View
                         </Button>
                       </Link>
-                      <Button variant="outline" size="sm">
-                        <Edit className="w-4 h-4 mr-1" />
-                        Edit
-                      </Button>
-                      <Button 
-                        variant="outline" 
+                      <Link to={`/edit-listing/${listing.id}`}>
+                        <Button variant="outline" size="sm">
+                          <Edit className="w-4 h-4 mr-1" />
+                          Edit
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="outline"
                         size="sm"
                         onClick={() => handleDeleteListing(listing.id)}
                         className="text-red-600 hover:text-red-700"

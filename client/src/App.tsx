@@ -32,6 +32,7 @@ const LazyCheckoutCancel = lazy(() => import('./pages/CheckoutCancel'));
 const LazyListingDetail = lazy(() => import('./pages/ListingDetail'));
 const LazyNotFound = lazy(() => import('./pages/NotFound'));
 const LazyCreateListing = lazy(() => import('./pages/CreateListing'));
+const LazyEditListing = lazy(() => import('./pages/EditListingPage'));
 const LazyPost = lazy(() => import('./pages/Post'));
 const LazyMessageThread = lazy(() => import('./components/messaging/MessageThread'));
 const LazyProviderOnboardingPage = lazy(() => import('./pages/ProviderOnboarding'));
@@ -234,6 +235,13 @@ function App() {
                     <RequireAuth>
                       <Suspense fallback={<LoadingPage message="Loading..." />}>
                         <LazyCreateListing />
+                      </Suspense>
+                    </RequireAuth>
+                  } />
+                  <Route path="/edit-listing/:id" element={
+                    <RequireAuth>
+                      <Suspense fallback={<LoadingPage message="Loading editor..." />}>
+                        <LazyEditListing />
                       </Suspense>
                     </RequireAuth>
                   } />

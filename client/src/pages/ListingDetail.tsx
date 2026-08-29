@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Share, Heart, MapPin, Calendar, Ruler, Award, PawPrint, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Share, Heart, MapPin, Calendar, Ruler, Award, PawPrint, ChevronRight, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -408,17 +408,28 @@ const ListingDetail = () => {
             <Heart className="h-5 w-5 transition-colors" fill={isFavorited ? "#ef4444" : "none"} stroke={isFavorited ? "#ef4444" : "#9ca3af"} />
           </Button>
           
-          <Button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleContactSeller();
-            }}
-            className="min-h-[44px] flex-1 bg-blue-600 font-semibold text-white shadow-sm hover:bg-blue-700"
-            disabled={!listing || !listing.user_id}
-          >
-            Contact Seller
-          </Button>
+          {user && listing && listing.user_id === user.id ? (
+            <Button
+              onClick={() => navigate(`/edit-listing/${listing.id}`)}
+              className="min-h-[44px] flex-1 bg-blue-600 font-semibold text-white shadow-sm hover:bg-blue-700"
+              aria-label="Edit your listing"
+            >
+              <Pencil size={16} className="mr-2" />
+              Edit listing
+            </Button>
+          ) : (
+            <Button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleContactSeller();
+              }}
+              className="min-h-[44px] flex-1 bg-blue-600 font-semibold text-white shadow-sm hover:bg-blue-700"
+              disabled={!listing || !listing.user_id}
+            >
+              Contact Seller
+            </Button>
+          )}
           
           <Button
             variant="outline"

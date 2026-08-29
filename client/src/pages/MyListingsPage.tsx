@@ -10,9 +10,12 @@ import { useToast } from '@/hooks/use-toast';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import { apiRequest } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { listingDisplayName } from '@/lib/listingDisplay';
 
 const MyListingsPage: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState('all');
@@ -103,8 +106,9 @@ const MyListingsPage: React.FC = () => {
 
   const filteredListings = listings?.filter((listing: any) => {
     if (searchTerm) {
-      return listing.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-             listing.breed?.toLowerCase().includes(searchTerm.toLowerCase());
+      const q = searchTerm.toLowerCase();
+      return listingDisplayName(listing).toLowerCase().includes(q) ||
+             listing.breed?.toLowerCase().includes(q);
     }
     return true;
   }) || [];
@@ -204,7 +208,7 @@ const MyListingsPage: React.FC = () => {
                   {listing.images?.[0] ? (
                     <img
                       src={listing.images[0]}
-                      alt={listing.title}
+                      alt={`Photo of ${listingDisplayName(listing)}`}
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -220,7 +224,7 @@ const MyListingsPage: React.FC = () => {
                 </div>
                 
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-lg line-clamp-2">{listing.title}</CardTitle>
+                  <CardTitle className="text-lg line-clamp-2">{listingDisplayName(listing)}</CardTitle>
                   <div className="flex items-center gap-4 text-sm text-gray-600">
                     <span className="flex items-center gap-1">
                       <DollarSign className="w-4 h-4" />
@@ -245,20 +249,33 @@ const MyListingsPage: React.FC = () => {
                     </div>
                     
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm" className="flex-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => navigate(`/listing/${listing.id}`)}
+                        aria-label={`View ${listingDisplayName(listing)}`}
+                      >
                         <Eye className="w-4 h-4 mr-1" />
                         View
                       </Button>
-                      <Button variant="outline" size="sm" className="flex-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => navigate(`/edit-listing/${listing.id}`)}
+                        aria-label={`Edit ${listingDisplayName(listing)}`}
+                      >
                         <Edit3 className="w-4 h-4 mr-1" />
                         Edit
                       </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => handleDeleteListing(listing.id, listing.title)}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteListing(listing.id, listingDisplayName(listing))}
                         disabled={deleteMutation.isPending}
                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        aria-label={`Delete ${listingDisplayName(listing)}`}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>

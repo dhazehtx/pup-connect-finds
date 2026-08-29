@@ -14,9 +14,12 @@ interface ListingFormFieldsProps {
   /** Receives committed media_asset ids so the parent can clean up orphans if
    *  the listing is never created. */
   onMediaAssetsChange?: (assetIds: string[]) => void;
+  /** Hide the photo-upload section (edit v1 carries existing photos through
+   *  untouched; in-editor photo management is deferred). */
+  hideMedia?: boolean;
 }
 
-const ListingFormFields = ({ form, onMediaAssetsChange }: ListingFormFieldsProps) => {
+const ListingFormFields = ({ form, onMediaAssetsChange, hideMedia }: ListingFormFieldsProps) => {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [videoUrl, setVideoUrl] = useState<string>('');
   
@@ -58,14 +61,16 @@ const ListingFormFields = ({ form, onMediaAssetsChange }: ListingFormFieldsProps
   return (
     <>
       {/* Media Upload Section */}
-      <div className="space-y-4 border-b pb-6">
-        <h3 className="text-lg font-semibold">Media</h3>
-        <UnifiedMediaUpload
-          onImagesChange={handleImagesChange}
-          onVideoChange={handleVideoChange}
-          onAssetsChange={onMediaAssetsChange}
-        />
-      </div>
+      {!hideMedia && (
+        <div className="space-y-4 border-b pb-6">
+          <h3 className="text-lg font-semibold">Media</h3>
+          <UnifiedMediaUpload
+            onImagesChange={handleImagesChange}
+            onVideoChange={handleVideoChange}
+            onAssetsChange={onMediaAssetsChange}
+          />
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField

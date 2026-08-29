@@ -5,11 +5,13 @@ import { useImageLazyLoading } from '@/hooks/useImageLazyLoading';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Heart, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { listingDisplayName } from '@/lib/listingDisplay';
 
 interface ListingCardProps {
   listing: {
     id: string;
-    title: string;
+    dog_name?: string;
+    title?: string;
     breed: string;
     price: number;
     location: string;
@@ -47,7 +49,7 @@ export const OptimizedListingCard = memo<ListingCardProps>(({
           <img
             ref={imgRef}
             src={imageSrc}
-            alt={`${listing.breed} - ${listing.title}`}
+            alt={`${listing.breed} - ${listingDisplayName(listing)}`}
             className={cn(
               'w-full h-full object-cover transition-opacity duration-300',
               isLoaded ? 'opacity-100' : 'opacity-0'
@@ -88,7 +90,7 @@ export const OptimizedListingCard = memo<ListingCardProps>(({
         {/* Content */}
         <div className="p-3 space-y-2">
           <h3 className="font-semibold text-gray-900 text-sm line-clamp-2">
-            {listing.title}
+            {listingDisplayName(listing)}
           </h3>
           
           <div className="text-xs text-gray-600 space-y-1">
