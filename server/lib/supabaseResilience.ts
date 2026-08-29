@@ -108,7 +108,13 @@ export async function runSupabaseWithRetry<T>(
 
   for (let attempt = 0; attempt <= retries; attempt += 1) {
     try {
-      return await operation();
+      const value = await operation();
+      // Self-heal: a real success is strong evidence of health — clear any stale
+      // degraded flag now instead of waiting up to 60s for the next monitor tick.
+      if (state.mode === "degraded") {
+        updateStateFromResult({ ok: true, mode: "healthy", reason: `${opName}: recovered` });
+      }
+      return value;
     } catch (error: any) {
       lastError = error;
       const message = error?.message || String(error);
@@ -152,37 +158,47 @@ export async function checkSupabaseHealth(context = "runtime"): Promise<CheckRes
   }
 
   const started = Date.now();
-  try {
-    const [authRes, storageRes] = await Promise.all([
-      withTimeout(supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1 }), 8000),
-      withTimeout(supabaseAdmin.storage.listBuckets(), 8000),
-    ]);
+  // Evaluate auth-admin and storage INDEPENDENTLY. isSupabaseDegraded() gates the
+  // media pipeline, which only needs Storage — a transient Auth-admin slowdown
+  // must NOT flip the flag and block healthy Storage uploads (that coupling was
+  // the cause of a false-positive SUPABASE_DEGRADED with Storage actually at 200).
+  const [authSettled, storageSettled] = await Promise.allSettled([
+    withTimeout(supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1 }), 8000),
+    withTimeout(supabaseAdmin.storage.listBuckets(), 8000),
+  ]);
 
-    if (authRes.error) {
-      throw new Error(`auth health failed: ${authRes.error.message}`);
-    }
-    if (storageRes.error) {
-      throw new Error(`storage health failed: ${storageRes.error.message}`);
-    }
+  const storageErr =
+    storageSettled.status === "rejected"
+      ? storageSettled.reason?.message || String(storageSettled.reason)
+      : storageSettled.value.error?.message || null;
+  const authErr =
+    authSettled.status === "rejected"
+      ? authSettled.reason?.message || String(authSettled.reason)
+      : authSettled.value.error?.message || null;
 
-    const result: CheckResult = {
-      ok: true,
-      mode: "healthy",
-      latencyMs: Date.now() - started,
-    };
-    updateStateFromResult(result);
-    return result;
-  } catch (error: any) {
-    const reason = `${context}: ${error?.message || String(error)}`;
+  if (storageErr) {
     const result: CheckResult = {
       ok: false,
       mode: "degraded",
-      reason,
+      reason: `${context}: storage health failed: ${storageErr}`,
       latencyMs: Date.now() - started,
     };
     updateStateFromResult(result);
     return result;
   }
+
+  // Storage is healthy → media can proceed. Record an auth-only issue for
+  // observability without degrading media.
+  const result: CheckResult = {
+    ok: true,
+    mode: "healthy",
+    latencyMs: Date.now() - started,
+  };
+  updateStateFromResult(result);
+  if (authErr) {
+    state.lastError = `auth health warning (media unaffected): ${authErr}`;
+  }
+  return result;
 }
 
 export async function runStartupSupabaseHealthCheck() {
