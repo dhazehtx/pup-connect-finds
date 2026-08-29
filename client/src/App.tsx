@@ -51,6 +51,7 @@ const LazyCommissionCenter = lazy(() =>
   import('./pages/CommissionCenter').then((m) => ({ default: m.CommissionCenter }))
 );
 const LazyOrderHistory = lazy(() => import('./pages/OrderHistory'));
+const LazyFavorites = lazy(() => import('./pages/Favorites'));
 
 const LazyExplore = lazy(() => import('./pages/ExploreRouter'));
 const LazyProfile = lazy(() => import('./pages/Profile'));
@@ -199,6 +200,13 @@ function App() {
                     <RequireAuth>
                       <Suspense fallback={<LoadingPage message="Loading Orders..." />}>
                         <LazyOrderHistory />
+                      </Suspense>
+                    </RequireAuth>
+                  } />
+                  <Route path="/favorites" element={
+                    <RequireAuth>
+                      <Suspense fallback={<LoadingPage message="Loading Favorites..." />}>
+                        <LazyFavorites />
                       </Suspense>
                     </RequireAuth>
                   } />

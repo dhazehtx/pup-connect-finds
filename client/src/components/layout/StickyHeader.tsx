@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import ModernPostCreator from '@/components/home/ModernPostCreator';
 import NotificationButton from '@/components/notifications/NotificationButton';
+import AccountMenu from '@/components/layout/AccountMenu';
 
 const PLACEHOLDER = 'Search puppies, breeders, or messages...';
 
@@ -108,6 +109,10 @@ const StickyHeader = () => {
       {user && !isGuest && (
         <NotificationButton className="rounded-full p-2 text-[#0074d4] transition-colors hover:bg-[#0074d4]/5 hover:shadow-sm" />
       )}
+
+      {/* Authenticated account navigation (desktop + mobile): Profile, My Listings,
+          Favorites, Orders, Messages, Settings, Logout. */}
+      {user && !isGuest && <AccountMenu />}
     </div>
   );
 
