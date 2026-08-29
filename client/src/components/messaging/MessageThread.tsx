@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useTheme } from '@/contexts/ThemeContext';
 import { apiRequest } from '@/lib/api';
+import { safeDisplayName } from '@/lib/displayName';
 import { useSocket } from '@/hooks/useSocket';
 import { useTypingIndicator } from '@/hooks/useTypingIndicator';
 
@@ -96,12 +97,7 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
 
         const convData = await apiRequest(`/messaging/conversations/${activeConversationId}`);
 
-        const getDisplayName = (profile: any) => {
-          if (profile?.full_name) return profile.full_name;
-          if (profile?.username) return profile.username;
-          if (profile?.email) return profile.email.split('@')[0];
-          return 'Unknown User';
-        };
+        const getDisplayName = (profile: any) => safeDisplayName(profile, 'Unknown User');
 
         setConversation({
           id: convData.id,
@@ -129,6 +125,12 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
 
         const organizedMessages = organizeThreadedMessages(messagesWithProfiles);
         setMessages(organizedMessages);
+
+        // The recipient has opened the thread → mark incoming messages read.
+        // Server is authoritative, participant-gated, and idempotent, and only
+        // touches messages sent TO the current user (sender_id != me).
+        apiRequest(`/messaging/conversations/${activeConversationId}/mark-read`, { method: 'POST' })
+          .catch(() => { /* best-effort; unread clears on the next inbox fetch */ });
       } catch (error) {
         console.error('Error in loadConversationData:', error);
         toast({
@@ -171,6 +173,9 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
           };
           return organizeThreadedMessages([...flattenMessages(prev), newMsg]);
         });
+        // The thread is open, so an incoming message is immediately read.
+        apiRequest(`/messaging/conversations/${activeConversationId}/mark-read`, { method: 'POST' })
+          .catch(() => { /* best-effort; server is idempotent */ });
       }
     });
 
@@ -324,13 +329,8 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
   // Render a single message with replies
   const renderMessage = (message: Message, isReply = false) => {
     const isOwnMessage = message.sender_id === user?.id;
-    
-    const getDisplayName = (profile: any) => {
-      if (profile?.full_name) return profile.full_name;
-      if (profile?.username) return profile.username;
-      if (profile?.email) return profile.email.split('@')[0];
-      return 'Unknown User';
-    };
+
+    const getDisplayName = (profile: any) => safeDisplayName(profile, 'Unknown User');
 
     const displayName = getDisplayName(message.sender_profile);
     const displayInitial = displayName?.charAt(0)?.toUpperCase() || 'U';

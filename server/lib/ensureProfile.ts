@@ -2,9 +2,13 @@ import { storage } from '../storage';
 import type { Profile } from '@shared/schema';
 import { EmailService } from '../utils/emailService';
 
-function defaultUsernameFromEmail(email: string): string {
-  const local = email.split('@')[0] || 'user';
-  return local.replace(/[^a-zA-Z0-9._]/g, '_').slice(0, 30);
+/**
+ * Neutral, non-PII default public handle. Public identity must NEVER default to
+ * the user's email or its local-part (that leaked email fragments through search
+ * and profiles). Derived from the account id, which is unique.
+ */
+function neutralUsername(id: string): string {
+  return `user_${id.replace(/-/g, '').slice(-8)}`;
 }
 
 interface EnsureProfileInput {
@@ -25,7 +29,7 @@ export async function ensureProfile(input: EnsureProfileInput): Promise<Profile>
     const profile = await storage.createProfile({
       id: input.id,
       email: input.email || null,
-      username: input.username || (input.email ? input.email.split('@')[0] : `user_${input.id.slice(-6)}`),
+      username: input.username?.trim() || neutralUsername(input.id),
       full_name: input.full_name || null,
       avatar_url: input.avatar_url || null,
       user_type: 'buyer',
@@ -53,9 +57,7 @@ export async function ensureProfileDetailed(
     return { profile: existing, created: false, hadExisting: true };
   }
 
-  const username =
-    input.username?.trim() ||
-    (input.email ? defaultUsernameFromEmail(input.email) : `user_${input.id.slice(-6)}`);
+  const username = input.username?.trim() || neutralUsername(input.id);
 
   const profile = await ensureProfile({
     ...input,

@@ -897,11 +897,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const senderIds = Array.from(new Set(msgs.map(m => m.sender_id).filter(Boolean))) as string[];
       let profilesMap: Record<string, any> = {};
       if (senderIds.length > 0) {
+        // Do NOT expose sender email to the other conversation participant.
         const profs = await db.select({
           id: profiles.id,
           full_name: profiles.full_name,
           username: profiles.username,
-          email: profiles.email,
           avatar_url: profiles.avatar_url,
         }).from(profiles).where(inArray(profiles.id, senderIds));
         profs.forEach(p => { profilesMap[p.id] = p; });

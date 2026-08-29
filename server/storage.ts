@@ -297,12 +297,13 @@ export class DatabaseStorage implements IStorage {
     const tokens = trimmed.split(/\s+/).filter((t) => t.length >= 1);
     const wholeLike = `%${trimmed.replace(/[%_\\]/g, '')}%`;
 
+    // Public search must NEVER match on the email column — doing so silently
+    // indexes private addresses (a common term like "rich" matched real emails).
     const nameMatch =
       tokens.length <= 1
         ? or(
             ilike(profiles.username, wholeLike),
             ilike(profiles.full_name, wholeLike),
-            ilike(profiles.email, wholeLike),
             ilike(profiles.location, wholeLike),
           )
         : or(
@@ -311,7 +312,6 @@ export class DatabaseStorage implements IStorage {
               return [
                 ilike(profiles.username, tokenLike),
                 ilike(profiles.full_name, tokenLike),
-                ilike(profiles.email, tokenLike),
               ];
             }),
           );
