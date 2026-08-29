@@ -449,22 +449,37 @@ a:focus-visible {
   --tw-ring-color: #0074d4 !important;
 }
 
-/* Toggle button fixes - prevent yellow backgrounds */
-button[data-state="on"],
-button[data-state="active"],
-button.active,
-[data-pressed="true"],
-[aria-pressed="true"] {
+/* Toggle button fixes - prevent yellow backgrounds.
+   NOTE: Radix Switch renders a <button role="switch" data-state="checked|unchecked">.
+   These catch-all overrides must NOT touch switches, or the track is forced white
+   in both states (white thumb on white track = no visible ON/OFF). Exempt switches
+   and give them their own explicit track colors below. */
+button[data-state="on"]:not([role="switch"]),
+button[data-state="active"]:not([role="switch"]),
+button.active:not([role="switch"]),
+[data-pressed="true"]:not([role="switch"]),
+[aria-pressed="true"]:not([role="switch"]) {
   background-color: #0074d4 !important;
   color: #ffffff !important;
   border-color: #0074d4 !important;
 }
 
-button[data-state="off"],
-button[data-state="inactive"],
-button:not(.active)[data-state] {
+button[data-state="off"]:not([role="switch"]),
+button[data-state="inactive"]:not([role="switch"]),
+button:not(.active):not([role="switch"])[data-state] {
   background-color: #ffffff !important;
   color: #374151 !important;
+  border-color: #d1d5db !important;
+}
+
+/* Switch tracks: unmistakable ON (solid blue) vs OFF (gray); thumb + translate
+   come from components/ui/switch.tsx. */
+button[role="switch"][data-state="checked"] {
+  background-color: #2C3EDC !important;
+  border-color: #2C3EDC !important;
+}
+button[role="switch"][data-state="unchecked"] {
+  background-color: #d1d5db !important;
   border-color: #d1d5db !important;
 }
 

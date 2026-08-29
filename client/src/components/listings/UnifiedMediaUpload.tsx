@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Upload, X, Video, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -13,12 +13,28 @@ interface UnifiedMediaUploadProps {
   className?: string;
 }
 
+type MediaItem = {
+  file: File;
+  previewUrl: string;   // local blob: URL for instant, reliable preview
+  remoteUrl?: string;   // committed Supabase URL once the upload succeeds
+  failed?: boolean;     // remote upload failed (preview still shown)
+};
+
 const UnifiedMediaUpload = ({ onImagesChange, onVideoChange, listingId, className }: UnifiedMediaUploadProps) => {
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  // Each picked photo gets a LOCAL object-URL preview (shown immediately, never
+  // dependent on the remote upload) plus the committed remote URL once it lands.
+  const [items, setItems] = useState<MediaItem[]>([]);
   const [videoUrl, setVideoUrl] = useState<string>('');
   const { upload, uploading, progress } = useMediaUpload();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const objectUrlsRef = useRef<string[]>([]);
+
+  // Revoke all object URLs on unmount to avoid leaks.
+  useEffect(() => () => { objectUrlsRef.current.forEach(URL.revokeObjectURL); }, []);
+
+  /** The committed remote URLs (what the saved listing stores). */
+  const remoteUrls = () => items.map((i) => i.remoteUrl).filter(Boolean) as string[];
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -37,7 +53,7 @@ const UnifiedMediaUpload = ({ onImagesChange, onVideoChange, listingId, classNam
       if (imageFiles.length === 0) return;
     }
 
-    if (imageUrls.length + imageFiles.length > 5) {
+    if (items.length + imageFiles.length > 5) {
       toast({
         title: 'Too many files',
         description: 'You can upload up to 5 photos total.',
@@ -46,45 +62,58 @@ const UnifiedMediaUpload = ({ onImagesChange, onVideoChange, listingId, classNam
       return;
     }
 
-    let uploadedCount = 0;
-    const newUrls: string[] = [];
+    // 1) Show local previews IMMEDIATELY — independent of the remote upload.
+    const staged: MediaItem[] = imageFiles.map((file) => {
+      const previewUrl = URL.createObjectURL(file);
+      objectUrlsRef.current.push(previewUrl);
+      return { file, previewUrl };
+    });
+    setItems((prev) => [...prev, ...staged]);
 
-    try {
-      for (const file of imageFiles) {
-        const result = await upload(file, {
-          bucket: 'listings',
-          kind: 'listing',
-          parentId: listingId,
-        });
+    // 2) Upload each; attach the committed remote URL (or mark failed) as it lands.
+    const committed: string[] = remoteUrls(); // already-committed remotes
+    let uploaded = 0;
+    const markFailed = (previewUrl: string) =>
+      setItems((prev) => prev.map((it) => (it.previewUrl === previewUrl ? { ...it, failed: true } : it)));
+    for (const item of staged) {
+      try {
+        const result = await upload(item.file, { bucket: 'listings', kind: 'listing', parentId: listingId });
         const url = result?.url || (result as { asset?: { publicUrl?: string } })?.asset?.publicUrl;
         if (url) {
-          newUrls.push(url);
-          uploadedCount += 1;
+          uploaded += 1;
+          committed.push(url);
+          setItems((prev) => prev.map((it) => (it.previewUrl === item.previewUrl ? { ...it, remoteUrl: url } : it)));
+          onImagesChange([...committed]); // enables submit only once a real upload commits
+        } else {
+          markFailed(item.previewUrl);
         }
+      } catch {
+        // useMediaUpload already toasted the specific error (e.g. SUPABASE_DEGRADED).
+        markFailed(item.previewUrl);
       }
+    }
 
-      if (newUrls.length > 0) {
-        const updatedImageUrls = [...imageUrls, ...newUrls];
-        setImageUrls(updatedImageUrls);
-        onImagesChange(updatedImageUrls);
-      }
-
-      if (uploadedCount > 0) {
-        toast({
-          title: 'Media uploaded',
-          description: `${uploadedCount} file(s) ready for your listing`,
-        });
-      }
-      // useMediaUpload already shows a detailed toast on sign/commit failure
-    } catch {
-      // useMediaUpload already toasted; avoid duplicate generic message
+    // 3) Honest status: report only what actually PERSISTED. During creation there
+    //    is no listingId yet, so photos are stored (not attached) until you publish.
+    if (uploaded > 0) {
+      toast({
+        title: 'Photo uploaded',
+        description: listingId
+          ? `${uploaded} photo(s) added to your listing`
+          : `${uploaded} of ${imageFiles.length} photo(s) uploaded`,
+      });
     }
   };
 
   const removeImage = (index: number) => {
-    const newImageUrls = imageUrls.filter((_, i) => i !== index);
-    setImageUrls(newImageUrls);
-    onImagesChange(newImageUrls);
+    const target = items[index];
+    if (target) {
+      URL.revokeObjectURL(target.previewUrl);
+      objectUrlsRef.current = objectUrlsRef.current.filter((u) => u !== target.previewUrl);
+    }
+    const next = items.filter((_, i) => i !== index);
+    setItems(next);
+    onImagesChange(next.map((i) => i.remoteUrl).filter(Boolean) as string[]);
   };
 
   const removeVideo = () => {
@@ -92,7 +121,7 @@ const UnifiedMediaUpload = ({ onImagesChange, onVideoChange, listingId, classNam
     onVideoChange('');
   };
 
-  const hasMedia = imageUrls.length > 0 || videoUrl;
+  const hasMedia = items.length > 0 || videoUrl;
 
   return (
     <div className={`space-y-4 ${className}`}>
@@ -136,22 +165,31 @@ const UnifiedMediaUpload = ({ onImagesChange, onVideoChange, listingId, classNam
           </div>
         )}
 
-        {(imageUrls.length > 0 || videoUrl) && (
+        {(items.length > 0 || videoUrl) && (
           <div className="grid grid-cols-3 gap-2">
-            {imageUrls.map((url, index) => (
-              <div key={url} className="relative">
+            {items.map((item, index) => (
+              <div key={item.previewUrl} className="relative">
                 <img
-                  src={url}
-                  alt={`Preview ${index + 1}`}
+                  src={item.previewUrl}
+                  alt={`Selected photo ${index + 1}`}
                   className="h-20 w-full rounded-lg object-cover"
                 />
+                {item.failed && (
+                  <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-red-900/50 px-1 text-center text-[10px] font-medium leading-tight text-white">
+                    Upload failed — remove &amp; retry
+                  </div>
+                )}
+                {!item.remoteUrl && !item.failed && (
+                  <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/30 text-[10px] font-medium text-white">
+                    Uploading…
+                  </div>
+                )}
                 <Button
                   type="button"
                   variant="destructive"
                   size="sm"
                   onClick={() => removeImage(index)}
                   className="absolute -right-2 -top-2 h-6 w-6 p-0"
-                  disabled={uploading}
                 >
                   <X className="h-3 w-3" />
                 </Button>
