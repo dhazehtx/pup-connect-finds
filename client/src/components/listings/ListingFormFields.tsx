@@ -11,9 +11,12 @@ import { useBreedColors } from '@/hooks/useBreedColors';
 
 interface ListingFormFieldsProps {
   form: UseFormReturn<ListingFormData>;
+  /** Receives committed media_asset ids so the parent can clean up orphans if
+   *  the listing is never created. */
+  onMediaAssetsChange?: (assetIds: string[]) => void;
 }
 
-const ListingFormFields = ({ form }: ListingFormFieldsProps) => {
+const ListingFormFields = ({ form, onMediaAssetsChange }: ListingFormFieldsProps) => {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [videoUrl, setVideoUrl] = useState<string>('');
   
@@ -60,6 +63,7 @@ const ListingFormFields = ({ form }: ListingFormFieldsProps) => {
         <UnifiedMediaUpload
           onImagesChange={handleImagesChange}
           onVideoChange={handleVideoChange}
+          onAssetsChange={onMediaAssetsChange}
         />
       </div>
 

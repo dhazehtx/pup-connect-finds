@@ -9,6 +9,9 @@ import { useMediaUpload } from '@/hooks/useMediaUpload';
 interface UnifiedMediaUploadProps {
   onImagesChange: (imageUrls: string[]) => void;
   onVideoChange: (videoUrl: string) => void;
+  /** Committed media_asset ids, so the parent can clean up orphans if the
+   *  listing is never created (uploads happen before the listing exists). */
+  onAssetsChange?: (assetIds: string[]) => void;
   listingId?: string;
   className?: string;
 }
@@ -17,6 +20,7 @@ type MediaItem = {
   file: File;
   previewUrl: string;   // local blob: URL for instant, reliable preview
   remoteUrl?: string;   // committed Supabase URL once the upload succeeds
+  assetId?: string;     // committed media_asset id (for orphan cleanup)
   failed?: boolean;     // remote upload failed (preview still shown)
 };
 
@@ -29,7 +33,7 @@ const isSupportedImage = (f: File) =>
   // Some browsers report an empty MIME for a valid jpg/png/webp — trust the extension.
   (f.type === '' && /\.(jpe?g|png|webp)$/i.test(f.name));
 
-const UnifiedMediaUpload = ({ onImagesChange, onVideoChange, listingId, className }: UnifiedMediaUploadProps) => {
+const UnifiedMediaUpload = ({ onImagesChange, onVideoChange, onAssetsChange, listingId, className }: UnifiedMediaUploadProps) => {
   // Each picked photo gets a LOCAL object-URL preview (shown immediately, never
   // dependent on the remote upload) plus the committed remote URL once it lands.
   const [items, setItems] = useState<MediaItem[]>([]);
@@ -98,8 +102,9 @@ const UnifiedMediaUpload = ({ onImagesChange, onVideoChange, listingId, classNam
     });
     setItems((prev) => [...prev, ...staged]);
 
-    // 2) Upload each; attach the committed remote URL (or mark failed) as it lands.
-    const committed: string[] = remoteUrls(); // already-committed remotes
+    // 2) Upload each; attach the committed remote URL + asset id (or mark failed).
+    const committed: string[] = remoteUrls(); // already-committed remote URLs
+    const committedAssets: string[] = items.map((i) => i.assetId).filter(Boolean) as string[];
     let uploaded = 0;
     const markFailed = (previewUrl: string) =>
       setItems((prev) => prev.map((it) => (it.previewUrl === previewUrl ? { ...it, failed: true } : it)));
@@ -107,11 +112,14 @@ const UnifiedMediaUpload = ({ onImagesChange, onVideoChange, listingId, classNam
       try {
         const result = await upload(item.file, { bucket: 'listings', kind: 'listing', parentId: listingId });
         const url = result?.url || (result as { asset?: { publicUrl?: string } })?.asset?.publicUrl;
+        const assetId = result?.assetId || (result as { asset?: { id?: string } })?.asset?.id;
         if (url) {
           uploaded += 1;
           committed.push(url);
-          setItems((prev) => prev.map((it) => (it.previewUrl === item.previewUrl ? { ...it, remoteUrl: url } : it)));
+          if (assetId) committedAssets.push(assetId);
+          setItems((prev) => prev.map((it) => (it.previewUrl === item.previewUrl ? { ...it, remoteUrl: url, assetId } : it)));
           onImagesChange([...committed]); // enables submit only once a real upload commits
+          onAssetsChange?.([...committedAssets]);
         } else {
           markFailed(item.previewUrl);
         }
@@ -142,6 +150,7 @@ const UnifiedMediaUpload = ({ onImagesChange, onVideoChange, listingId, classNam
     const next = items.filter((_, i) => i !== index);
     setItems(next);
     onImagesChange(next.map((i) => i.remoteUrl).filter(Boolean) as string[]);
+    onAssetsChange?.(next.map((i) => i.assetId).filter(Boolean) as string[]);
   };
 
   const removeVideo = () => {
@@ -217,9 +226,10 @@ const UnifiedMediaUpload = ({ onImagesChange, onVideoChange, listingId, classNam
                   variant="destructive"
                   size="sm"
                   onClick={() => removeImage(index)}
+                  aria-label={`Remove photo ${index + 1}`}
                   className="absolute -right-2 -top-2 h-6 w-6 p-0"
                 >
-                  <X className="h-3 w-3" />
+                  <X className="h-3 w-3" aria-hidden />
                 </Button>
               </div>
             ))}
@@ -235,10 +245,11 @@ const UnifiedMediaUpload = ({ onImagesChange, onVideoChange, listingId, classNam
                   variant="destructive"
                   size="sm"
                   onClick={removeVideo}
+                  aria-label="Remove video"
                   className="absolute -right-2 -top-2 h-6 w-6 p-0"
                   disabled={uploading}
                 >
-                  <X className="h-3 w-3" />
+                  <X className="h-3 w-3" aria-hidden />
                 </Button>
               </div>
             )}

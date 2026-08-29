@@ -158,9 +158,20 @@ export const useDogListings = () => {
       return data;
     } catch (error: any) {
       console.error('Error creating listing:', error);
+      // Friendly message — never dump the raw "API request failed 400: {json}".
+      let description = 'Failed to create listing. Please try again.';
+      if (error?.status === 429) {
+        description = 'Too many attempts. Please wait a moment and try again.';
+      } else {
+        try {
+          const m = String(error?.message || '').match(/\{[\s\S]*\}$/);
+          const body = m ? JSON.parse(m[0]) : null;
+          if (body?.error) description = body.error;
+        } catch { /* keep default */ }
+      }
       toast({
-        title: "Error",
-        description: error.message || "Failed to create listing",
+        title: "Couldn't create listing",
+        description,
         variant: "destructive",
       });
       throw error;

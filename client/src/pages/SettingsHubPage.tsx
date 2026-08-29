@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import Layout from '@/components/Layout';
 import {
   Bell,
   Briefcase,
@@ -101,9 +100,10 @@ const GROUPS: { title: string; items: Row[] }[] = [
  * Profile settings hub — list-style navigation to account, privacy, notifications, services, and safety.
  */
 const SettingsHubPage = () => {
+  // The global <Layout> (App.tsx) already provides the shared header/account menu.
+  // Do NOT wrap in a second <Layout> or the header + account menu render twice.
   return (
-    <Layout>
-      <div className="mx-auto max-w-lg px-4 py-6 pb-24 sm:px-6">
+    <div className="mx-auto max-w-lg px-4 py-6 pb-24 sm:px-6">
         <div className="mb-8">
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">Settings</h1>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
@@ -158,8 +158,7 @@ const SettingsHubPage = () => {
           Profile photo and bio are under <span className="font-medium text-slate-600 dark:text-slate-400">Edit profile</span>{' '}
           on your profile.
         </p>
-      </div>
-    </Layout>
+    </div>
   );
 };
 
