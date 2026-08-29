@@ -76,6 +76,45 @@ export const MEDIA_LIMITS = {
   listing: { maxBytes: 10 * 1024 * 1024, maxCount: 20 },
 } as const;
 
+/**
+ * Authoritative media-ownership check for listing creation. Given the photo URLs
+ * a client submitted and the media_assets rows the DB returned for them, confirm
+ * every URL maps to an asset OWNED by `userId`. Ownership comes from the DB row,
+ * never from the client / URL / public readability.
+ * Returns the owned asset ids to attach, or a safe error (MEDIA_NOT_OWNED /
+ * MEDIA_NOT_FOUND). Pure + synchronous so it is directly unit-testable.
+ */
+export type OwnedAsset = { id: string; owner_id: string; public_url: string | null };
+export function resolveListingMedia(
+  userId: string,
+  submittedUrls: string[],
+  assets: OwnedAsset[],
+):
+  | { ok: true; ownedAssetIds: string[] }
+  | { ok: false; status: number; code: string; error: string } {
+  const byUrl = new Map(assets.map((a) => [a.public_url, a]));
+  for (const url of submittedUrls) {
+    const asset = byUrl.get(url);
+    if (!asset) {
+      return {
+        ok: false,
+        status: 400,
+        code: 'MEDIA_NOT_FOUND',
+        error: "A submitted photo couldn't be verified. Please re-upload your photos.",
+      };
+    }
+    if (asset.owner_id !== userId) {
+      return {
+        ok: false,
+        status: 403,
+        code: 'MEDIA_NOT_OWNED',
+        error: "One or more photos don't belong to your account.",
+      };
+    }
+  }
+  return { ok: true, ownedAssetIds: assets.filter((a) => a.owner_id === userId).map((a) => a.id) };
+}
+
 // Browsers cannot decode HEIC/HEIF, so those must never enter the media pipeline
 // (they fetch 200 but render as a broken 0x0 image). Blocked globally here.
 export const ALLOWED_IMAGE_TYPES = [

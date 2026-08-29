@@ -121,7 +121,7 @@ import {
 import { supabase } from "./lib/supabase";
 import { isBlocked, blockedResponse, getBlockedUserIds } from "./lib/isBlocked";
 import { perUserRateLimit } from "./middleware/perUserRateLimit";
-import { getThumbUrlsForParents, attachThumbUrls } from "./lib/mediaHelpers";
+import { getThumbUrlsForParents, attachThumbUrls, resolveListingMedia } from "./lib/mediaHelpers";
 import { postgresErrorMeta } from "./lib/pgErrorMeta";
 import { ZodError } from "zod";
 
@@ -515,7 +515,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user_id: req.user!.id,
         seller_id: req.user!.id,
       });
+
+      // Media ownership: every photo on the listing must be a media_asset owned
+      // by THIS user. A public Storage URL is not trusted just because it is
+      // readable — ownership comes from the media_assets record, keyed by the
+      // committed public_url. Reject cross-user or forged/untracked URLs.
+      const submittedUrls = Array.from(new Set([
+        ...(Array.isArray(validatedData.images) ? validatedData.images : []),
+        ...(validatedData.image_url ? [validatedData.image_url] : []),
+      ])).filter(Boolean) as string[];
+
+      let ownedAssetIds: string[] = [];
+      if (submittedUrls.length > 0) {
+        const assets = await db
+          .select({ id: mediaAssets.id, owner_id: mediaAssets.owner_id, public_url: mediaAssets.public_url })
+          .from(mediaAssets)
+          .where(inArray(mediaAssets.public_url, submittedUrls));
+        const resolved = resolveListingMedia(req.user!.id, submittedUrls, assets);
+        if (!resolved.ok) {
+          return res.status(resolved.status).json({ error: resolved.error, code: resolved.code });
+        }
+        ownedAssetIds = resolved.ownedAssetIds;
+      }
+
       const listing = await storage.createDogListing(validatedData);
+
+      // Attach the verified media to the new listing so its legitimate media is
+      // never left orphaned (and abandon-cleanup / orphan sweeps never touch it).
+      if (ownedAssetIds.length > 0) {
+        await db
+          .update(mediaAssets)
+          .set({ parent_type: "listing", parent_id: (listing as { id: string }).id })
+          .where(and(inArray(mediaAssets.id, ownedAssetIds), eq(mediaAssets.owner_id, req.user!.id)));
+      }
+
       res.json(listing);
     } catch (error) {
       console.error("Error creating listing:", error);
