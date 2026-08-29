@@ -60,6 +60,24 @@ test.describe('Authenticated buyer certification', () => {
     }
   });
 
+  test('authenticated header exposes an account menu with the core destinations + logout', async ({ page }) => {
+    // Runs on whichever viewport project is selected — verify account nav on
+    // desktop AND mobile by including --project=mobile-390 in the run.
+    await signIn(page, BUYER_EMAIL!, BUYER_PASSWORD!);
+    await page.goto('/create-listing', { waitUntil: 'domcontentloaded' }); // an authed page, not the marketing landing
+    await page.waitForTimeout(1500);
+    const trigger = page.getByRole('button', { name: /account menu/i });
+    await expect(trigger, 'authenticated header must expose an account control').toBeVisible({ timeout: 15_000 });
+    await trigger.click();
+    for (const label of ['Profile', 'My Listings', 'Favorites', 'Orders', 'Messages', 'Settings', 'Logout']) {
+      await expect(page.getByRole('menuitem', { name: new RegExp(`^${label}$`, 'i') }))
+        .toBeVisible({ timeout: 10_000 });
+    }
+    // Profile is actually reachable from the menu.
+    await page.getByRole('menuitem', { name: /^Profile$/i }).click();
+    await expect.poll(() => new URL(page.url()).pathname, { timeout: 15_000 }).toBe('/profile');
+  });
+
   test('favorite persists across reload', async ({ page }) => {
     await signIn(page, BUYER_EMAIL!, BUYER_PASSWORD!);
     await page.goto('/explore', { waitUntil: 'domcontentloaded' });
