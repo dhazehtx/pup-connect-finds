@@ -19,6 +19,7 @@ import authRouter from './routes/auth';
 import productsRouter from './routes/products';
 import pupboxRouter from './routes/pupbox';
 import checkoutRouter from './routes/checkout';
+import membershipRouter from './routes/membership';
 import ordersRouter from './routes/orders';
 import transportJobsRouter from './routes/transport-jobs';
 import webhookRouter from './routes/webhook';
@@ -204,6 +205,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/products', productsRouter);
   app.use('/api/pupbox', pupboxRouter);
   app.use('/api/checkout', checkoutRouter);
+  app.use('/api/membership', membershipRouter);
   app.use('/api/orders', ordersRouter);
   app.use('/api/transport-jobs', transportJobsRouter);
   app.use('/api/reviews', reviewsRouter);

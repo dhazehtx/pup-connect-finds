@@ -1220,6 +1220,24 @@ export const subscriptions = pgTable("subscriptions", {
   updated_at: timestamp("updated_at").defaultNow(),
 });
 
+// PAWS MEMBERSHIP (paid account tier / entitlements). Deliberately SEPARATE from
+// `subscriptions` (Pup Box product subscriptions) so the two domains never mix.
+// State is synced from verified Stripe webhook events (server/lib/membershipSync).
+export const memberships = pgTable("memberships", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  user_id: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }).unique(),
+  stripe_customer_id: text("stripe_customer_id").notNull(),
+  stripe_subscription_id: text("stripe_subscription_id").unique(),
+  stripe_price_id: text("stripe_price_id"),
+  tier: text("tier").notNull(), // 'pro' | 'business'
+  status: text("status").notNull().default("incomplete"), // Stripe subscription status
+  cancel_at_period_end: boolean("cancel_at_period_end").notNull().default(false),
+  current_period_end: timestamp("current_period_end"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+export type Membership = typeof memberships.$inferSelect;
+
 // Product reviews table for ratings and feedback
 export const productReviews = pgTable("product_reviews", {
   id: uuid("id").primaryKey().defaultRandom(),

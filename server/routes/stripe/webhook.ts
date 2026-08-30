@@ -12,6 +12,7 @@ import { processCheckoutSessionCompleted } from "../../lib/checkoutSessionWebhoo
 import { withDbIdempotency } from "../../lib/idempotency";
 import { Pool } from '@neondatabase/serverless';
 import { ensureVerifiedBadge } from "../../lib/badges";
+import { upsertMembershipFromStripe } from "../../lib/membershipSync";
 
 const router = Router();
 
@@ -83,6 +84,12 @@ router.post("/", async (req, res) => {
 
         case 'checkout.session.completed': {
           const session = event.data.object as Stripe.Checkout.Session;
+          // PAWS membership checkouts establish state via customer.subscription.*
+          // events below — they must NEVER run the store/Pup Box fulfilment path.
+          if (session.metadata?.kind === 'membership') {
+            console.log('[STRIPE WEBHOOK] Membership checkout completed (syncs via subscription.*):', session.id);
+            break;
+          }
           await processCheckoutSessionCompleted(session);
           break;
         }
@@ -181,6 +188,19 @@ router.post("/", async (req, res) => {
             );
             debugApiLog(`[PROOF:WEBHOOK:INVOICE_FAILED] subscription=${subId2}`);
           }
+          break;
+        }
+
+        case 'customer.subscription.created':
+        case 'customer.subscription.updated':
+        case 'customer.subscription.deleted': {
+          // PAWS MEMBERSHIP lifecycle → authoritative entitlement state. Only
+          // subscriptions marked kind==='membership' are synced here (Pup Box
+          // product subscriptions carry no such marker and are ignored). The
+          // upsert is idempotent (keyed by user_id) and reflects Stripe status,
+          // so renewal/past_due/cancellation all flow to entitlement correctly.
+          const sub = event.data.object as Stripe.Subscription;
+          await upsertMembershipFromStripe(sub);
           break;
         }
 

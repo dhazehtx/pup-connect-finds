@@ -28,6 +28,7 @@ import { LoadingPage } from './components/ui/loading';
 const LazyMarketplace = lazy(() => import('./pages/Marketplace'));
 const LazyCart = lazy(() => import('./pages/Cart'));
 const LazyCheckoutSuccess = lazy(() => import('./pages/CheckoutSuccess'));
+const LazyMembership = lazy(() => import('./pages/Membership'));
 const LazyCheckoutCancel = lazy(() => import('./pages/CheckoutCancel'));
 const LazyListingDetail = lazy(() => import('./pages/ListingDetail'));
 const LazyNotFound = lazy(() => import('./pages/NotFound'));
@@ -653,6 +654,13 @@ function App() {
                         <PrivacySettingsPage />
                       </Suspense>
                     </ProtectedRoute>
+                  } />
+                  <Route path="/membership" element={
+                    <RequireAuth>
+                      <Suspense fallback={<LoadingPage message="Loading Membership..." />}>
+                        <LazyMembership />
+                      </Suspense>
+                    </RequireAuth>
                   } />
                   <Route path="/subscription-success" element={
                     <Suspense fallback={<LoadingPage message="Processing..." />}>
