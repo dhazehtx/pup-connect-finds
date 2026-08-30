@@ -13,6 +13,7 @@ import { withDbIdempotency } from "../../lib/idempotency";
 import { Pool } from '@neondatabase/serverless';
 import { ensureVerifiedBadge } from "../../lib/badges";
 import { upsertMembershipFromStripe } from "../../lib/membershipSync";
+import { markServiceBookingPaid, markServiceBookingRefunded, markServiceBookingDisputed } from "../../lib/serviceBookingPayments";
 
 const router = Router();
 
@@ -99,7 +100,10 @@ router.post("/", async (req, res) => {
           const dealId = pi.metadata?.deal_id;
           const kind = pi.metadata?.kind;
 
-          if (dealId && kind) {
+          if (kind === 'service_booking') {
+            // Authoritative payment state for a service booking (idempotent).
+            await markServiceBookingPaid(pi.id);
+          } else if (dealId && kind) {
             await pool.query(
               "UPDATE deal_payments SET status = 'succeeded', updated_at = NOW() WHERE stripe_payment_intent_id = $1",
               [pi.id]
@@ -161,7 +165,21 @@ router.post("/", async (req, res) => {
 
         case 'charge.refunded':
         case 'refund.created': {
-          await handleRefund(event);
+          await handleRefund(event); // syncs Store orders (Sprint 1)
+          // Also reflect refunds on the owning service booking (PI-scoped, idempotent).
+          const obj: any = event.data.object;
+          const piId = typeof obj.payment_intent === 'string' ? obj.payment_intent : obj.payment_intent?.id;
+          if (piId) await markServiceBookingRefunded(piId);
+          break;
+        }
+
+        case 'charge.dispute.created': {
+          // A disputed service booking must not be paid out. Marking it disputed
+          // blocks the release (which requires payment_status='paid'). Payout
+          // release is admin-only, so ordinary users cannot forge a resolution.
+          const dispute: any = event.data.object;
+          const piId = typeof dispute.payment_intent === 'string' ? dispute.payment_intent : dispute.payment_intent?.id;
+          if (piId) await markServiceBookingDisputed(piId);
           break;
         }
 

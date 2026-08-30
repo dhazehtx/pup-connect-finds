@@ -1,10 +1,14 @@
 import type { Request, Response } from "express";
 import Stripe from "stripe";
+import { Pool } from "@neondatabase/serverless";
 import { storage } from '../../storage';
+import { STRIPE_SECRET_KEY } from '../../lib/config';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+const stripe = new Stripe(STRIPE_SECRET_KEY, {
   apiVersion: "2025-08-27.basil",
 });
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 /**
  * POST /create-connect-account
@@ -34,7 +38,15 @@ export async function createConnectAccount(req: Request, res: Response) {
 
     if (!updatedProfile) throw new Error('Failed to update profile');
 
-    console.log('[STRIPE CONNECT] Saved stripe_account_id to profiles table for user:', userId);
+    // AUTHORITATIVE Connect account location is providers.stripe_account_id — the
+    // service payment/payout paths read it (never a client-supplied account).
+    // profiles.stripe_account_id is kept in sync above for backwards compatibility.
+    await pool.query(
+      `UPDATE providers SET stripe_account_id = $1, stripe_connected = $2, updated_at = NOW() WHERE user_id = $3`,
+      [account.id, !!account.details_submitted, userId],
+    );
+
+    console.log('[STRIPE CONNECT] Saved stripe_account_id (providers authoritative) for user:', userId);
 
     // Get origin for redirect URLs (prefer local host when running local preview).
     const configuredOrigin = process.env.PUBLIC_APP_URL || process.env.BASE_URL || '';

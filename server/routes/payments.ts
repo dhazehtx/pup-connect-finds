@@ -29,6 +29,18 @@ function toCents(amount: number): number {
  * POST /api/payments/create-intent
  */
 router.post('/create-intent', authMiddleware, requireAuth, generalRateLimit, asyncHandler(async (req: any, res: any) => {
+  // SUPERSEDED / NEUTRALIZED: this endpoint accepted a client-supplied `amount`
+  // and `providerStripeAccountId` (destination) — unsafe for a marketplace
+  // payment. Service payments now go through POST /api/service-bookings/:id/pay,
+  // where the amount, PAWS commission and provider Connect account are ALL derived
+  // server-side from the booking. This endpoint no longer initiates any payment.
+  return res.status(410).json({
+    success: false,
+    code: 'ENDPOINT_SUPERSEDED',
+    message: 'Use POST /api/service-bookings/:id/pay (server-authoritative amount + provider).',
+  });
+
+  // eslint-disable-next-line no-unreachable
   const {
     amount,                 // e.g. 100.00 (USD)
     currency = "usd",

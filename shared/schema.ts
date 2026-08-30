@@ -1344,6 +1344,20 @@ export const serviceBookings = pgTable("service_bookings", {
   total_price: decimal("total_price", { precision: 10, scale: 2 }).notNull(),
   status: text("status").default("pending").notNull(), // pending, accepted, rejected, completed
   special_instructions: text("special_instructions"),
+  // Service-provider payment/payout (separate charges + transfers). Amounts are
+  // server-computed; payout is transferred to the provider's Connect account.
+  amount_cents: integer("amount_cents"),
+  currency: text("currency").default("usd"),
+  platform_fee_cents: integer("platform_fee_cents").default(0),
+  provider_amount_cents: integer("provider_amount_cents"),
+  stripe_payment_intent_id: text("stripe_payment_intent_id"),
+  payment_status: text("payment_status").default("unpaid"), // unpaid, processing, paid, refunded
+  stripe_transfer_id: text("stripe_transfer_id"),
+  payout_status: text("payout_status").default("none"), // none, pending_release, released, failed, reversed
+  completed_by: text("completed_by"), // customer, provider, admin
+  paid_at: timestamp("paid_at"),
+  completed_at: timestamp("completed_at"),
+  released_at: timestamp("released_at"),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
 });
