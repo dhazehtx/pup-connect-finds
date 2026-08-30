@@ -18,3 +18,18 @@ export function getConnectAppFeeBps(): number {
   const n = parseInt(raw, 10);
   return Number.isFinite(n) && n >= 0 ? n : 0;
 }
+
+/**
+ * PAWS BREEDER marketplace commission (basis points) on dog-sale protected
+ * transactions. Dedicated knob so breeder and service commissions can differ.
+ * Falls back to CONNECT_APP_FEE_BPS, then 0 at launch. The legacy escrow's 8% is
+ * NOT assumed — the final rate is an owner decision (set BREEDER_PLATFORM_FEE_BPS).
+ */
+export function getBreederPlatformFeeBps(): number {
+  const raw = process.env.BREEDER_PLATFORM_FEE_BPS;
+  if (raw !== undefined && raw !== "") {
+    const n = parseInt(raw, 10);
+    if (Number.isFinite(n) && n >= 0) return Math.min(n, 10000);
+  }
+  return getConnectAppFeeBps();
+}

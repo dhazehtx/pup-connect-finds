@@ -43,11 +43,11 @@ export const faqs = [
   },
   {
     question: 'What payment methods do you accept?',
-    answer: 'We accept all major credit cards (Visa, MasterCard, American Express), PayPal, and bank transfers. All payments are processed securely through our escrow system to protect both buyers and sellers.'
+    answer: 'We accept all major credit cards (Visa, MasterCard, American Express), PayPal, and bank transfers. All payments are processed securely through our protected-payment system to protect both buyers and sellers.'
   },
   {
-    question: 'How does the escrow system work?',
-    answer: 'Our escrow system holds your payment securely until you meet the puppy and confirm the transaction. The seller only receives payment after you\'ve had the chance to verify the puppy\'s health and that everything matches the listing.'
+    question: 'How does the protected-payment system work?',
+    answer: 'Our protected-payment system holds your payment securely until you meet the puppy and confirm the transaction. The seller only receives payment after you\'ve had the chance to verify the puppy\'s health and that everything matches the listing.'
   },
   {
     question: 'What if I have issues with a purchase?',

@@ -59,7 +59,7 @@ const SellingBreeding = () => {
       content: [
         'Research market prices for your breed and area',
         'Consider factors like bloodlines, health testing, and training',
-        'Use our secure escrow payment system',
+        'Use our secure protected-payment system',
         'Provide clear sales contracts and guarantees',
         'Be prepared to screen potential buyers'
       ]

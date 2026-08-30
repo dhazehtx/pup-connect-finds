@@ -23,7 +23,7 @@ const SafetyTrust = () => {
     {
       title: 'Secure Payments',
       icon: <Lock className="h-6 w-6" />,
-      description: 'Our escrow system protects your payment until you meet your puppy and confirm the transaction.',
+      description: 'Our protected-payment system protects your payment until you meet your puppy and confirm the transaction.',
       benefits: [
         'Payments held securely until transaction completion',
         'Protection against fraud and misrepresentation',
@@ -68,7 +68,7 @@ const SafetyTrust = () => {
     {
       category: 'Making Payment',
       tips: [
-        'Use our secure escrow payment system only',
+        'Use our secure protected-payment system only',
         'Never pay with wire transfers, gift cards, or cryptocurrency',
         'Get all agreements in writing',
         'Ensure you receive all documentation',

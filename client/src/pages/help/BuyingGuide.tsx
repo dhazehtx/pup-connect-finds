@@ -57,7 +57,7 @@ const BuyingGuide = () => {
       title: 'Making the Purchase',
       icon: <Heart className="h-6 w-6" />,
       content: [
-        'Use our secure escrow payment system for protection',
+        'Use our secure protected-payment system for protection',
         'Get all agreements and health guarantees in writing',
         'Ensure all vaccinations and health records are provided',
         'Verify registration papers if purchasing a purebred',
