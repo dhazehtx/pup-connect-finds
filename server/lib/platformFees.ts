@@ -11,12 +11,14 @@ export function getPlatformFeePercent(): number {
   return Number.isFinite(n) && n >= 0 ? n : 0;
 }
 
-/** Application fee on Connect destination charges (basis points). Default 0 at launch. */
+/** Application fee on Connect destination charges (basis points). Default 0 at
+ *  launch, clamped to [0, 10000] so a fee can never exceed the gross (which would
+ *  drive provider/seller proceeds negative). Malformed config fails safe to 0. */
 export function getConnectAppFeeBps(): number {
   const raw = process.env.CONNECT_APP_FEE_BPS;
   if (raw === undefined || raw === "") return 0;
   const n = parseInt(raw, 10);
-  return Number.isFinite(n) && n >= 0 ? n : 0;
+  return Number.isFinite(n) && n >= 0 ? Math.min(n, 10000) : 0;
 }
 
 /**

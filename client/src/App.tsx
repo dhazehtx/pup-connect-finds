@@ -29,6 +29,8 @@ const LazyMarketplace = lazy(() => import('./pages/Marketplace'));
 const LazyCart = lazy(() => import('./pages/Cart'));
 const LazyCheckoutSuccess = lazy(() => import('./pages/CheckoutSuccess'));
 const LazyMembership = lazy(() => import('./pages/Membership'));
+const LazyServiceBookingCheckout = lazy(() => import('./pages/ServiceBookingCheckout'));
+const LazyDealCheckout = lazy(() => import('./pages/DealCheckout'));
 const LazyCheckoutCancel = lazy(() => import('./pages/CheckoutCancel'));
 const LazyListingDetail = lazy(() => import('./pages/ListingDetail'));
 const LazyNotFound = lazy(() => import('./pages/NotFound'));
@@ -659,6 +661,20 @@ function App() {
                     <RequireAuth>
                       <Suspense fallback={<LoadingPage message="Loading Membership..." />}>
                         <LazyMembership />
+                      </Suspense>
+                    </RequireAuth>
+                  } />
+                  <Route path="/service-bookings/:bookingId/pay" element={
+                    <RequireAuth>
+                      <Suspense fallback={<LoadingPage message="Loading payment..." />}>
+                        <LazyServiceBookingCheckout />
+                      </Suspense>
+                    </RequireAuth>
+                  } />
+                  <Route path="/deals/pay" element={
+                    <RequireAuth>
+                      <Suspense fallback={<LoadingPage message="Loading payment..." />}>
+                        <LazyDealCheckout />
                       </Suspense>
                     </RequireAuth>
                   } />
