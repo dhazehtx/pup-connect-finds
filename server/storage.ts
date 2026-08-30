@@ -1342,8 +1342,9 @@ export class DatabaseStorage implements IStorage {
   async decrementProductInventory(productId: string, quantity: number): Promise<boolean> {
     try {
       const result = await db.update(products)
-        .set({ 
-          inventory_qty: sql`${products.inventory_qty} - ${quantity}`,
+        .set({
+          // Floor at zero so inventory can never go negative on oversell.
+          inventory_qty: sql`GREATEST(${products.inventory_qty} - ${quantity}, 0)`,
           updated_at: new Date()
         })
         .where(eq(products.id, productId))

@@ -1924,124 +1924,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Webhook to handle successful payments
-  const processedWebhookEvents = new Set<string>();
-
-  const stripeWebhookHandler = async (req: any, res: any) => {
-    const sig = req.headers['stripe-signature'];
-    let event;
-
-    // Signature verification is mandatory; missing secret => fail closed.
-    if (!CONFIG_STRIPE_WEBHOOK_SECRET) {
-      console.error('[WEBHOOK] STRIPE_WEBHOOK_SECRET not configured — refusing unverified webhook.');
-      return res.status(503).json({ error: 'Webhook not configured' });
-    }
-
-    try {
-      const rawBody = req.rawBody || req.body;
-      event = getStripe().webhooks.constructEvent(rawBody, sig as string, CONFIG_STRIPE_WEBHOOK_SECRET);
-    } catch (error) {
-      debugApiLog('[PROOF:WEBHOOK:SIG_FAIL]', error);
-      return res.status(400).send('Webhook signature verification failed');
-    }
-
-    if (processedWebhookEvents.has(event.id)) {
-      debugApiLog(`[PROOF:WEBHOOK:DUPLICATE] event=${event.id} type=${event.type}`);
-      return res.json({ received: true, duplicate: true });
-    }
-    processedWebhookEvents.add(event.id);
-    if (processedWebhookEvents.size > 10000) {
-      const entries = Array.from(processedWebhookEvents);
-      entries.slice(0, 5000).forEach(e => processedWebhookEvents.delete(e));
-    }
-
-    debugApiLog(`[PROOF:WEBHOOK:RECEIVED] event=${event.id} type=${event.type}`);
-
-    try {
-      switch (event.type) {
-        case 'checkout.session.completed': {
-          const session = event.data.object as Stripe.Checkout.Session;
-          await processCheckoutSessionCompleted(session);
-          break;
-        }
-
-        case 'payment_intent.succeeded': {
-          const paymentIntent = event.data.object as Stripe.PaymentIntent;
-          if (paymentIntent.metadata?.userId) {
-            await storage.createTransaction({
-              user_id: paymentIntent.metadata.userId,
-              type: 'payment',
-              amount: (paymentIntent.amount / 100).toString(),
-              currency: paymentIntent.currency,
-              status: 'completed',
-              payment_method: 'stripe',
-              product_type: paymentIntent.metadata.productType || 'unknown',
-              stripe_payment_intent_id: paymentIntent.id,
-            });
-          }
-          debugApiLog(`[PROOF:WEBHOOK:PAYMENT_SUCCEEDED] pi=${paymentIntent.id}`);
-          break;
-        }
-
-        case 'payment_intent.payment_failed': {
-          const pi = event.data.object as Stripe.PaymentIntent;
-          debugApiLog(`[PROOF:WEBHOOK:PAYMENT_FAILED] pi=${pi.id}`);
-          break;
-        }
-
-        case 'customer.subscription.created':
-        case 'customer.subscription.updated': {
-          const subscription = event.data.object as Stripe.Subscription;
-          if (subscription.metadata?.userId) {
-            await storage.createTransaction({
-              user_id: subscription.metadata.userId,
-              type: 'subscription',
-              amount: ((subscription.items.data[0].price.unit_amount || 0) / 100).toString(),
-              currency: subscription.currency,
-              status: subscription.status === 'active' ? 'completed' : 'pending',
-              payment_method: 'stripe',
-              product_type: 'premium_subscription',
-              stripe_subscription_id: subscription.id,
-            });
-            const action = event.type === 'customer.subscription.created' ? 'create' : 'update';
-            await logSubscriptionAction(subscription.metadata.userId, action, subscription.id);
-          }
-          console.log('Subscription updated:', subscription.id);
-          break;
-        }
-
-        case 'customer.subscription.deleted': {
-          const canceledSubscription = event.data.object as Stripe.Subscription;
-          if (canceledSubscription.metadata?.userId) {
-            await storage.createTransaction({
-              user_id: canceledSubscription.metadata.userId,
-              type: 'subscription_cancel',
-              amount: "0",
-              currency: canceledSubscription.currency,
-              status: 'completed',
-              payment_method: 'stripe',
-              product_type: 'premium_subscription',
-              stripe_subscription_id: canceledSubscription.id,
-            });
-            await logSubscriptionAction(canceledSubscription.metadata.userId, 'delete', canceledSubscription.id);
-          }
-          console.log('Subscription canceled:', canceledSubscription.id);
-          break;
-        }
-
-        default:
-          debugApiLog(`[PROOF:WEBHOOK:UNHANDLED] type=${event.type}`);
-      }
-
-      res.json({ received: true });
-    } catch (error) {
-      debugApiLog('[PROOF:WEBHOOK:ERROR]', error);
-      res.status(500).json({ error: 'Webhook handler failed' });
-    }
-  };
-
-  app.post("/api/webhooks/stripe", stripeWebhookHandler);
-  app.post("/api/payments/webhook", stripeWebhookHandler);
+  // Canonical Stripe webhook — ONE authoritative, DB-idempotent handler.
+  // The documented /api/webhooks/stripe path, its /api/payments/webhook alias,
+  // and /api/stripe/webhook (mounted below) all delegate to the same router
+  // (server/routes/stripe/webhook.ts), which verifies the signature, preserves
+  // the raw body, fails closed without a secret, and dedupes via the shared
+  // stripe_idempotency ledger — so a Stripe event can never be independently
+  // double-processed. The previous inline handler used in-memory idempotency
+  // (lost on restart, not shared across replicas) and lacked the deal/refund/
+  // transfer/invoice handlers; it has been retired and its unique transaction-
+  // ledger behaviour folded into the canonical router.
+  app.use("/api/webhooks/stripe", stripeWebhookRouter);
+  app.use("/api/payments/webhook", stripeWebhookRouter);
 
   // GDPR Data Export Route
   app.get("/api/export-data", requireAuth, async (req, res) => {

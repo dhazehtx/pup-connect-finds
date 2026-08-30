@@ -171,26 +171,53 @@ export async function handleTransferResult(event: Stripe.Event): Promise<void> {
   }
 }
 
+/**
+ * Decide the order status to reflect a refund, given the order total and the
+ * cumulative amount refunded (both in cents). Pure + deterministic.
+ *   - null  → no meaningful refund / unusable total (leave order untouched)
+ *   - 'refunded'           → fully refunded (refunded >= total)
+ *   - 'partially_refunded' → some refunded, but less than the total
+ * Note: the partial AMOUNT is intentionally not represented (orders has no
+ * refund-amount column) — only the state.
+ */
+export function computeRefundedOrderStatus(
+  orderTotalCents: number,
+  cumulativeRefundedCents: number,
+): 'refunded' | 'partially_refunded' | null {
+  if (!Number.isFinite(orderTotalCents) || orderTotalCents <= 0) return null;
+  if (!Number.isFinite(cumulativeRefundedCents) || cumulativeRefundedCents <= 0) return null;
+  return cumulativeRefundedCents >= orderTotalCents ? 'refunded' : 'partially_refunded';
+}
+
 export async function handleRefund(event: Stripe.Event): Promise<void> {
   try {
     let refundId: string;
     let chargeId: string;
     let amount: number;
+    // Payment intent that ties the charge back to a PAWS order, and the
+    // cumulative amount refunded on the charge (present on charge.refunded),
+    // used to decide full vs partial refund for order-state sync.
+    let paymentIntentId: string | null = null;
+    let cumulativeRefundedCents: number | null = null;
 
     if (event.type === 'charge.refunded') {
       const charge = event.data.object as Stripe.Charge;
       // Get the latest refund from the charge
       const latestRefund = charge.refunds?.data?.[0];
       if (!latestRefund) return;
-      
+
       refundId = latestRefund.id;
       chargeId = charge.id;
       amount = latestRefund.amount;
+      paymentIntentId = typeof charge.payment_intent === 'string' ? charge.payment_intent : charge.payment_intent?.id ?? null;
+      cumulativeRefundedCents = charge.amount_refunded ?? amount;
     } else {
       const refund = event.data.object as Stripe.Refund;
       refundId = refund.id;
       chargeId = refund.charge as string;
       amount = refund.amount;
+      paymentIntentId = typeof refund.payment_intent === 'string' ? refund.payment_intent : (refund.payment_intent as any)?.id ?? null;
+      cumulativeRefundedCents = amount; // single-refund amount; compared to order total below
     }
 
     const query = `
@@ -206,6 +233,33 @@ export async function handleRefund(event: Stripe.Event): Promise<void> {
 
     await pool.query(query, [refundId, chargeId, amount]);
     console.log(`[STRIPE HANDLERS] Recorded refund ${refundId} for charge ${chargeId}`);
+
+    // Sync the owning PAWS order's state. Matched STRICTLY by payment intent, so a
+    // refund can only ever affect its own order (never another user's). The webhook
+    // layer's DB idempotency already prevents duplicate event processing, and the
+    // status-change guard makes the update itself idempotent.
+    // Limitation: the orders schema has no refund-amount column, so partial-refund
+    // AMOUNTS are not persisted here — only the state flag (Stripe holds the amounts).
+    if (paymentIntentId) {
+      const { rows } = await pool.query<{ id: string; amount_total: string; status: string }>(
+        `SELECT id, amount_total, status FROM orders
+         WHERE payment_intent_id = $1 OR stripe_payment_intent_id = $1
+         LIMIT 1`,
+        [paymentIntentId],
+      );
+      const order = rows[0];
+      if (order && (order.status === 'paid' || order.status === 'partially_refunded')) {
+        const orderTotalCents = Math.round(parseFloat(order.amount_total) * 100);
+        const newStatus = computeRefundedOrderStatus(orderTotalCents, cumulativeRefundedCents ?? 0);
+        if (newStatus) {
+          await pool.query(
+            `UPDATE orders SET status = $1, updated_at = NOW() WHERE id = $2 AND status <> $1`,
+            [newStatus, order.id],
+          );
+          console.log(`[STRIPE HANDLERS] Order ${order.id} refund state -> ${newStatus}`);
+        }
+      }
+    }
 
   } catch (error) {
     console.error('[STRIPE HANDLERS] Error handling refund:', error);

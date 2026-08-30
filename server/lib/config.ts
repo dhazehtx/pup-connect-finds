@@ -72,6 +72,46 @@ export function validateStripeKeyMode(): string[] {
   return problems;
 }
 
+/**
+ * The subset of validateStripeKeyMode() problems that are DANGEROUS enough to
+ * refuse startup (fail closed) — cases where we could silently process real
+ * money under the wrong environment. Deliberately does NOT include
+ * "production mode resolved but the key is a TEST key": that is the intended
+ * pre-launch posture (Stripe stays TEST while NODE_ENV=production) and must not
+ * block boot. Never returns key material.
+ */
+export function validateStripeKeyModeFatal(): string[] {
+  const fatal: string[] = [];
+  const secret = STRIPE_SECRET_KEY;
+  const pub = STRIPE_PUBLIC_KEY;
+  if (!secret) return fatal;
+
+  const secretIsLive = secret.startsWith('sk_live_') || secret.startsWith('rk_live_');
+  const secretIsTest = secret.startsWith('sk_test_') || secret.startsWith('rk_test_');
+
+  // A LIVE key resolved in a test/dev environment would charge real cards while
+  // the app believes it is in test — the most dangerous mismatch.
+  if (!IS_PROD && secretIsLive) {
+    fatal.push('A LIVE Stripe secret key is configured while test/development mode is resolved — refusing to start.');
+  }
+
+  // Publishable and secret keys from different Stripe modes (one live, one test).
+  if (pub) {
+    const pubLive = pub.startsWith('pk_live_');
+    const pubTest = pub.startsWith('pk_test_');
+    if ((secretIsLive && pubTest) || (secretIsTest && pubLive)) {
+      fatal.push('Stripe publishable and secret keys are from different modes (one live, one test) — refusing to start.');
+    }
+  }
+
+  // Real-money (production) mode with the mock placeholder secret would fail every charge.
+  if (IS_PROD && secret === 'sk_test_mock_key') {
+    fatal.push('Production mode resolved but STRIPE_SECRET_KEY is the mock placeholder — refusing to start.');
+  }
+
+  return fatal;
+}
+
 /** True only when a real (non-mock) Stripe secret key is configured. */
 export function hasUsableStripeSecret(): boolean {
   const k = STRIPE_SECRET_KEY.trim();

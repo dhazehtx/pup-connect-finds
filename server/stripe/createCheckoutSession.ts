@@ -1,8 +1,11 @@
 import Stripe from "stripe";
 import { storage } from "../storage";
+import { STRIPE_SECRET_KEY } from "../lib/config";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', { 
-  apiVersion: "2025-08-27.basil" 
+// Use the mode-resolved key (TEST/LIVE) from the single authoritative resolver,
+// not process.env directly, so this path can't drift to the wrong Stripe mode.
+const stripe = new Stripe(STRIPE_SECRET_KEY || '', {
+  apiVersion: "2025-08-27.basil"
 });
 
 export async function createCheckoutSession(

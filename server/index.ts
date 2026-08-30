@@ -127,17 +127,25 @@ app.use((req, res, next) => {
   }
 
   // Validate Stripe key/mode configuration on boot (never logs key material).
-  try {
-    const { validateStripeKeyMode, APP_ENV } = await import("./lib/config");
+  // FATAL mismatches (e.g. a LIVE key resolved in test mode, or mixed-mode keys)
+  // fail closed so a broken config can never silently process payments under the
+  // wrong environment. Benign problems (e.g. the intended TEST-key-while-
+  // NODE_ENV=production pre-launch posture) only warn and never block boot.
+  {
+    const { validateStripeKeyMode, validateStripeKeyModeFatal, APP_ENV } = await import("./lib/config");
+    const fatal = validateStripeKeyModeFatal();
+    if (fatal.length > 0) {
+      console.error(`[Startup] FATAL Stripe configuration (mode=${APP_ENV}) — refusing to boot:`);
+      for (const p of fatal) console.error(`  - ${p}`);
+      process.exit(1);
+    }
     const problems = validateStripeKeyMode();
     if (problems.length > 0) {
-      console.error(`[Startup] Stripe configuration problems (mode=${APP_ENV}):`);
-      for (const p of problems) console.error(`  - ${p}`);
+      console.warn(`[Startup] Stripe configuration warnings (mode=${APP_ENV}):`);
+      for (const p of problems) console.warn(`  - ${p}`);
     } else {
       console.log(`[Startup] Stripe key/mode validation passed (mode=${APP_ENV}).`);
     }
-  } catch (e) {
-    console.error("[Startup] Stripe config validation failed to run:", e);
   }
 
   const server = await registerRoutes(app);

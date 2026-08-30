@@ -123,6 +123,11 @@ router.post("/", async (req, res) => {
               debugApiLog(`[PROOF:WEBHOOK:PROCESSED] event=${event.id} type=payment_intent.succeeded kind=BALANCE`);
             }
           } else {
+            // Generic (non-deal) payment_intent + customer.subscription.* events
+            // only produced parallel `transactions`-ledger rows in the retired
+            // inline handler — out of scope here (subscription/ledger sprint) and
+            // previously un-deduped. Store fulfilment runs off checkout.session
+            // .completed above; subscription STATUS is synced via invoice.* below.
             console.log('[STRIPE WEBHOOK] Payment succeeded (non-deal):', pi.id);
           }
           break;

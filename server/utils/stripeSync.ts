@@ -1,12 +1,15 @@
 // @ts-nocheck
 import Stripe from 'stripe';
 import { storage } from '../storage';
+import { STRIPE_SECRET_KEY } from '../lib/config';
 
-if (!process.env.STRIPE_SECRET_KEY) {
+// Resolve the key through the single authoritative TEST/LIVE resolver (which
+// honours STRIPE_SECRET_KEY_LIVE/_TEST) instead of reading process.env directly.
+if (!STRIPE_SECRET_KEY) {
   throw new Error('STRIPE_SECRET_KEY is required');
 }
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+const stripe = new Stripe(STRIPE_SECRET_KEY, {
   apiVersion: '2025-07-30.basil',
 });
 

@@ -22,9 +22,18 @@ router.post("/session", authMiddleware, async (req, res) => {
 
     debugApiLog(`[PROOF:CHECKOUT:SESSION_START] user=${user_id} items=${cartItems.length}`);
 
+    const MAX_QTY_PER_ITEM = 100; // sane upper bound; blocks absurd/overflow quantities
     const resolved: { product: Awaited<ReturnType<typeof storage.getProduct>>; qty: number }[] = [];
     for (const item of cartItems) {
-      if (!item.id || !item.quantity || item.quantity < 1) {
+      // Quantity must be a positive integer within a sane bound — reject
+      // zero/negative, fractional, NaN, and unreasonably large quantities before
+      // any order row or Stripe session is created.
+      if (
+        !item.id ||
+        !Number.isInteger(item.quantity) ||
+        item.quantity < 1 ||
+        item.quantity > MAX_QTY_PER_ITEM
+      ) {
         return res.status(400).json({ error: `Invalid cart item: ${JSON.stringify(item)}` });
       }
       const product = await storage.getProduct(item.id);

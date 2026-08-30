@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { storage } from "../storage";
-import { authMiddleware } from "../middleware/auth";
+import { requireAuth, requireAdmin } from "../middleware/auth";
 
 const router = Router();
 
@@ -44,8 +44,10 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// POST /api/products - Create new product (admin only)
-router.post("/", authMiddleware, async (req, res) => {
+// POST /api/products - Create new product (admin only).
+// Authoritative catalog/price writes MUST be admin-gated — the prior soft
+// populate-only auth guard never rejected, letting anyone set product prices.
+router.post("/", requireAuth, requireAdmin, async (req, res) => {
   try {
     const product = await storage.createProduct(req.body);
     res.status(201).json(product);
@@ -55,8 +57,8 @@ router.post("/", authMiddleware, async (req, res) => {
   }
 });
 
-// POST /api/products/sync-stripe - Sync products from Stripe
-router.post("/sync-stripe", authMiddleware, async (req, res) => {
+// POST /api/products/sync-stripe - Sync products from Stripe (admin only).
+router.post("/sync-stripe", requireAuth, requireAdmin, async (req, res) => {
   try {
     const { syncStripeProducts } = await import("../utils/stripeSync");
     const syncedProducts = await syncStripeProducts();
@@ -70,8 +72,10 @@ router.post("/sync-stripe", authMiddleware, async (req, res) => {
   }
 });
 
-// POST /api/products/:id/checkout - Create Stripe checkout session
-router.post("/:id/checkout", authMiddleware, async (req, res) => {
+// POST /api/products/:id/checkout - Create Stripe checkout session (must be
+// authenticated so the purchase is attributable; canonical store checkout is
+// POST /api/checkout/session).
+router.post("/:id/checkout", requireAuth, async (req, res) => {
   try {
     const { createStripeCheckoutSession } = await import("../utils/stripeSync");
     const { quantity = 1 } = req.body;

@@ -4,13 +4,14 @@ import { db } from '../db';
 import { refundRequests, transactions, profiles, InsertRefundRequest } from '@shared/schema';
 import { eq, and, desc } from 'drizzle-orm';
 import crypto from 'crypto';
+import { STRIPE_SECRET_KEY } from '../lib/config';
 
-
-if (!process.env.STRIPE_SECRET_KEY) {
+// Use the single authoritative TEST/LIVE resolver rather than process.env directly.
+if (!STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
 }
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+const stripe = new Stripe(STRIPE_SECRET_KEY, {
   apiVersion: '2025-08-27.basil',
 });
 
