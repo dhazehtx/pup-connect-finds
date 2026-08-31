@@ -33,9 +33,9 @@ describe('breeder commission is server-configured (not the legacy 8%)', () => {
     process.env.CONNECT_APP_FEE_BPS = '500';
     expect(getBreederPlatformFeeBps()).toBe(500);
   });
-  it('the deal fee is derived from the breeder knob, server-side', () => {
+  it('the deal fee is derived from the breeder knob, server-side (0% for rehoming/shelter)', () => {
     expect(deals).toMatch(/getBreederPlatformFeeBps\(\)/);
-    expect(deals).toMatch(/platformFeeCents = Math\.round\(totalCents \* \(PLATFORM_FEE_BPS \/ 10000\)\)/);
+    expect(deals).toMatch(/platformFeeCents = commissionExempt \? 0 : Math\.round\(totalCents \* \(PLATFORM_FEE_BPS \/ 10000\)\)/);
   });
 });
 

@@ -135,9 +135,12 @@ describe('user ↔ Stripe customer binding is by user id, not email', () => {
 describe('reachable, server-authoritative membership purchase path', () => {
   const membership = read('server/routes/membership.ts');
   const app = read('client/src/App.tsx');
-  it('the membership page is routed (RequireAuth) and imported', () => {
-    expect(app).toMatch(/path="\/membership"/);
-    expect(app).toMatch(/LazyMembership/);
+  it('the membership page is UNROUTED for v1 (no paid platform membership) and the API fails safe', () => {
+    // Product decision 2026-08-31: PAWS v1 has no paid membership. The page must
+    // not be reachable; the dormant API stays mounted but fails safe (no Price
+    // IDs configured → empty plans, checkout 400, entitlement never granted).
+    expect(app).not.toMatch(/path="\/membership"/);
+    expect(app).not.toMatch(/LazyMembership/);
   });
   it('checkout maps the client tier NAME to an allowed server price (no client price/tier trust)', () => {
     expect(membership).toMatch(/getMembershipPlanByTier\(String\(tier\)\)/);

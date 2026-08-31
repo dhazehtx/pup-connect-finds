@@ -140,8 +140,11 @@ router.post("/:listingId/deposit", async (req: Request, res: Response) => {
     const { listingId } = req.params;
 
     const { rows: listings } = await pool.query(
-      `SELECT id, user_id, price, status, listing_status, dog_name FROM dog_listings 
-       WHERE id = $1 AND deleted_at IS NULL`,
+      `SELECT l.id, l.user_id, l.price, l.status, l.listing_status, l.dog_name, l.rehoming,
+              p.user_type AS seller_user_type
+       FROM dog_listings l
+       LEFT JOIN profiles p ON p.id = l.user_id
+       WHERE l.id = $1 AND l.deleted_at IS NULL`,
       [listingId]
     );
     if (!listings[0]) return res.status(404).json({ error: "Listing not found" });
@@ -165,7 +168,12 @@ router.post("/:listingId/deposit", async (req: Request, res: Response) => {
     const totalCents = Math.round(parseFloat(listing.price) * 100);
     const depositCents = Math.round(totalCents * (DEPOSIT_PERCENT / 100));
     const balanceCents = totalCents - depositCents;
-    const platformFeeCents = Math.round(totalCents * (PLATFORM_FEE_BPS / 10000));
+    // PAWS v1 policy: individual rehoming and shelter/rescue transactions carry
+    // 0% PAWS commission. The fee is fixed here at deal creation and flows to
+    // release from the stored platform_fee_cents, so a zero fee means the
+    // seller receives the full amount.
+    const commissionExempt = listing.rehoming === true || listing.seller_user_type === 'shelter';
+    const platformFeeCents = commissionExempt ? 0 : Math.round(totalCents * (PLATFORM_FEE_BPS / 10000));
 
     const reservedUntil = new Date(Date.now() + RESERVATION_HOURS * 60 * 60 * 1000);
 

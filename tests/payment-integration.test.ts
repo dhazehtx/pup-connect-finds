@@ -50,10 +50,10 @@ describe('Stripe Elements confirmation UIs are safe + webhook-authoritative', ()
 // ─────────────────────────── route discoverability ───────────────────────────
 describe('the four payment surfaces are routed/reachable', () => {
   const app = read('client/src/App.tsx');
-  it('membership, service-booking pay, and deal pay are routed (auth-gated)', () => {
-    expect(app).toMatch(/path="\/membership"/);
+  it('service-booking pay and deal pay are routed; membership is NOT (v1: no paid membership)', () => {
     expect(app).toMatch(/path="\/service-bookings\/:bookingId\/pay"/);
     expect(app).toMatch(/path="\/deals\/pay"/);
+    expect(app).not.toMatch(/path="\/membership"/); // product decision 2026-08-31
   });
   it('store checkout + cart remain routed', () => {
     expect(app).toMatch(/path="\/cart"/);
@@ -108,6 +108,30 @@ describe('the canonical webhook consumes exactly the required event set', () => 
   it('verifies the signature and is DB-idempotent', () => {
     expect(wh).toMatch(/constructEvent\(body, sig, STRIPE_WEBHOOK_SECRET\)/);
     expect(wh).toMatch(/withDbIdempotency\(event\.id/);
+  });
+});
+
+// ─────────────────────────── v1 monetization policy ───────────────────────────
+describe('v1 monetization policy (product decision 2026-08-31)', () => {
+  it('rehoming and shelter/rescue protected payments carry 0% PAWS commission', () => {
+    const deals = read('server/routes/deals.ts');
+    expect(deals).toMatch(/commissionExempt = listing\.rehoming === true \|\| listing\.seller_user_type === 'shelter'/);
+    expect(deals).toMatch(/commissionExempt \? 0 :/);
+    // the fee is derived from listing + seller type, never from the client
+    expect(deals).toMatch(/l\.rehoming/);
+    expect(deals).toMatch(/p\.user_type AS seller_user_type/);
+  });
+  it('Pup Box product subscriptions remain intact and reachable', () => {
+    const routes = read('server/routes.ts');
+    expect(routes).toMatch(/app\.use\('\/api\/pupbox', pupboxRouter\)/);
+    expect(routes).toMatch(/app\.use\('\/api\/checkout', checkoutRouter\)/);
+    // subscription-mode store checkout (the Pup Box path) still supported
+    expect(read('server/routes/checkout.ts')).toMatch(/mode === "subscription"/);
+  });
+  it('the dormant membership API cannot grant entitlement without configured plans', () => {
+    const m = read('server/routes/membership.ts');
+    expect(m).toMatch(/INVALID_MEMBERSHIP_TIER/); // unconfigured tier → 400 fail-safe
+    expect(m).not.toMatch(/INSERT INTO memberships/); // route never writes entitlement
   });
 });
 

@@ -28,7 +28,10 @@ import { LoadingPage } from './components/ui/loading';
 const LazyMarketplace = lazy(() => import('./pages/Marketplace'));
 const LazyCart = lazy(() => import('./pages/Cart'));
 const LazyCheckoutSuccess = lazy(() => import('./pages/CheckoutSuccess'));
-const LazyMembership = lazy(() => import('./pages/Membership'));
+// PAWS v1 has no paid platform membership (product decision 2026-08-31): the
+// membership page (pages/Membership.tsx) is deliberately UNROUTED. Monetization
+// is Store margin, Pup Box subscriptions, and service/protected-payment
+// commissions. Do not re-route without a product decision.
 const LazyServiceBookingCheckout = lazy(() => import('./pages/ServiceBookingCheckout'));
 const LazyDealCheckout = lazy(() => import('./pages/DealCheckout'));
 const LazyCheckoutCancel = lazy(() => import('./pages/CheckoutCancel'));
@@ -656,13 +659,6 @@ function App() {
                         <PrivacySettingsPage />
                       </Suspense>
                     </ProtectedRoute>
-                  } />
-                  <Route path="/membership" element={
-                    <RequireAuth>
-                      <Suspense fallback={<LoadingPage message="Loading Membership..." />}>
-                        <LazyMembership />
-                      </Suspense>
-                    </RequireAuth>
                   } />
                   <Route path="/service-bookings/:bookingId/pay" element={
                     <RequireAuth>
