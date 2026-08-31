@@ -106,7 +106,8 @@ describe('the canonical webhook consumes exactly the required event set', () => 
     for (const ev of required) expect(wh).toContain(`'${ev}'`);
   });
   it('verifies the signature and is DB-idempotent', () => {
-    expect(wh).toMatch(/constructEvent\(body, sig, STRIPE_WEBHOOK_SECRET\)/);
+    expect(wh).toMatch(/constructEvent\(body, sig, secret\)/); // dual-secret loop
+    expect(wh).toMatch(/\[STRIPE_WEBHOOK_SECRET, STRIPE_CONNECT_WEBHOOK_SECRET\]\.filter\(Boolean\)/);
     expect(wh).toMatch(/withDbIdempotency\(event\.id/);
   });
 });

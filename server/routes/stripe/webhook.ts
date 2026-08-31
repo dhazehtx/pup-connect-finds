@@ -1,7 +1,7 @@
 import { debugApiLog } from '../../lib/debugApi';
 import { Router } from "express";
 import Stripe from "stripe";
-import { STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, IS_PROD } from "../../lib/config";
+import { STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_CONNECT_WEBHOOK_SECRET, IS_PROD } from "../../lib/config";
 import { 
   upsertProviderStatus, 
   logStripeEvent, 
@@ -42,18 +42,32 @@ router.post("/", async (req, res) => {
     return res.json({ received: true, status: 'stripe_not_configured' });
   }
 
-  if (!STRIPE_WEBHOOK_SECRET) {
+  // Stripe issues a separate signing secret per destination. The platform
+  // destination signs with STRIPE_WEBHOOK_SECRET; the optional Connect
+  // destination (scope "Connected accounts", e.g. account.updated) signs with
+  // STRIPE_CONNECT_WEBHOOK_SECRET. Accept a signature valid under EITHER
+  // configured secret — never an unsigned/unverified payload. The Connect
+  // secret is additive: absent, behavior is identical to before.
+  const verificationSecrets = [STRIPE_WEBHOOK_SECRET, STRIPE_CONNECT_WEBHOOK_SECRET].filter(Boolean);
+  if (verificationSecrets.length === 0) {
     console.error('[STRIPE WEBHOOK] STRIPE_WEBHOOK_SECRET not configured — cannot verify signatures.');
     if (IS_PROD) return res.status(503).json({ error: 'Webhook not configured' });
     return res.json({ received: true, status: 'webhook_secret_not_configured' });
   }
 
-  let event: Stripe.Event;
-  try {
-    event = stripe.webhooks.constructEvent(body, sig, STRIPE_WEBHOOK_SECRET);
-  } catch (err: any) {
-    console.error('[STRIPE WEBHOOK] Signature verification failed:', err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+  let event: Stripe.Event | null = null;
+  let lastVerifyError = 'signature verification failed';
+  for (const secret of verificationSecrets) {
+    try {
+      event = stripe.webhooks.constructEvent(body, sig, secret);
+      break;
+    } catch (err: any) {
+      lastVerifyError = err?.message || lastVerifyError; // message only — never a secret
+    }
+  }
+  if (!event) {
+    console.error('[STRIPE WEBHOOK] Signature verification failed:', lastVerifyError);
+    return res.status(400).send(`Webhook Error: ${lastVerifyError}`);
   }
 
   try {

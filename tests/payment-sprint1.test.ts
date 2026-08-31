@@ -42,8 +42,11 @@ describe('unified Stripe webhook architecture', () => {
     expect(routes).not.toMatch(/const stripeWebhookHandler/);
   });
   it('the canonical router verifies signatures, fails closed, and dedupes in the DB', () => {
-    expect(canonical).toMatch(/constructEvent\(body, sig, STRIPE_WEBHOOK_SECRET\)/);
-    expect(canonical).toMatch(/IS_PROD\) return res\.status\(503\)/); // fail closed w/o secret
+    // Dual-secret verification: platform + optional Connect destination secret,
+    // tried via constructEvent only — never an unsigned payload.
+    expect(canonical).toMatch(/\[STRIPE_WEBHOOK_SECRET, STRIPE_CONNECT_WEBHOOK_SECRET\]\.filter\(Boolean\)/);
+    expect(canonical).toMatch(/constructEvent\(body, sig, secret\)/);
+    expect(canonical).toMatch(/IS_PROD\) return res\.status\(503\)/); // fail closed w/o any secret
     expect(canonical).toMatch(/return res\.status\(400\)/); // bad signature
     expect(canonical).toMatch(/withDbIdempotency\(event\.id/); // DB-backed dedupe
   });

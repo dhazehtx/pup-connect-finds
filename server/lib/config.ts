@@ -36,6 +36,18 @@ export const STRIPE_WEBHOOK_SECRET = IS_PROD
   : (process.env.STRIPE_WEBHOOK_SECRET_TEST || process.env.STRIPE_WEBHOOK_SECRET || '');
 
 /**
+ * OPTIONAL second signing secret for the Stripe Connect webhook destination
+ * (scope "Connected accounts", e.g. account.updated). Stripe issues each
+ * destination its own signing secret, so the canonical router accepts a valid
+ * signature from EITHER the platform secret above OR this one. Additive: when
+ * unset, the platform webhook behaves exactly as before and startup is
+ * unaffected. Same mode-aware naming convention as the platform secret.
+ */
+export const STRIPE_CONNECT_WEBHOOK_SECRET = IS_PROD
+  ? (process.env.STRIPE_CONNECT_WEBHOOK_SECRET_LIVE || process.env.STRIPE_CONNECT_WEBHOOK_SECRET || '')
+  : (process.env.STRIPE_CONNECT_WEBHOOK_SECRET_TEST || process.env.STRIPE_CONNECT_WEBHOOK_SECRET || '');
+
+/**
  * Validate that the resolved Stripe keys match the resolved mode, and never mix a
  * live key with a test key. Returns a list of human-readable problems (empty = OK).
  * Never logs or returns key material.
