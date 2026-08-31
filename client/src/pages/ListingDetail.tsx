@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Share, Heart, MapPin, Calendar, Ruler, Award, PawPrint, ChevronRight, Pencil } from 'lucide-react';
+import { ArrowLeft, Share, Heart, MapPin, Calendar, Ruler, Award, PawPrint, ChevronRight, Pencil, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -27,6 +27,8 @@ type ListingDetailData = {
   neutered_spayed?: boolean;
   good_with_kids?: boolean;
   good_with_dogs?: boolean;
+  status?: string;
+  listing_status?: string;
   profiles?: Record<string, any>;
 };
 
@@ -420,17 +422,40 @@ const ListingDetail = () => {
               Edit listing
             </Button>
           ) : (
-            <Button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleContactSeller();
-              }}
-              className="min-h-[44px] flex-1 bg-blue-600 font-semibold text-white shadow-sm hover:bg-blue-700"
-              disabled={!listing || !listing.user_id}
-            >
-              Contact Seller
-            </Button>
+            <>
+              {/* Protected Payment CTA — only for eligible listings (active, priced,
+                  not the viewer's own). The server derives the authoritative price,
+                  seller, and commission; this only carries the listing id. The
+                  /deals/pay route is auth-gated, so signed-out users go through auth. */}
+              {listing &&
+                listing.user_id &&
+                Number(listing.price) > 0 &&
+                (listing.status === 'active' || listing.listing_status === 'active') && (
+                  <Button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      navigate(`/deals/pay?listingId=${listing.id}`);
+                    }}
+                    className="min-h-[44px] flex-1 bg-emerald-600 font-semibold text-white shadow-sm hover:bg-emerald-700"
+                    aria-label="Start a Protected Payment for this listing"
+                  >
+                    <ShieldCheck size={16} className="mr-2" aria-hidden />
+                    Protected Payment
+                  </Button>
+                )}
+              <Button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleContactSeller();
+                }}
+                className="min-h-[44px] flex-1 bg-blue-600 font-semibold text-white shadow-sm hover:bg-blue-700"
+                disabled={!listing || !listing.user_id}
+              >
+                Contact Seller
+              </Button>
+            </>
           )}
           
           <Button
