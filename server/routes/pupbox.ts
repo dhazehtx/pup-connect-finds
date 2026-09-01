@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { storage } from "../storage";
 import { parsePupboxCatalogFromEnv } from "../lib/pupboxCatalog";
-import { dbProductIdFromStripeProductId } from "../lib/storeProductId";
+import { dbProductIdForPupboxVariant } from "../lib/storeProductId";
 
 const router = Router();
 
@@ -22,7 +22,9 @@ router.get("/plans", async (_req, res) => {
 
     const plans = await Promise.all(
       entries.map(async (e) => {
-        const dbId = dbProductIdFromStripeProductId(e.stripeProductId);
+        // Variant-scoped id: monthly and one-time under the same Stripe Product
+        // must resolve to DIFFERENT purchasable rows (the cart buys this id).
+        const dbId = dbProductIdForPupboxVariant(e.stripeProductId, e.stripePriceId);
         const product = await storage.getProduct(dbId);
         return {
           key: e.key,

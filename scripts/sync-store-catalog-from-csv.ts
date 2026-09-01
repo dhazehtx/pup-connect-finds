@@ -17,7 +17,7 @@ const ROOT = path.resolve(__dirname, "..");
 const DATA_DIR = path.join(ROOT, "scripts/data/store");
 const PUBLIC_PRODUCTS = path.join(ROOT, "client/public/products");
 
-import { dbProductIdFromStripeProductId } from "../server/lib/storeProductId.ts";
+import { dbProductIdFromStripeProductId, dbProductIdForPupboxVariant } from "../server/lib/storeProductId.ts";
 import { parsePupboxCatalogFromEnv } from "../server/lib/pupboxCatalog.ts";
 
 type ProductRow = { id: string; Name: string; Description: string };
@@ -176,7 +176,10 @@ async function main() {
 
   const pupEntries = parsePupboxCatalogFromEnv();
   for (const e of pupEntries) {
-    const rowId = dbProductIdFromStripeProductId(e.stripeProductId);
+    // Variant-scoped id (product + price): monthly and one-time variants that
+    // share a Stripe Product get DISTINCT purchasable rows — the previous
+    // product-only derivation collided them (second upsert overwrote the first).
+    const rowId = dbProductIdForPupboxVariant(e.stripeProductId, e.stripePriceId);
     const imageUrl = heroImageUrl(e.stripeProductId);
     const tags = ["pup-box"];
     await pool.query(
@@ -224,7 +227,25 @@ async function main() {
     upserted++;
     console.log(`[sync-store] Pup Box upserted ${e.key} (${e.stripeProductId}) → ${rowId}`);
   }
-  if (pupEntries.length === 0) {
+  if (pupEntries.length > 0) {
+    // Self-heal: deactivate legacy Pup Box rows keyed by the OLD product-only
+    // derivation (the collided 3-row state). Guarded by the pup-box tag so no
+    // Store CSV row can ever be touched, and idempotent (no-op once inactive).
+    const variantIds = new Set(
+      pupEntries.map((e) => dbProductIdForPupboxVariant(e.stripeProductId, e.stripePriceId)),
+    );
+    const legacyIds = [
+      ...new Set(pupEntries.map((e) => dbProductIdFromStripeProductId(e.stripeProductId))),
+    ].filter((id) => !variantIds.has(id));
+    if (legacyIds.length > 0) {
+      const legacy = await pool.query(
+        `UPDATE products SET is_active = false, updated_at = NOW()
+         WHERE id = ANY($1::text[]) AND tags @> ARRAY['pup-box'] AND is_active = true`,
+        [legacyIds],
+      );
+      console.log(`[sync-store] Deactivated legacy collided Pup Box rows: ${legacy.rowCount ?? 0}`);
+    }
+  } else {
     console.log("[sync-store] No PUPBOX_CATALOG_JSON — skip Pup Box rows (optional).");
   }
 
