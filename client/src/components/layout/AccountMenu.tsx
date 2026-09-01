@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, List, PlusCircle, Heart, ShoppingBag, MessageCircle, Settings, LogOut } from 'lucide-react';
+import { User, List, PlusCircle, Heart, ShoppingBag, ShieldCheck, MessageCircle, Settings, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 /**
@@ -24,6 +24,7 @@ const ACCOUNT_LINKS = [
   { to: '/create-listing', label: 'Create Listing', icon: PlusCircle },
   { to: '/favorites', label: 'Favorites', icon: Heart },
   { to: '/orders', label: 'Orders', icon: ShoppingBag },
+  { to: '/deals', label: 'Protected Payments', icon: ShieldCheck },
   { to: '/messages', label: 'Messages', icon: MessageCircle },
   { to: '/settings', label: 'Settings', icon: Settings },
 ] as const;

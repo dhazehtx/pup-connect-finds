@@ -34,6 +34,8 @@ const LazyCheckoutSuccess = lazy(() => import('./pages/CheckoutSuccess'));
 // commissions. Do not re-route without a product decision.
 const LazyServiceBookingCheckout = lazy(() => import('./pages/ServiceBookingCheckout'));
 const LazyDealCheckout = lazy(() => import('./pages/DealCheckout'));
+const LazyMyDeals = lazy(() => import('./pages/MyDeals'));
+const LazyDealDetail = lazy(() => import('./pages/DealDetail'));
 const LazyCheckoutCancel = lazy(() => import('./pages/CheckoutCancel'));
 const LazyListingDetail = lazy(() => import('./pages/ListingDetail'));
 const LazyNotFound = lazy(() => import('./pages/NotFound'));
@@ -671,6 +673,20 @@ function App() {
                     <RequireAuth>
                       <Suspense fallback={<LoadingPage message="Loading payment..." />}>
                         <LazyDealCheckout />
+                      </Suspense>
+                    </RequireAuth>
+                  } />
+                  <Route path="/deals" element={
+                    <RequireAuth>
+                      <Suspense fallback={<LoadingPage message="Loading Protected Payments..." />}>
+                        <LazyMyDeals />
+                      </Suspense>
+                    </RequireAuth>
+                  } />
+                  <Route path="/deals/:dealId" element={
+                    <RequireAuth>
+                      <Suspense fallback={<LoadingPage message="Loading transaction..." />}>
+                        <LazyDealDetail />
                       </Suspense>
                     </RequireAuth>
                   } />
