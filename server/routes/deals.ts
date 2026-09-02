@@ -15,6 +15,14 @@ const stripe = STRIPE_SECRET_KEY
   : null;
 
 const DEPOSIT_PERCENT = 20;
+/** Stripe's minimum USD charge. A deposit below this is rejected by Stripe
+ *  (amount_too_small — proven in TEST cert on a $1.00 listing / $0.20 deposit). */
+const STRIPE_MIN_CHARGE_CENTS = 50;
+/** Smallest sale price whose 20% deposit clears the Stripe minimum ($2.50).
+ *  The 80% balance is then automatically >= the minimum too. This is an
+ *  ELIGIBILITY floor for Protected Payment only — dog listings themselves stay
+ *  free to create/publish at any price; this is never a listing fee. */
+const MIN_PROTECTED_PAYMENT_TOTAL_CENTS = Math.ceil(STRIPE_MIN_CHARGE_CENTS / (DEPOSIT_PERCENT / 100));
 /** Breeder platform fee (basis points) recorded on the deal; the seller payout is
  *  net of this. Server-side, config-driven (BREEDER_PLATFORM_FEE_BPS), default 0. */
 const PLATFORM_FEE_BPS = getBreederPlatformFeeBps();
@@ -166,6 +174,15 @@ router.post("/:listingId/deposit", async (req: Request, res: Response) => {
     }
 
     const totalCents = Math.round(parseFloat(listing.price) * 100);
+    // Eligibility gate BEFORE any deal is created: a sub-minimum sale price
+    // would produce a deposit Stripe cannot charge (amount_too_small). Clear
+    // PAWS message, no Stripe internals, nothing written.
+    if (totalCents < MIN_PROTECTED_PAYMENT_TOTAL_CENTS) {
+      return res.status(400).json({
+        error: `Protected Payment requires a sale price of at least $${(MIN_PROTECTED_PAYMENT_TOTAL_CENTS / 100).toFixed(2)}.`,
+        code: "PROTECTED_PAYMENT_MIN_PRICE",
+      });
+    }
     const depositCents = Math.round(totalCents * (DEPOSIT_PERCENT / 100));
     const balanceCents = totalCents - depositCents;
     // PAWS v1 policy: individual rehoming and shelter/rescue transactions carry
@@ -185,29 +202,49 @@ router.post("/:listingId/deposit", async (req: Request, res: Response) => {
     );
     const dealId = dealRows[0].id;
 
-    const customerId = await getOrCreateStripeCustomer(userId, req.user?.email ?? undefined);
+    // Failure atomicity: everything after the deal INSERT (customer binding, PI
+    // creation, payment-row insert) can fail without a charge existing. If it
+    // does, the brand-new deal must not stay RESERVED — that would block the
+    // listing behind the duplicate-active-deal guard with no buyer retry path.
+    // Cancel it (terminal status the guard ignores) and fail cleanly. The guard
+    // is status='RESERVED' so a deal with any real progress can never be
+    // touched, and no financial history exists yet to destroy.
+    let paymentIntent: Stripe.PaymentIntent;
+    try {
+      const customerId = await getOrCreateStripeCustomer(userId, req.user?.email ?? undefined);
 
-    // Funds stay on the platform account until POST /release creates a Connect transfer (escrow).
-    const piParams: Stripe.PaymentIntentCreateParams = {
-      amount: depositCents,
-      currency: "usd",
-      customer: customerId,
-      metadata: {
-        deal_id: dealId,
-        listing_id: listingId,
-        kind: "DEPOSIT",
-        user_id: userId,
-      },
-      automatic_payment_methods: { enabled: true },
-    };
+      // Funds stay on the platform account until POST /release creates a Connect transfer (escrow).
+      const piParams: Stripe.PaymentIntentCreateParams = {
+        amount: depositCents,
+        currency: "usd",
+        customer: customerId,
+        metadata: {
+          deal_id: dealId,
+          listing_id: listingId,
+          kind: "DEPOSIT",
+          user_id: userId,
+        },
+        automatic_payment_methods: { enabled: true },
+      };
 
-    const paymentIntent = await stripe.paymentIntents.create(piParams);
+      paymentIntent = await stripe.paymentIntents.create(piParams);
 
-    await pool.query(
-      `INSERT INTO deal_payments (deal_id, kind, stripe_payment_intent_id, amount_cents, status)
-       VALUES ($1, 'DEPOSIT', $2, $3, 'pending')`,
-      [dealId, paymentIntent.id, depositCents]
-    );
+      await pool.query(
+        `INSERT INTO deal_payments (deal_id, kind, stripe_payment_intent_id, amount_cents, status)
+         VALUES ($1, 'DEPOSIT', $2, $3, 'pending')`,
+        [dealId, paymentIntent.id, depositCents]
+      );
+    } catch (initError: any) {
+      console.error("[DEAL:DEPOSIT] payment init failed — canceling fresh deal:", initError?.message);
+      await pool.query(
+        `UPDATE deals SET status = 'CANCELED', updated_at = NOW() WHERE id = $1 AND status = 'RESERVED'`,
+        [dealId]
+      );
+      return res.status(502).json({
+        error: "Could not start the payment. No charge was made — please try again.",
+        code: "PAYMENT_INIT_FAILED",
+      });
+    }
 
     debugApiLog(`[PROOF:DEAL:DEPOSIT_INITIATED] deal=${dealId} pi=${paymentIntent.id} amount=${depositCents}`);
 

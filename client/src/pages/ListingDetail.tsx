@@ -423,13 +423,17 @@ const ListingDetail = () => {
             </Button>
           ) : (
             <>
-              {/* Protected Payment CTA — only for eligible listings (active, priced,
-                  not the viewer's own). The server derives the authoritative price,
-                  seller, and commission; this only carries the listing id. The
-                  /deals/pay route is auth-gated, so signed-out users go through auth. */}
+              {/* Protected Payment CTA — only for eligible listings (active, priced
+                  at or above the server's Protected Payment minimum, not the
+                  viewer's own). The server derives the authoritative price, seller,
+                  and commission; this only carries the listing id. The /deals/pay
+                  route is auth-gated, so signed-out users go through auth.
+                  2.50 mirrors MIN_PROTECTED_PAYMENT_TOTAL_CENTS in
+                  server/routes/deals.ts (20% deposit must clear Stripe's $0.50
+                  minimum charge) — the server independently enforces it. */}
               {listing &&
                 listing.user_id &&
-                Number(listing.price) > 0 &&
+                Number(listing.price) >= 2.5 &&
                 (listing.status === 'active' || listing.listing_status === 'active') && (
                   <Button
                     onClick={(e) => {
@@ -443,6 +447,15 @@ const ListingDetail = () => {
                     <ShieldCheck size={16} className="mr-2" aria-hidden />
                     Protected Payment
                   </Button>
+                )}
+              {listing &&
+                listing.user_id &&
+                Number(listing.price) > 0 &&
+                Number(listing.price) < 2.5 &&
+                (listing.status === 'active' || listing.listing_status === 'active') && (
+                  <p className="w-full text-xs text-gray-500">
+                    Protected Payment is available for sale prices of $2.50 and up.
+                  </p>
                 )}
               <Button
                 onClick={(e) => {
