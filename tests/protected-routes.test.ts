@@ -33,13 +33,14 @@ describe('authenticated routes are guarded in App.tsx', () => {
 
 describe('RequireAuth redirects anonymous users (does not render children)', () => {
   const ra = read('client/src/components/RequireAuth.tsx');
-  it('redirects to /greeting only after auth is loaded and there is no user', () => {
+  it('redirects to sign-in only after auth is loaded, preserving the destination', () => {
     // shows a loading state until auth resolves (no premature render/redirect)
     expect(ra).toMatch(/if \(loading \|\| !loaded\)/);
     // the redirect condition is loaded && !loading && !user
     expect(ra).toMatch(/loaded && !loading && !user/);
-    // anonymous users are navigated away to /greeting
-    expect(ra).toMatch(/<Navigate to="\/greeting" replace \/>/);
+    // anonymous users go to /auth WITH the intended destination (?next= + state)
+    expect(ra).toMatch(/<Navigate to=\{`\/auth\?next=\$\{nextParam\}`\} state=\{\{ from: location \}\} replace \/>/);
+    expect(ra).toMatch(/location\.pathname \+ location\.search/);
     // children only render on the authenticated fall-through
     expect(ra).toMatch(/return children;/);
   });

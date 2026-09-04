@@ -33,12 +33,18 @@ export default function RequireAuth({ children }: { children: JSX.Element }) {
     });
   }, [stableUserId, !!user, loading, loaded, location.pathname]);
 
-  // HARDEN GUARD REDIRECT SAFETY - Prevent redundant redirects  
+  // Signed-out users go to sign-in with the intended destination preserved
+  // (Auth.tsx already honors ?next= and location.state.from) — a buyer who taps
+  // "Protected Payment" signed out must land back on checkout after auth, not
+  // on the homepage.
+  const nextParam = encodeURIComponent(location.pathname + location.search);
+
+  // HARDEN GUARD REDIRECT SAFETY - Prevent redundant redirects
   const shouldRedirect = useMemo(() => {
     // CRITICAL: Don't redirect until auth is fully loaded to prevent false "Session Expired"
     const result = loaded && !loading && !user;
     const currentPath = location.pathname;
-    const targetPath = '/greeting';
+    const targetPath = '/auth';
     const alreadyOnTarget = currentPath === targetPath;
     
     if (DEBUG) console.debug('[REQUIRE AUTH] Redirect decision:', {
@@ -54,10 +60,10 @@ export default function RequireAuth({ children }: { children: JSX.Element }) {
     
     // Don't redirect if already on target path
     if (result && alreadyOnTarget) {
-      if (DEBUG) console.debug('[NAV GUARD] Already on target path (/greeting), skipping redirect');
+      if (DEBUG) console.debug('[NAV GUARD] Already on target path (/auth), skipping redirect');
       return false;
     }
-    
+
     return result;
   }, [loading, loaded, !!user, location.pathname]);
 
@@ -69,8 +75,8 @@ export default function RequireAuth({ children }: { children: JSX.Element }) {
 
   // EXECUTE REDIRECT - Only when truly needed and not already on target
   if (shouldRedirect) {
-    if (DEBUG) console.debug('[NAV GUARD] Executing redirect - user not authenticated, redirecting from', location.pathname, 'to /greeting');
-    return <Navigate to="/greeting" replace />;
+    if (DEBUG) console.debug('[NAV GUARD] Executing redirect - user not authenticated, redirecting from', location.pathname, 'to /auth');
+    return <Navigate to={`/auth?next=${nextParam}`} state={{ from: location }} replace />;
   }
 
   if (DEBUG) console.debug('[REQUIRE AUTH] User authenticated, rendering protected content for:', location.pathname);

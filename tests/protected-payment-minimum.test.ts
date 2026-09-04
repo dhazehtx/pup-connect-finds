@@ -29,8 +29,9 @@ const deposit = (totalCents: number) => Math.round(totalCents * (DEPOSIT_PERCENT
 describe('minimum eligible transaction price (Option A)', () => {
   it('the server derives the floor from the Stripe minimum: $2.50', () => {
     expect(MIN_TOTAL).toBe(250);
-    expect(deals).toMatch(/const STRIPE_MIN_CHARGE_CENTS = 50/);
-    expect(deals).toMatch(/Math\.ceil\(STRIPE_MIN_CHARGE_CENTS \/ \(DEPOSIT_PERCENT \/ 100\)\)/);
+    const rules = read('server/lib/dealRules.ts');
+    expect(rules).toMatch(/const STRIPE_MIN_CHARGE_CENTS = 50/);
+    expect(rules).toMatch(/Math\.ceil\(\s*STRIPE_MIN_CHARGE_CENTS \/ \(DEPOSIT_PERCENT \/ 100\),?\s*\)/);
   });
   it('a $1.00 listing can never produce an unsupported $0.20 charge — rejected BEFORE any deal is created', () => {
     expect(100).toBeLessThan(MIN_TOTAL); // gate applies
@@ -56,7 +57,7 @@ describe('minimum eligible transaction price (Option A)', () => {
       expect(d + (total - d)).toBe(total); // exact split, server-side subtraction
       if (total >= MIN_TOTAL) expect(d).toBeGreaterThanOrEqual(STRIPE_MIN);
     }
-    expect(deals).toMatch(/const balanceCents = totalCents - depositCents/);
+    expect(read('server/lib/dealRules.ts')).toMatch(/const balanceCents = totalCents - depositCents/);
   });
   it('server stays authoritative: total derives from the listing row, never the client', () => {
     expect(deals).toMatch(/totalCents = Math\.round\(parseFloat\(listing\.price\) \* 100\)/);
@@ -94,7 +95,7 @@ describe('UX + business-rule guards', () => {
     const createListing = read('client/src/pages/CreateListing.tsx');
     expect(createListing).not.toMatch(/stripe|payment|checkout|fee/i);
     // the new floor lives ONLY in the Protected Payment deposit route
-    expect(deals).toMatch(/never a listing fee/);
+    expect(read('server/lib/dealRules.ts')).toMatch(/never a listing fee/);
   });
   it('Store and Pup Box checkout are untouched by this repair', () => {
     const checkout = read('server/routes/checkout.ts');

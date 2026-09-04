@@ -46,7 +46,7 @@ import consentGetRouter from './routes/consent-get';
 import uploadIdRouter from './routes/upload-id';
 import mediaRouter from './routes/media';
 import blocksRouter from './routes/blocks';
-import { dealsRouter } from './routes/deals';
+import { dealsRouter, startDealSweepScheduler } from './routes/deals';
 import { devStripeTestRouter } from './routes/dev-stripe-test';
 
 // New Stripe verification system
@@ -2674,6 +2674,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Deal/escrow routes (requires auth via global middleware)
   app.use('/api/deals', dealsRouter);
+  // Protected Payment automation: reservation expiry + post-window auto-release.
+  startDealSweepScheduler();
 
   // Dev-only Stripe test harness
   app.use('/api/dev/stripe', devStripeTestRouter);

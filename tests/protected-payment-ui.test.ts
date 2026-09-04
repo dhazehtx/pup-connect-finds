@@ -22,9 +22,10 @@ describe('listing detail exposes the Protected Payment CTA only when eligible', 
     expect(detail).toMatch(/Protected Payment/);
     expect(detail).toMatch(/navigate\(`\/deals\/pay\?listingId=\$\{listing\.id\}`\)/);
   });
-  it('eligibility requires an active, priced listing', () => {
+  it('eligibility requires a browsable (active/available), priced listing', () => {
     expect(detail).toMatch(/Number\(listing\.price\) > 0/);
-    expect(detail).toMatch(/listing\.status === 'active' \|\| listing\.listing_status === 'active'/);
+    expect(detail).toMatch(/\['active', 'available'\]\.includes\(listing\.status \?\? ''\)/);
+    expect(detail).toMatch(/\['active', 'available'\]\.includes\(listing\.listing_status \?\? ''\)/);
   });
   it('the CTA lives in the NON-owner branch (a seller sees Edit listing instead)', () => {
     // owner branch renders Edit; the CTA is inside the else-branch fragment

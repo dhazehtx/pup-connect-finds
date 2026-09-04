@@ -35,7 +35,9 @@ describe('breeder commission is server-configured (not the legacy 8%)', () => {
   });
   it('the deal fee is derived from the breeder knob, server-side (0% for rehoming/shelter)', () => {
     expect(deals).toMatch(/getBreederPlatformFeeBps\(\)/);
-    expect(deals).toMatch(/platformFeeCents = commissionExempt \? 0 : Math\.round\(totalCents \* \(PLATFORM_FEE_BPS \/ 10000\)\)/);
+    // fee math moved into the pure dealRules module (behaviorally tested there)
+    expect(deals).toMatch(/computeDealAmounts\(totalCents, PLATFORM_FEE_BPS, commissionExempt\)/);
+    expect(read('server/lib/dealRules.ts')).toMatch(/commissionExempt \? 0 : Math\.round\(totalCents \* \(clampedBps \/ 10000\)\)/);
   });
 });
 
@@ -63,9 +65,11 @@ describe('protected release is authenticated, atomic, and idempotent', () => {
     expect(deals).toMatch(/isAutoRelease =\s*[\s\S]*DELIVERED_CONFIRMED/);
     expect(deals).toMatch(/if \(!isAdmin && !isAutoRelease\)/);
   });
-  it('an atomic status claim + Stripe idempotency key prevent double payout', () => {
-    expect(deals).toMatch(/UPDATE deals SET status = 'RELEASING'[\s\S]*status NOT IN \('RELEASED','RELEASING','REFUNDED','DISPUTED','CANCELED'\)[\s\S]*RETURNING id/);
-    expect(deals).toMatch(/idempotencyKey: `deal_release_\$\{deal\.id\}`/);
+  it('an atomic status claim + Stripe idempotency keys prevent double payout', () => {
+    // Hardened: the claim is now a POSITIVE allowlist of post-full-payment
+    // statuses (deposit-only deals were previously claimable by an admin).
+    expect(deals).toMatch(/UPDATE deals SET status = 'RELEASING'[\s\S]*status IN \('PAID_IN_FULL','DELIVERED_PENDING_CONFIRM','DELIVERED_CONFIRMED'\)[\s\S]*RETURNING id/);
+    expect(deals).toMatch(/idempotencyKey: `deal_release_\$\{deal\.id\}_\$\{item\.paymentId\}`/);
   });
   it('a failed transfer never marks the deal released (reverts the claim)', () => {
     expect(deals).toMatch(/status = \$2[\s\S]*WHERE id = \$1 AND status = 'RELEASING'/);
@@ -79,9 +83,11 @@ describe('seller payout account is the authoritative Connect field, verified', (
     expect(deals).toMatch(/pr\.stripe_account_id AS pr_account, p\.stripe_account_id AS p_account/);
     expect(deals).toMatch(/accountId: r\.pr_account \?\? r\.p_account/);
   });
-  it('refuses to pay a seller with no account or payouts disabled', () => {
-    expect(deals).toMatch(/Seller has no connected payout account/);
-    expect(deals).toMatch(/Seller account is not enabled for payouts/);
+  it('refuses to pay a seller who is not affirmatively payout-ready', () => {
+    // Hardened: unknown payout capability (legacy profiles-only account) no
+    // longer passes — isSellerPayoutReady requires payoutsEnabled === true.
+    expect(deals).toMatch(/isSellerPayoutReady\(\{ accountId, payoutsEnabled \}\)/);
+    expect(deals).toMatch(/Seller's payout account is not ready to receive funds/);
   });
 });
 

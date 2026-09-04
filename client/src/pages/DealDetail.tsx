@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, ShieldCheck, KeyRound, PawPrint, AlertTriangle } from 'lucide-react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, ShieldCheck, KeyRound, PawPrint, AlertTriangle, Banknote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { apiRequest } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -41,11 +41,13 @@ type Deal = {
   buyer_username?: string | null;
   seller_username?: string | null;
   payments?: Array<{ id: string; kind: string; amount_cents: number; status: string }>;
+  payouts?: Array<{ id: string; amount_cents: number; status: string }>;
 };
 
 export default function DealDetail() {
   const { dealId } = useParams();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const { toast } = useToast();
   const [deal, setDeal] = useState<Deal | null>(null);
@@ -55,20 +57,87 @@ export default function DealDetail() {
   const [disputeOpen, setDisputeOpen] = useState(false);
   const [disputeReason, setDisputeReason] = useState('');
   const [disputeDescription, setDisputeDescription] = useState('');
+  // Stripe return leg (?redirect_status=...) — informational only; the webhook
+  // remains authoritative, so we show a banner and poll for the real state.
+  const [paymentReturn, setPaymentReturn] = useState<string | null>(null);
+  const pollTriesRef = useRef(0);
+  // Seller payout readiness (server-authoritative via /api/stripe/account/status).
+  const [payoutStatus, setPayoutStatus] = useState<{ payouts_enabled?: boolean } | null>(null);
+  const [payoutSetupBusy, setPayoutSetupBusy] = useState(false);
 
   const load = useCallback(async () => {
     try {
       const d = await apiRequest(`/api/deals/${dealId}`);
       setDeal(d);
       setError(null);
+      return d;
     } catch (e: any) {
       setError(e?.message || 'Could not load this transaction.');
+      return null;
     }
   }, [dealId]);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  // Capture Stripe's redirect params once, then clean the URL. NEVER treated as
+  // proof of payment — the status card only changes when the server says so.
+  useEffect(() => {
+    const rs = searchParams.get('redirect_status');
+    if (!rs) return;
+    setPaymentReturn(rs);
+    pollTriesRef.current = 0;
+    setSearchParams({}, { replace: true });
+  }, [searchParams, setSearchParams]);
+
+  // While a payment is settling on the return leg, poll briefly so the
+  // webhook's state lands without a manual refresh. "Settled" = the deal has
+  // left RESERVED and no payment row is still pending; the banner then clears.
+  useEffect(() => {
+    if (!paymentReturn || paymentReturn === 'failed') return;
+    const settled =
+      deal && deal.status !== 'RESERVED' && !(deal.payments ?? []).some((p) => p.status === 'pending');
+    if (settled) {
+      setPaymentReturn(null);
+      return;
+    }
+    if (pollTriesRef.current >= 10) return;
+    const t = setTimeout(() => {
+      pollTriesRef.current += 1;
+      load();
+    }, 3000);
+    return () => clearTimeout(t);
+  }, [paymentReturn, deal, load]);
+
+  // Seller-side payout readiness: fetched once per deal so an unpayable seller
+  // learns it HERE (with a fix-it path) instead of at release time.
+  const isSeller = !!deal && user?.id === deal.seller_id;
+  useEffect(() => {
+    if (!isSeller) return;
+    if (['RELEASED', 'REFUNDED', 'CANCELED', 'EXPIRED'].includes(deal!.status)) return;
+    apiRequest('/api/stripe/account/status')
+      .then((s) => setPayoutStatus(s))
+      .catch(() => setPayoutStatus(null));
+  }, [isSeller, deal?.id]);
+
+  const startPayoutSetup = async () => {
+    setPayoutSetupBusy(true);
+    try {
+      const r = await apiRequest('/api/payout/start', {
+        method: 'POST',
+        body: { returnTo: `/deals/${dealId}` },
+      });
+      if (r?.url) {
+        window.location.href = r.url; // Stripe-hosted onboarding (no KYC in PAWS)
+        return;
+      }
+      throw new Error('No onboarding link returned');
+    } catch (e: any) {
+      toast({ title: 'Could not start payout setup', description: e?.message || 'Please try again.', variant: 'destructive' });
+      setPayoutSetupBusy(false);
+    }
+  };
 
   if (error) {
     return (
@@ -155,6 +224,31 @@ export default function DealDetail() {
         <ArrowLeft size={16} aria-hidden /> Protected Payments
       </button>
 
+      {/* Stripe return-leg banner — informational; the status card below only
+          changes when the server (webhook) confirms. */}
+      {paymentReturn && (
+        <div
+          role="status"
+          className={`mb-4 rounded-xl border p-4 text-sm ${
+            paymentReturn === 'succeeded'
+              ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
+              : paymentReturn === 'processing'
+                ? 'border-amber-200 bg-amber-50 text-amber-900'
+                : 'border-red-200 bg-red-50 text-red-900'
+          }`}
+        >
+          {paymentReturn === 'succeeded' && (
+            <>Payment received — waiting for confirmation. This page updates automatically; you don't need to pay again.</>
+          )}
+          {paymentReturn === 'processing' && (
+            <>Your payment is processing. This page updates automatically once it's confirmed.</>
+          )}
+          {paymentReturn !== 'succeeded' && paymentReturn !== 'processing' && (
+            <>Your payment was not completed. You can safely try again below.</>
+          )}
+        </div>
+      )}
+
       {/* Listing identity */}
       <div className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
         {deal.image_url ? (
@@ -232,6 +326,51 @@ export default function DealDetail() {
               ? 'Show this code to the seller when you receive your pup.'
               : 'Enter this code below when you hand the pup to the buyer.'}
           </p>
+        </div>
+      )}
+
+      {/* Seller payout readiness + payout records. The server independently
+          blocks release for unpayable sellers; this surfaces it with a fix. */}
+      {role === 'seller' && payoutStatus && payoutStatus.payouts_enabled !== true &&
+        !['RELEASED', 'REFUNDED', 'CANCELED', 'EXPIRED'].includes(deal.status) && (
+          <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
+            <div className="flex items-center gap-2 text-amber-800">
+              <Banknote className="h-4 w-4" aria-hidden />
+              <span className="text-sm font-semibold">Payout setup needed</span>
+            </div>
+            <p className="mt-1 text-sm text-amber-800">
+              Your funds can't be released until your payout account is set up with Stripe. It only takes a few
+              minutes and you'll come right back here.
+            </p>
+            <Button
+              className="mt-3 min-h-[44px] w-full bg-amber-600 font-semibold text-white hover:bg-amber-700"
+              disabled={payoutSetupBusy}
+              onClick={startPayoutSetup}
+            >
+              {payoutSetupBusy ? 'Opening Stripe…' : 'Set up payouts with Stripe'}
+            </Button>
+          </div>
+        )}
+
+      {role === 'seller' && (deal.payouts?.length ?? 0) > 0 && (
+        <div className="mt-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+          <p className="text-sm font-semibold text-gray-900">Your payout</p>
+          {deal.payouts!.map((p) => (
+            <div key={p.id} className="mt-2 flex items-center justify-between text-sm">
+              <span className="font-medium text-gray-900">{formatDealAmount(p.amount_cents)}</span>
+              <span
+                className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                  p.status === 'completed'
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : p.status === 'reversed' || p.status === 'failed'
+                      ? 'bg-red-100 text-red-700'
+                      : 'bg-gray-100 text-gray-600'
+                }`}
+              >
+                {p.status}
+              </span>
+            </div>
+          ))}
         </div>
       )}
 

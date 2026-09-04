@@ -174,6 +174,25 @@ router.post("/", async (req, res) => {
         case 'transfer.created':
         case 'transfer.reversed': {
           await handleTransferResult(event);
+          // Reconcile Protected Payment payout records: a reversal must be
+          // visible on the deal (deal_payouts row), not only in Stripe. The
+          // deal's status is left for admin resolution — money already moved.
+          const transfer = event.data.object as Stripe.Transfer;
+          if (transfer.metadata?.deal_id) {
+            // NOTE: deal_payouts has no updated_at column (see 20260904 DDL).
+            if (event.type === 'transfer.reversed') {
+              await pool.query(
+                "UPDATE deal_payouts SET status = 'reversed' WHERE stripe_transfer_id = $1",
+                [transfer.id]
+              );
+              console.error(`[STRIPE WEBHOOK] Deal payout transfer REVERSED — needs admin attention: deal=${transfer.metadata.deal_id} transfer=${transfer.id}`);
+            } else {
+              await pool.query(
+                "UPDATE deal_payouts SET status = 'completed' WHERE stripe_transfer_id = $1 AND status <> 'completed'",
+                [transfer.id]
+              );
+            }
+          }
           break;
         }
 

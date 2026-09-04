@@ -5,6 +5,20 @@ import { Pool } from "@neondatabase/serverless";
 import { STRIPE_SECRET_KEY } from "../lib/config";
 import { getBreederPlatformFeeBps } from "../lib/platformFees";
 import { getOrCreateStripeCustomer } from "../lib/stripeCustomer";
+import { generalRateLimit } from "../middleware/rateLimiting";
+import {
+  MIN_PROTECTED_PAYMENT_TOTAL_CENTS,
+  RELEASABLE_DEAL_STATUSES,
+  REUSABLE_PI_STATUSES,
+  computeDealAmounts,
+  isSellerPayoutReady,
+  verifyFullyPaid,
+  planReleaseTransfers,
+  listingIsPurchasable,
+  isUuid,
+  clampExtensionHours,
+  type DealPaymentRow,
+} from "../lib/dealRules";
 import crypto from "crypto";
 
 const router = Router();
@@ -14,15 +28,6 @@ const stripe = STRIPE_SECRET_KEY
   ? new Stripe(STRIPE_SECRET_KEY, { apiVersion: "2025-08-27.basil" as any })
   : null;
 
-const DEPOSIT_PERCENT = 20;
-/** Stripe's minimum USD charge. A deposit below this is rejected by Stripe
- *  (amount_too_small — proven in TEST cert on a $1.00 listing / $0.20 deposit). */
-const STRIPE_MIN_CHARGE_CENTS = 50;
-/** Smallest sale price whose 20% deposit clears the Stripe minimum ($2.50).
- *  The 80% balance is then automatically >= the minimum too. This is an
- *  ELIGIBILITY floor for Protected Payment only — dog listings themselves stay
- *  free to create/publish at any price; this is never a listing fee. */
-const MIN_PROTECTED_PAYMENT_TOTAL_CENTS = Math.ceil(STRIPE_MIN_CHARGE_CENTS / (DEPOSIT_PERCENT / 100));
 /** Breeder platform fee (basis points) recorded on the deal; the seller payout is
  *  net of this. Server-side, config-driven (BREEDER_PLATFORM_FEE_BPS), default 0. */
 const PLATFORM_FEE_BPS = getBreederPlatformFeeBps();
@@ -53,26 +58,50 @@ type DealMoneyResult<T> = ({ ok: true } & T) | { ok: false; code: number; error:
 
 /**
  * Atomic, idempotent release of held funds to the seller's authoritative Connect
- * account. An atomic status claim (eligible → RELEASING) prevents a double-payout
- * race, and a deterministic Stripe idempotency key prevents a duplicate transfer.
- * State only advances to RELEASED after a successful Stripe transfer.
+ * account. An atomic status claim (releasable → RELEASING) prevents a double-payout
+ * race, and deterministic per-charge Stripe idempotency keys prevent duplicate
+ * transfers even across retries. State only advances to RELEASED after every
+ * transfer succeeds.
+ *
+ * Hard invariants enforced HERE (not only at the endpoint):
+ *  - FULLY PAID: succeeded payments must cover total_price_cents. A deposit-only
+ *    deal is never releasable, even by an admin.
+ *  - Claimable statuses are the RELEASABLE set only (post-full-payment states).
+ *  - Transfers are funded from the deal's own charges via source_transaction —
+ *    never from the platform's pooled available balance.
  */
 async function releaseDealFunds(deal: any): Promise<DealMoneyResult<{ transferId: string; payoutAmount: number }>> {
   if (!stripe) return { ok: false, code: 503, error: "Stripe not configured" };
 
   const { accountId, payoutsEnabled } = await getSellerConnectAccount(deal.seller_id);
-  if (!accountId) return { ok: false, code: 400, error: "Seller has no connected payout account" };
-  if (payoutsEnabled === false) return { ok: false, code: 400, error: "Seller account is not enabled for payouts" };
+  if (!isSellerPayoutReady({ accountId, payoutsEnabled })) {
+    return { ok: false, code: 400, error: "Seller's payout account is not ready to receive funds" };
+  }
 
-  // Atomic claim — only ONE request can move an eligible deal into RELEASING.
+  // FULL-PAYMENT GATE — authoritative deal_payments rows, not the status column.
+  const { rows: paymentRows } = await pool.query<DealPaymentRow>(
+    `SELECT id, kind, status, amount_cents, stripe_payment_intent_id
+     FROM deal_payments WHERE deal_id = $1 ORDER BY created_at`,
+    [deal.id],
+  );
+  if (!verifyFullyPaid(paymentRows, deal.total_price_cents)) {
+    return { ok: false, code: 409, error: "Deal is not fully paid — funds cannot be released" };
+  }
+
+  // Atomic claim — only ONE request can move a releasable deal into RELEASING,
+  // and only from a post-full-payment status.
   const claim = await pool.query(
     `UPDATE deals SET status = 'RELEASING', updated_at = NOW()
-     WHERE id = $1 AND status NOT IN ('RELEASED','RELEASING','REFUNDED','DISPUTED','CANCELED')
+     WHERE id = $1 AND status IN ('PAID_IN_FULL','DELIVERED_PENDING_CONFIRM','DELIVERED_CONFIRMED')
      RETURNING id`,
     [deal.id],
   );
   if (claim.rowCount === 0) {
     return { ok: false, code: 409, error: "Deal is not releasable or a release is already in progress" };
+  }
+  if (!RELEASABLE_DEAL_STATUSES.includes(deal.status)) {
+    // Defensive: the SQL above is the enforcement; keep the constant authoritative.
+    debugApiWarn(`[DEAL:RELEASE] status drift for deal=${deal.id}: ${deal.status}`);
   }
 
   const payoutAmount = deal.total_price_cents - deal.platform_fee_cents;
@@ -81,28 +110,45 @@ async function releaseDealFunds(deal: any): Promise<DealMoneyResult<{ transferId
     return { ok: false, code: 409, error: "Nothing to transfer" };
   }
 
-  let transferId: string;
+  // Fund each transfer from the deal's own charges. Retry-safe: idempotency keys
+  // are stable per (deal, payment), so a partial failure re-run returns the
+  // already-created transfers instead of duplicating them.
+  let lastTransferId = "";
   try {
-    const transfer = await stripe.transfers.create(
-      { amount: payoutAmount, currency: "usd", destination: accountId, transfer_group: `deal_${deal.id}`, metadata: { deal_id: deal.id } },
-      { idempotencyKey: `deal_release_${deal.id}` },
-    );
-    transferId = transfer.id;
+    const plan = planReleaseTransfers(paymentRows, payoutAmount);
+    for (const item of plan) {
+      const pi = await stripe.paymentIntents.retrieve(item.stripePaymentIntentId);
+      const chargeId = typeof pi.latest_charge === "string" ? pi.latest_charge : pi.latest_charge?.id;
+      if (!chargeId) throw new Error(`No charge on PaymentIntent for payment ${item.paymentId}`);
+      const transfer = await stripe.transfers.create(
+        {
+          amount: item.amountCents,
+          currency: "usd",
+          destination: accountId as string,
+          transfer_group: `deal_${deal.id}`,
+          source_transaction: chargeId,
+          metadata: { deal_id: deal.id, deal_payment_id: item.paymentId },
+        },
+        { idempotencyKey: `deal_release_${deal.id}_${item.paymentId}` },
+      );
+      lastTransferId = transfer.id;
+      await pool.query(
+        `INSERT INTO deal_payouts (deal_id, stripe_transfer_id, seller_account_id, amount_cents, status)
+         VALUES ($1,$2,$3,$4,'completed') ON CONFLICT (stripe_transfer_id) DO NOTHING`,
+        [deal.id, transfer.id, accountId, item.amountCents],
+      );
+    }
   } catch (e: any) {
     // Never mark released on failure — revert the claim and record a failed payout.
+    console.error(`[DEAL:RELEASE] transfer failed for deal=${deal.id}:`, e?.message);
     await pool.query(`UPDATE deals SET status = $2, updated_at = NOW() WHERE id = $1 AND status = 'RELEASING'`, [deal.id, deal.status]);
     await pool.query(`INSERT INTO deal_payouts (deal_id, seller_account_id, amount_cents, status) VALUES ($1,$2,$3,'failed')`, [deal.id, accountId, payoutAmount]);
     return { ok: false, code: 502, error: "Transfer to seller failed" };
   }
 
-  await pool.query(
-    `INSERT INTO deal_payouts (deal_id, stripe_transfer_id, seller_account_id, amount_cents, status)
-     VALUES ($1,$2,$3,$4,'completed') ON CONFLICT (stripe_transfer_id) DO NOTHING`,
-    [deal.id, transferId, accountId, payoutAmount],
-  );
   await pool.query(`UPDATE deals SET status = 'RELEASED', released_at = NOW(), updated_at = NOW() WHERE id = $1`, [deal.id]);
   await pool.query(`UPDATE dog_listings SET status = 'sold', listing_status = 'sold', updated_at = NOW() WHERE id = $1`, [deal.listing_id]);
-  return { ok: true, transferId, payoutAmount };
+  return { ok: true, transferId: lastTransferId, payoutAmount };
 }
 
 /**
@@ -138,7 +184,7 @@ async function refundDeal(deal: any, type: string): Promise<DealMoneyResult<{ re
 }
 
 // POST /api/deals/:listingId/deposit
-router.post("/:listingId/deposit", async (req: Request, res: Response) => {
+router.post("/:listingId/deposit", generalRateLimit, async (req: Request, res: Response) => {
   try {
     if (!stripe) return res.status(503).json({ error: "Stripe not configured" });
 
@@ -146,6 +192,7 @@ router.post("/:listingId/deposit", async (req: Request, res: Response) => {
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
     const { listingId } = req.params;
+    if (!isUuid(listingId)) return res.status(400).json({ error: "Invalid listing id" });
 
     const { rows: listings } = await pool.query(
       `SELECT l.id, l.user_id, l.price, l.status, l.listing_status, l.dog_name, l.rehoming,
@@ -158,18 +205,64 @@ router.post("/:listingId/deposit", async (req: Request, res: Response) => {
     if (!listings[0]) return res.status(404).json({ error: "Listing not found" });
 
     const listing = listings[0];
-    if (listing.status !== "active" && listing.listing_status !== "active") {
+    // 'available' is browsable alongside 'active' (useDogListings) — both purchasable.
+    if (!listingIsPurchasable(listing.status, listing.listing_status)) {
       return res.status(400).json({ error: "Listing is not active" });
     }
     if (listing.user_id === userId) {
       return res.status(400).json({ error: "Cannot buy your own listing" });
     }
 
+    // PAYOUT-READINESS GATE — a buyer must never commit funds to a seller who
+    // cannot receive the resulting payout. Server-authoritative (providers row +
+    // affirmative payouts_enabled); the client never supplies eligibility.
+    const sellerAccount = await getSellerConnectAccount(listing.user_id);
+    if (!isSellerPayoutReady(sellerAccount)) {
+      return res.status(409).json({
+        error: "This seller hasn't finished setting up payouts yet, so Protected Payment isn't available for this listing. Try contacting the seller instead.",
+        code: "SELLER_NOT_PAYOUT_READY",
+      });
+    }
+
     const { rows: existingDeals } = await pool.query(
-      `SELECT id FROM deals WHERE listing_id = $1 AND status NOT IN ('CANCELED', 'EXPIRED', 'REFUNDED')`,
+      `SELECT * FROM deals WHERE listing_id = $1 AND status NOT IN ('CANCELED', 'EXPIRED', 'REFUNDED')`,
       [listingId]
     );
     if (existingDeals.length > 0) {
+      // Re-entry idempotency: the SAME buyer returning to an unpaid reservation
+      // (refresh, second tab, abandoned checkout) resumes the existing deposit
+      // PaymentIntent instead of being dead-ended by the duplicate-deal guard —
+      // and can never mint a second deal or a second charge for it.
+      const own = existingDeals.find((d: any) => d.buyer_id === userId && d.status === "RESERVED");
+      if (own) {
+        const { rows: depositPayments } = await pool.query(
+          `SELECT * FROM deal_payments WHERE deal_id = $1 AND kind = 'DEPOSIT' ORDER BY created_at DESC LIMIT 1`,
+          [own.id]
+        );
+        const existingPayment = depositPayments[0];
+        if (existingPayment?.stripe_payment_intent_id) {
+          const pi = await stripe.paymentIntents.retrieve(existingPayment.stripe_payment_intent_id);
+          if (pi.status === "succeeded") {
+            return res.status(409).json({ error: "Your deposit is already paid.", code: "DEPOSIT_ALREADY_PAID", dealId: own.id });
+          }
+          if ((REUSABLE_PI_STATUSES as readonly string[]).includes(pi.status)) {
+            return res.json({
+              dealId: own.id,
+              clientSecret: pi.client_secret,
+              depositCents: own.deposit_cents,
+              totalCents: own.total_price_cents,
+              balanceCents: own.balance_cents,
+              platformFeeCents: own.platform_fee_cents,
+              reservedUntil: own.reserved_until ? new Date(own.reserved_until).toISOString() : null,
+            });
+          }
+        }
+        return res.status(409).json({ error: "You already have a reservation for this listing.", code: "DEAL_IN_PROGRESS", dealId: own.id });
+      }
+      const ownActive = existingDeals.find((d: any) => d.buyer_id === userId);
+      if (ownActive) {
+        return res.status(409).json({ error: "You already have a Protected Payment in progress for this listing.", code: "DEAL_IN_PROGRESS", dealId: ownActive.id });
+      }
       return res.status(400).json({ error: "Listing already has an active deal" });
     }
 
@@ -183,14 +276,12 @@ router.post("/:listingId/deposit", async (req: Request, res: Response) => {
         code: "PROTECTED_PAYMENT_MIN_PRICE",
       });
     }
-    const depositCents = Math.round(totalCents * (DEPOSIT_PERCENT / 100));
-    const balanceCents = totalCents - depositCents;
     // PAWS v1 policy: individual rehoming and shelter/rescue transactions carry
     // 0% PAWS commission. The fee is fixed here at deal creation and flows to
     // release from the stored platform_fee_cents, so a zero fee means the
     // seller receives the full amount.
     const commissionExempt = listing.rehoming === true || listing.seller_user_type === 'shelter';
-    const platformFeeCents = commissionExempt ? 0 : Math.round(totalCents * (PLATFORM_FEE_BPS / 10000));
+    const { depositCents, balanceCents, platformFeeCents } = computeDealAmounts(totalCents, PLATFORM_FEE_BPS, commissionExempt);
 
     const reservedUntil = new Date(Date.now() + RESERVATION_HOURS * 60 * 60 * 1000);
 
@@ -213,11 +304,14 @@ router.post("/:listingId/deposit", async (req: Request, res: Response) => {
     try {
       const customerId = await getOrCreateStripeCustomer(userId, req.user?.email ?? undefined);
 
-      // Funds stay on the platform account until POST /release creates a Connect transfer (escrow).
+      // Funds stay on the platform account until POST /release creates a Connect
+      // transfer. transfer_group ties the charges and the eventual transfers to
+      // this deal on the Stripe side.
       const piParams: Stripe.PaymentIntentCreateParams = {
         amount: depositCents,
         currency: "usd",
         customer: customerId,
+        transfer_group: `deal_${dealId}`,
         metadata: {
           deal_id: dealId,
           listing_id: listingId,
@@ -259,12 +353,12 @@ router.post("/:listingId/deposit", async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     console.error("[DEAL:DEPOSIT] Error:", error);
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: "Internal error" });
   }
 });
 
 // POST /api/deals/:dealId/balance
-router.post("/:dealId/balance", async (req: Request, res: Response) => {
+router.post("/:dealId/balance", generalRateLimit, async (req: Request, res: Response) => {
   try {
     if (!stripe) return res.status(503).json({ error: "Stripe not configured" });
 
@@ -272,6 +366,7 @@ router.post("/:dealId/balance", async (req: Request, res: Response) => {
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
     const { dealId } = req.params;
+    if (!isUuid(dealId)) return res.status(400).json({ error: "Invalid deal id" });
 
     const { rows: dealRows } = await pool.query(
       "SELECT * FROM deals WHERE id = $1",
@@ -282,7 +377,34 @@ router.post("/:dealId/balance", async (req: Request, res: Response) => {
     const deal = dealRows[0];
     if (deal.buyer_id !== userId) return res.status(403).json({ error: "Not the buyer" });
     if (deal.status !== "DEPOSIT_PAID") {
-      return res.status(400).json({ error: `Cannot pay balance in status ${deal.status}` });
+      const code = deal.status === "PAID_IN_FULL" ? "BALANCE_ALREADY_PAID" : "BALANCE_NOT_PAYABLE";
+      return res.status(400).json({ error: `Cannot pay balance in status ${deal.status}`, code });
+    }
+
+    // DUPLICATE-CHARGE PROTECTION — double-click, refresh, second tab, retry,
+    // and late-webhook races all resolve to the SAME PaymentIntent. A new PI is
+    // minted only when no BALANCE payment exists or the previous one is dead.
+    const { rows: balancePayments } = await pool.query(
+      `SELECT * FROM deal_payments WHERE deal_id = $1 AND kind = 'BALANCE' ORDER BY created_at DESC`,
+      [dealId]
+    );
+    if (balancePayments.some((p: any) => p.status === "succeeded")) {
+      return res.status(409).json({ error: "The balance for this deal is already paid.", code: "BALANCE_ALREADY_PAID" });
+    }
+    const pending = balancePayments.find((p: any) => p.status === "pending" && p.stripe_payment_intent_id);
+    if (pending) {
+      const pi = await stripe.paymentIntents.retrieve(pending.stripe_payment_intent_id);
+      if (pi.status === "succeeded") {
+        // Webhook hasn't landed yet — sync authoritative state and refuse a second charge.
+        await pool.query(`UPDATE deal_payments SET status = 'succeeded', updated_at = NOW() WHERE id = $1`, [pending.id]);
+        await pool.query(`UPDATE deals SET status = 'PAID_IN_FULL', updated_at = NOW() WHERE id = $1 AND status = 'DEPOSIT_PAID'`, [dealId]);
+        return res.status(409).json({ error: "The balance for this deal is already paid.", code: "BALANCE_ALREADY_PAID" });
+      }
+      if ((REUSABLE_PI_STATUSES as readonly string[]).includes(pi.status)) {
+        return res.json({ clientSecret: pi.client_secret, balanceCents: deal.balance_cents });
+      }
+      // canceled or otherwise dead — mark the row failed and fall through to a fresh PI.
+      await pool.query(`UPDATE deal_payments SET status = 'failed', updated_at = NOW() WHERE id = $1`, [pending.id]);
     }
 
     const customerId = await getOrCreateStripeCustomer(userId, req.user?.email ?? undefined);
@@ -291,6 +413,7 @@ router.post("/:dealId/balance", async (req: Request, res: Response) => {
       amount: deal.balance_cents,
       currency: "usd",
       customer: customerId,
+      transfer_group: `deal_${dealId}`,
       metadata: {
         deal_id: dealId,
         listing_id: deal.listing_id,
@@ -316,7 +439,7 @@ router.post("/:dealId/balance", async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     console.error("[DEAL:BALANCE] Error:", error);
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: "Could not start the balance payment. Please try again." });
   }
 });
 
@@ -346,7 +469,7 @@ router.post("/:dealId/handoff-code", async (req: Request, res: Response) => {
     return res.json({ handoffCode: code });
   } catch (error: any) {
     console.error("[DEAL:HANDOFF] Error:", error);
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: "Internal error" });
   }
 });
 
@@ -381,7 +504,7 @@ router.post("/:dealId/mark-delivered", async (req: Request, res: Response) => {
     return res.json({ status: "DELIVERED_PENDING_CONFIRM" });
   } catch (error: any) {
     console.error("[DEAL:DELIVERED] Error:", error);
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: "Internal error" });
   }
 });
 
@@ -413,7 +536,7 @@ router.post("/:dealId/confirm-received", async (req: Request, res: Response) => 
     return res.json({ status: "DELIVERED_CONFIRMED", disputeWindowEnds: disputeWindowEnds.toISOString() });
   } catch (error: any) {
     console.error("[DEAL:CONFIRM] Error:", error);
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: "Internal error" });
   }
 });
 
@@ -454,7 +577,7 @@ router.post("/:dealId/release", async (req: Request, res: Response) => {
     return res.json({ status: "RELEASED", transferId: result.transferId, payoutAmount: result.payoutAmount });
   } catch (error: any) {
     console.error("[DEAL:RELEASE] Error:", error);
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: "Internal error" });
   }
 });
 
@@ -492,7 +615,7 @@ router.post("/:dealId/dispute", async (req: Request, res: Response) => {
     return res.json({ status: "DISPUTED" });
   } catch (error: any) {
     console.error("[DEAL:DISPUTE] Error:", error);
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: "Internal error" });
   }
 });
 
@@ -515,7 +638,7 @@ router.post("/:dealId/refund", async (req: Request, res: Response) => {
     return res.json({ status: "REFUNDED", refunded: result.refunded });
   } catch (error: any) {
     console.error("[DEAL:REFUND] Error:", error);
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: "Internal error" });
   }
 });
 
@@ -537,6 +660,41 @@ router.post("/:dealId/cancel", async (req: Request, res: Response) => {
     if (!isAdmin && !["DRAFT", "RESERVED"].includes(deal.status)) {
       return res.status(400).json({ error: "Cannot cancel after payment" });
     }
+    // Cancel must never orphan money. Released/releasing deals are immutable
+    // here, and collected funds must go through the refund path (which relists
+    // the listing itself) — CANCELED with a succeeded charge would strand the
+    // buyer's money with no visible trail.
+    if (["RELEASED", "RELEASING"].includes(deal.status)) {
+      return res.status(409).json({ error: "Funds were released to the seller — this deal can no longer be canceled" });
+    }
+    const { rows: paidRows } = await pool.query(
+      `SELECT id FROM deal_payments WHERE deal_id = $1 AND status = 'succeeded' LIMIT 1`,
+      [dealId]
+    );
+    if (paidRows.length > 0 && deal.status !== "REFUNDED") {
+      return res.status(409).json({ error: "This deal has a completed payment — refund it instead of canceling", code: "REFUND_REQUIRED" });
+    }
+
+    // Best-effort: kill any still-confirmable PaymentIntents so a stale checkout
+    // tab cannot pay into a canceled deal. If one completed in the meantime, the
+    // cancellation is aborted (the webhook will advance the deal instead).
+    if (stripe) {
+      const { rows: pendingRows } = await pool.query(
+        `SELECT id, stripe_payment_intent_id FROM deal_payments WHERE deal_id = $1 AND status = 'pending' AND stripe_payment_intent_id IS NOT NULL`,
+        [dealId]
+      );
+      for (const p of pendingRows) {
+        try {
+          await stripe.paymentIntents.cancel(p.stripe_payment_intent_id);
+        } catch {
+          const pi = await stripe.paymentIntents.retrieve(p.stripe_payment_intent_id).catch(() => null);
+          if (pi?.status === "succeeded") {
+            return res.status(409).json({ error: "A payment on this deal just completed — it can no longer be canceled", code: "PAYMENT_COMPLETED" });
+          }
+          // already canceled / uncancelable-but-dead: proceed
+        }
+      }
+    }
 
     await pool.query(
       "UPDATE deals SET status = 'CANCELED', updated_at = NOW() WHERE id = $1",
@@ -551,7 +709,7 @@ router.post("/:dealId/cancel", async (req: Request, res: Response) => {
     return res.json({ status: "CANCELED" });
   } catch (error: any) {
     console.error("[DEAL:CANCEL] Error:", error);
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: "Internal error" });
   }
 });
 
@@ -607,7 +765,7 @@ router.post("/:dealId/resolve", async (req: Request, res: Response) => {
     return res.json({ status: "CANCELED" });
   } catch (error: any) {
     console.error("[DEAL:RESOLVE] Error:", error);
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: "Internal error" });
   }
 });
 
@@ -643,7 +801,7 @@ router.get("/", async (req: Request, res: Response) => {
     return res.json(rows);
   } catch (error: any) {
     console.error("[DEAL:LIST] Error:", error);
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: "Internal error" });
   }
 });
 
@@ -654,6 +812,7 @@ router.get("/:dealId", async (req: Request, res: Response) => {
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
     const { dealId } = req.params;
+    if (!isUuid(dealId)) return res.status(400).json({ error: "Invalid deal id" });
     const { rows } = await pool.query(
       `SELECT d.*, dl.dog_name, dl.breed, dl.image_url, dl.price,
         bp.username as buyer_username, bp.avatar_url as buyer_avatar,
@@ -668,7 +827,9 @@ router.get("/:dealId", async (req: Request, res: Response) => {
     if (!rows[0]) return res.status(404).json({ error: "Deal not found" });
 
     const deal = rows[0];
-    if (deal.buyer_id !== userId && deal.seller_id !== userId && req.user?.role !== "admin") {
+    // Party membership or admin — is_admin is the ONE canonical admin flag
+    // (DB-sourced in authMiddleware); profiles.role is not consulted for deals.
+    if (deal.buyer_id !== userId && deal.seller_id !== userId && req.user?.is_admin !== true) {
       return res.status(403).json({ error: "Not authorized" });
     }
 
@@ -688,7 +849,7 @@ router.get("/:dealId", async (req: Request, res: Response) => {
     return res.json({ ...deal, payments, payouts, disputes });
   } catch (error: any) {
     console.error("[DEAL:GET] Error:", error);
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: "Internal error" });
   }
 });
 
@@ -729,7 +890,7 @@ router.get("/admin/all", async (req: Request, res: Response) => {
     return res.json({ deals: rows, total, page: parseInt(page as string), limit: parseInt(limit as string) });
   } catch (error: any) {
     console.error("[DEAL:ADMIN:LIST] Error:", error);
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: "Internal error" });
   }
 });
 
@@ -740,7 +901,8 @@ router.post("/admin/:dealId/extend", async (req: Request, res: Response) => {
     if (!isAdmin) return res.status(403).json({ error: "Admin only" });
 
     const { dealId } = req.params;
-    const { hours = 72 } = req.body;
+    if (!isUuid(dealId)) return res.status(400).json({ error: "Invalid deal id" });
+    const hours = clampExtensionHours(req.body?.hours ?? 72);
 
     const newDeadline = new Date(Date.now() + hours * 60 * 60 * 1000);
     await pool.query(
@@ -752,8 +914,140 @@ router.post("/admin/:dealId/extend", async (req: Request, res: Response) => {
     return res.json({ reservedUntil: newDeadline.toISOString() });
   } catch (error: any) {
     console.error("[DEAL:EXTEND] Error:", error);
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: "Internal error" });
   }
 });
+
+// ─────────────────── automation: expiry + auto-release sweep ───────────────────
+
+/**
+ * Periodic Protected Payment sweep. Idempotent and safe to run repeatedly:
+ *
+ *  1. EXPIRE unpaid reservations past reserved_until. Only deals with NO
+ *     succeeded payment qualify; their still-confirmable PaymentIntents are
+ *     canceled FIRST so a stale checkout tab cannot pay into an expired deal —
+ *     if a PI turns out to have succeeded, the deal is skipped (the webhook
+ *     advances it instead). Listings were never marked reserved for unpaid
+ *     deals, so no listing write is needed; expiring frees the listing from
+ *     the duplicate-active-deal guard.
+ *
+ *  2. AUTO-RELEASE buyer-confirmed deals whose dispute window has ended —
+ *     the exact rule the release endpoint accepts (releaseDealFunds re-checks
+ *     full payment, payout readiness, and claims atomically, so a concurrent
+ *     manual release cannot double-pay).
+ */
+let sweepRunning = false;
+export async function sweepProtectedPaymentDeals(): Promise<{ expired: number; released: number; releaseFailures: number }> {
+  const result = { expired: 0, released: 0, releaseFailures: 0 };
+  if (sweepRunning) return result;
+  sweepRunning = true;
+  try {
+    // 1) Reservation expiry
+    const { rows: expireCandidates } = await pool.query(
+      `SELECT d.* FROM deals d
+       WHERE d.status = 'RESERVED' AND d.reserved_until IS NOT NULL AND d.reserved_until < NOW()
+         AND NOT EXISTS (SELECT 1 FROM deal_payments dp WHERE dp.deal_id = d.id AND dp.status = 'succeeded')
+       ORDER BY d.reserved_until ASC LIMIT 50`,
+    );
+    for (const deal of expireCandidates) {
+      try {
+        let paidMeanwhile = false;
+        if (stripe) {
+          const { rows: pendingRows } = await pool.query(
+            `SELECT id, stripe_payment_intent_id FROM deal_payments WHERE deal_id = $1 AND status = 'pending' AND stripe_payment_intent_id IS NOT NULL`,
+            [deal.id],
+          );
+          for (const p of pendingRows) {
+            try {
+              await stripe.paymentIntents.cancel(p.stripe_payment_intent_id);
+            } catch {
+              const pi = await stripe.paymentIntents.retrieve(p.stripe_payment_intent_id).catch(() => null);
+              if (pi?.status === "succeeded") paidMeanwhile = true;
+            }
+          }
+        }
+        if (paidMeanwhile) continue; // webhook will move it to DEPOSIT_PAID
+        const upd = await pool.query(
+          `UPDATE deals SET status = 'EXPIRED', updated_at = NOW() WHERE id = $1 AND status = 'RESERVED' RETURNING id`,
+          [deal.id],
+        );
+        if (upd.rowCount) {
+          result.expired += 1;
+          debugApiLog(`[PROOF:DEAL:EXPIRED] deal=${deal.id}`);
+        }
+      } catch (e: any) {
+        console.error(`[DEAL:SWEEP] expire failed for deal=${deal.id}:`, e?.message);
+      }
+    }
+
+    // 2) Auto-release after the protection window
+    const { rows: releaseCandidates } = await pool.query(
+      `SELECT * FROM deals
+       WHERE status = 'DELIVERED_CONFIRMED' AND dispute_window_ends IS NOT NULL AND dispute_window_ends < NOW()
+       ORDER BY dispute_window_ends ASC LIMIT 20`,
+    );
+    for (const deal of releaseCandidates) {
+      try {
+        const r = await releaseDealFunds(deal);
+        if (r.ok) {
+          result.released += 1;
+          debugApiLog(`[PROOF:PAYOUT:AUTO_RELEASED] deal=${deal.id} transfer=${r.transferId} amount=${r.payoutAmount}`);
+        } else {
+          result.releaseFailures += 1;
+          console.error(`[DEAL:SWEEP] auto-release blocked for deal=${deal.id}: ${r.error}`);
+        }
+      } catch (e: any) {
+        result.releaseFailures += 1;
+        console.error(`[DEAL:SWEEP] auto-release failed for deal=${deal.id}:`, e?.message);
+      }
+    }
+  } finally {
+    sweepRunning = false;
+  }
+  return result;
+}
+
+/**
+ * POST /api/deals/jobs/sweep — run the sweep on demand. Moves real money
+ * (auto-release), so it is never publicly triggerable: admin session or
+ * CRON_SECRET only (same contract as /api/payouts/release). Fails closed.
+ */
+router.post("/jobs/sweep", async (req: Request, res: Response) => {
+  const cronSecret = process.env.CRON_SECRET?.trim();
+  let authorized = false;
+  if (cronSecret) {
+    const headerSecret = (req.get("x-cron-secret") || "").trim();
+    const authHeader = req.get("authorization") || "";
+    const bearer = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+    if (headerSecret === cronSecret || bearer === cronSecret) authorized = true;
+  }
+  if (req.user?.is_admin === true) authorized = true;
+  if (!authorized) return res.status(403).json({ error: "Forbidden", code: "ADMIN_OR_CRON_REQUIRED" });
+  try {
+    const summary = await sweepProtectedPaymentDeals();
+    return res.json({ ok: true, ...summary });
+  } catch (error: any) {
+    console.error("[DEAL:SWEEP] Error:", error);
+    return res.status(500).json({ error: "Internal error" });
+  }
+});
+
+const SWEEP_DEFAULT_INTERVAL_MS = 10 * 60 * 1000;
+let sweepTimer: NodeJS.Timeout | null = null;
+
+/** In-process scheduler (same pattern as bookingReminderScheduler); the cron
+ *  route above remains available for external schedulers. Idempotent. */
+export function startDealSweepScheduler(): void {
+  if (sweepTimer || process.env.NODE_ENV === "test") return;
+  const raw = parseInt(process.env.DEAL_SWEEP_INTERVAL_MS || "", 10);
+  const interval = Number.isFinite(raw) && raw >= 60_000 ? raw : SWEEP_DEFAULT_INTERVAL_MS;
+  const tick = () => {
+    sweepProtectedPaymentDeals().catch((e) => console.error("[DEAL:SWEEP] tick failed:", e?.message));
+  };
+  sweepTimer = setInterval(tick, interval);
+  if (typeof sweepTimer.unref === "function") sweepTimer.unref();
+  setTimeout(tick, 30_000).unref?.();
+  console.log(`[DEAL:SWEEP] scheduler started (every ${Math.round(interval / 1000)}s)`);
+}
 
 export { router as dealsRouter };

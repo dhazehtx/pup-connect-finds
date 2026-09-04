@@ -631,14 +631,16 @@ function DealsTab() {
   const [page, setPage] = useState(1);
   const [selectedDeal, setSelectedDeal] = useState<string | null>(null);
 
+  // apiRequest, NOT raw fetch: the Express authMiddleware authenticates ONLY via
+  // the Supabase Bearer token (never cookies), so these reads 401'd before.
   const dealsQuery = useQuery<{ deals: any[]; total: number }>({
     queryKey: ['/api/deals/admin/all', statusFilter, page],
-    queryFn: () => fetch(`/api/deals/admin/all?status=${statusFilter}&page=${page}&limit=20`, { credentials: 'include' }).then(r => r.json()),
+    queryFn: () => apiRequest(`/api/deals/admin/all?status=${statusFilter}&page=${page}&limit=20`),
   });
 
   const dealDetailQuery = useQuery<any>({
     queryKey: ['/api/deals', selectedDeal],
-    queryFn: () => fetch(`/api/deals/${selectedDeal}`, { credentials: 'include' }).then(r => r.json()),
+    queryFn: () => apiRequest(`/api/deals/${selectedDeal}`),
     enabled: !!selectedDeal,
   });
 

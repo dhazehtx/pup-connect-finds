@@ -68,12 +68,23 @@ export async function startPayout(req: Request, res: Response) {
       console.log("[PAYOUT] Using existing account:", stripeAccountId);
     }
 
-    // --- Create account link
+    // --- Create account link. An optional returnTo (in-app path only — never a
+    // full URL, so this cannot open-redirect) lets non-provider surfaces like a
+    // Protected Payment deal bring the seller back where they started; PAWS
+    // re-reads authoritative Connect status from Stripe on return.
+    const rawReturnTo = (req.body as any)?.returnTo;
+    const returnTo =
+      typeof rawReturnTo === "string" &&
+      rawReturnTo.startsWith("/") &&
+      !rawReturnTo.startsWith("//") &&
+      /^[A-Za-z0-9\-._~!$&'()*+,;=:@/?%]*$/.test(rawReturnTo)
+        ? rawReturnTo
+        : null;
     const link = await stripe.accountLinks.create({
       account: stripeAccountId,
       type: "account_onboarding",
-      refresh_url: `${origin}/services/onboarding/stripe/refresh`,
-      return_url: `${origin}/services/onboarding/stripe/return`,
+      refresh_url: returnTo ? `${origin}${returnTo}` : `${origin}/services/onboarding/stripe/refresh`,
+      return_url: returnTo ? `${origin}${returnTo}` : `${origin}/services/onboarding/stripe/return`,
     });
 
     console.log("[PAYOUT] Created onboarding link successfully");

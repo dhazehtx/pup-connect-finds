@@ -423,18 +423,21 @@ const ListingDetail = () => {
             </Button>
           ) : (
             <>
-              {/* Protected Payment CTA — only for eligible listings (active, priced
-                  at or above the server's Protected Payment minimum, not the
-                  viewer's own). The server derives the authoritative price, seller,
-                  and commission; this only carries the listing id. The /deals/pay
-                  route is auth-gated, so signed-out users go through auth.
-                  2.50 mirrors MIN_PROTECTED_PAYMENT_TOTAL_CENTS in
-                  server/routes/deals.ts (20% deposit must clear Stripe's $0.50
-                  minimum charge) — the server independently enforces it. */}
+              {/* Protected Payment CTA — only for eligible listings (browsable
+                  status, priced at or above the server's Protected Payment
+                  minimum, not the viewer's own). The server derives the
+                  authoritative price, seller, and commission; this only carries
+                  the listing id. The /deals/pay route is auth-gated and the
+                  intended destination survives sign-in. 2.50 mirrors
+                  MIN_PROTECTED_PAYMENT_TOTAL_CENTS in server/routes/deals.ts
+                  (20% deposit must clear Stripe's $0.50 minimum charge) — the
+                  server independently enforces it, as it does the 'active'/
+                  'available' purchasable statuses (both browsable in Explore). */}
               {listing &&
                 listing.user_id &&
                 Number(listing.price) >= 2.5 &&
-                (listing.status === 'active' || listing.listing_status === 'active') && (
+                (['active', 'available'].includes(listing.status ?? '') ||
+                  ['active', 'available'].includes(listing.listing_status ?? '')) && (
                   <Button
                     onClick={(e) => {
                       e.preventDefault();
@@ -452,7 +455,8 @@ const ListingDetail = () => {
                 listing.user_id &&
                 Number(listing.price) > 0 &&
                 Number(listing.price) < 2.5 &&
-                (listing.status === 'active' || listing.listing_status === 'active') && (
+                (['active', 'available'].includes(listing.status ?? '') ||
+                  ['active', 'available'].includes(listing.listing_status ?? '')) && (
                   <p className="w-full text-xs text-gray-500">
                     Protected Payment is available for sale prices of $2.50 and up.
                   </p>

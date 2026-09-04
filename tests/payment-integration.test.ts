@@ -116,8 +116,11 @@ describe('the canonical webhook consumes exactly the required event set', () => 
 describe('v1 monetization policy (product decision 2026-08-31)', () => {
   it('rehoming and shelter/rescue protected payments carry 0% PAWS commission', () => {
     const deals = read('server/routes/deals.ts');
+    const rules = read('server/lib/dealRules.ts');
     expect(deals).toMatch(/commissionExempt = listing\.rehoming === true \|\| listing\.seller_user_type === 'shelter'/);
-    expect(deals).toMatch(/commissionExempt \? 0 :/);
+    // fee math now lives in the pure, behaviorally-tested dealRules module
+    expect(deals).toMatch(/computeDealAmounts\(totalCents, PLATFORM_FEE_BPS, commissionExempt\)/);
+    expect(rules).toMatch(/commissionExempt \? 0 :/);
     // the fee is derived from listing + seller type, never from the client
     expect(deals).toMatch(/l\.rehoming/);
     expect(deals).toMatch(/p\.user_type AS seller_user_type/);
